@@ -1,0 +1,11 @@
+{
+    "services": [
+      { "id": 1, "name": "Plumbing", "description": "Expert plumbing services" },
+      { "id": 2, "name": "Electrician", "description": "Certified electrical services" }
+    ],
+    "categories": [
+      { "id": 1, "name": "Home Services" },
+      { "id": 2, "name": "Auto Services" }
+    ]
+  }
+  

@@ -1,0 +1,20 @@
+/* index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+html {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* Good for mobile browser tap highlight */
+}
+
+body {
+  margin: 0;
+  font-family: 'Open Sans', sans-serif; /* Tailwind will apply the font from the config */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Use Tailwind classes like bg-neutral-light for background colors */
+}
+
+/* Headings will inherit the font from Tailwind's fontFamily.heading */
+/* Use Tailwind text color classes like text-neutral-dark for text colors */
