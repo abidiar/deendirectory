@@ -1,5 +1,14 @@
-"scripts": {
-  "start": "node server/server.js",
-  "build": "cd client && npm run build",
-  "postinstall": "npm run build"
+{
+  "name": "deendirectory",
+  "version": "1.0.0",
+  "description": "A full-stack application for DeenDirectory",
+  "scripts": {
+    "start": "node server/server.js",
+    "build": "cd client && npm run build",
+    "postinstall": "npm run build"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
 }
