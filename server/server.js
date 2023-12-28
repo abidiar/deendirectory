@@ -63,6 +63,11 @@ app.get('/api/services/new-near-you', async (req, res) => {
         const values = [longitude, latitude, radius];
 
         const result = await pool.query(query, values);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'No new services found near you' });
+        }
+
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching new services:', error);
