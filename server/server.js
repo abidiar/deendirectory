@@ -11,6 +11,9 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Trust the proxy to get the real IP address for rate limiting
+app.set('trust proxy', true);
+
 // PostgreSQL connection setup
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
