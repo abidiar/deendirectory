@@ -18,7 +18,7 @@ function NewNearYou() {
   }
 
   function fetchNewNearYouServices(latitude, longitude) {
-    fetch(`https://deendirectorybackend.onrender.com/api/services/new-near-you?latitude=${latitude}&longitude=${longitude}`)
+    fetch(`https://deendirectorybackend.onrender.com/services/api/services/new-near-you?latitude=${latitude}&longitude=${longitude}`)
       .then(response => response.json())
       .then(data => setServices(data))
       .catch(err => {
