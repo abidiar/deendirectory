@@ -53,7 +53,7 @@ app.get('/api/v1/example', (req, res) => {
 });
 
 // "New Near You" API Endpoint
-app.get('/server/api/services/new-near-you', async (req, res) => {
+app.get('/api/services/new-near-you', async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
     const radius = 40233.6; // 25 miles in meters
