@@ -9,7 +9,7 @@ const { Pool } = require('pg');
 const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 10000;
 
 // Trust the proxy to get the real IP address for rate limiting
 app.set('trust proxy', 1);
