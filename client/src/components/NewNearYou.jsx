@@ -10,6 +10,7 @@ function NewNearYou() {
 
   function success(position) {
     const { latitude, longitude } = position.coords;
+    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`); // Logging the coordinates
     fetchNewNearYouServices(latitude, longitude);
   }
 
@@ -18,7 +19,9 @@ function NewNearYou() {
   }
 
   function fetchNewNearYouServices(latitude, longitude) {
-    fetch(`https://deendirectorybackend.onrender.com/api/services/new-near-you/NewNearYou?latitude=${latitude}&longitude=${longitude}`)
+    const fetchUrl = `https://deendirectorybackend.onrender.com/api/services/new-near-you/NewNearYou?latitude=${latitude}&longitude=${longitude}`;
+    console.log(`Fetching data from: ${fetchUrl}`); // Logging the fetch URL
+    fetch(fetchUrl)
       .then(response => response.json())
       .then(data => setServices(data))
       .catch(err => {
