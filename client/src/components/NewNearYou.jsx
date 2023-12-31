@@ -21,12 +21,21 @@ function NewNearYou() {
   function fetchNewNearYouServices(latitude, longitude) {
     const fetchUrl = `https://deendirectorybackend.onrender.com/api/services/new-near-you/NewNearYou?latitude=${latitude}&longitude=${longitude}`;
     console.log(`Fetching data from: ${fetchUrl}`); // Logging the fetch URL
+
     fetch(fetchUrl)
-      .then(response => response.json())
-      .then(data => setServices(data))
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Data received:', data); // Log the received data
+        setServices(data);
+      })
       .catch(err => {
-        console.error('Error:', err);
-        setLocationError('Failed to fetch services');
+        console.error('Fetch Error:', err);
+        setLocationError(`Failed to fetch services: ${err.message}`);
       });
   }
 
