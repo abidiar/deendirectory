@@ -84,12 +84,16 @@ app.get('/api/services/new-near-you', async (req, res) => {
 });
 
 // Serve static files from the React app in the 'client' directory
+// This should be after all API routes
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
-// The "catchall" handler: for any request that doesn't
-// match one of the above, send back the frontend's index.html file.
+// The "catchall" handler: specifically for frontend routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+  } else {
+    res.status(404).send('API route not found');
+  }
 });
 
 // Global error handling middleware
