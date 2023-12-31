@@ -11,23 +11,17 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Trust the proxy to get the real IP address for rate limiting
 app.set('trust proxy', 1);
 
-// PostgreSQL connection setup
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? {
-    rejectUnauthorized: false
-  } : false
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
 });
 
-// Middleware
-// Configure CORS with specific origin
 app.use(cors({
-  origin: 'https://deendirectory.onrender.com', // your frontend's domain
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Allowed HTTP methods
-  credentials: true, // Credentials are allowed
+  origin: 'https://deendirectory.onrender.com',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
 }));
 app.use(helmet());
 app.use(compression());
@@ -35,24 +29,21 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Apply rate limiting to all requests
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100
 });
 app.use(limiter);
 
-// Basic route for testing
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-// Versioned API route example
 app.get('/api/v1/example', (req, res) => {
   res.json({ message: 'This is an example API endpoint for version 1' });
 });
 
-// "New Near You" API Endpoint
+// "New Near You" API Endpoint with improved error handling
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
@@ -69,7 +60,6 @@ app.get('/api/services/new-near-you', async (req, res) => {
     `;
 
     const values = [longitude, latitude, radius];
-
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
@@ -79,15 +69,12 @@ app.get('/api/services/new-near-you', async (req, res) => {
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching new services:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
-// Serve static files from the React app in the 'client' directory
-// This should be after all API routes
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
-// The "catchall" handler: specifically for frontend routes
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api/')) {
     res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
@@ -96,13 +83,11 @@ app.get('*', (req, res) => {
   }
 });
 
-// Global error handling middleware
 app.use((error, req, res, next) => {
   console.error(error.stack);
   res.status(500).send('Something broke!');
 });
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
