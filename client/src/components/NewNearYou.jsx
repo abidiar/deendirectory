@@ -1,4 +1,6 @@
+// NewNearYou.jsx
 import React, { useState, useEffect } from 'react';
+import Card from './Card'; // Import the Card component
 
 function NewNearYou() {
   const [services, setServices] = useState([]);
@@ -44,11 +46,13 @@ function NewNearYou() {
       <h2 className="text-2xl font-bold text-primary-dark mb-4">New Near You</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {services.map((service) => (
-          <div key={service.id} className="max-w-sm rounded overflow-hidden shadow-lg bg-neutral-light p-6">
-            <div className="font-bold text-xl mb-2 text-neutral-dark">{service.name}</div>
-            <p className="text-neutral-dark text-base">{service.description}</p>
-            {/* Additional details can be added here */}
-          </div>
+          <Card
+            key={service.id}
+            id={service.id}
+            title={service.name}
+            description={service.description}
+            imageUrl={service.imageUrl} // Replace this with your actual image URL field
+          />
         ))}
       </div>
     </div>

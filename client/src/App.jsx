@@ -3,9 +3,10 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar';
-import MainLayout from './components/MainLayout';
+import MainLayout from './components/MainLayout'; // Includes NewNearYou
 import Footer from './components/Footer';
 import HomeServices from './components/HomeServices';
+import BusinessPage from './components/BusinessPage'; // Business detail page
 
 function App() {
   return (
@@ -14,9 +15,10 @@ function App() {
         <Navbar />
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<MainLayout />} />
+            <Route path="/" element={<MainLayout />} /> {/* MainLayout includes NewNearYou */}
             <Route path="/home-services" element={<HomeServices />} />
-            {/* Define other routes as needed */}
+            <Route path="/business/:id" element={<BusinessPage />} />
+            {/* Other routes */}
           </Routes>
         </main>
         <Footer />
