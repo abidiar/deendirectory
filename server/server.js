@@ -43,7 +43,6 @@ app.get('/api/v1/example', (req, res) => {
   res.json({ message: 'This is an example API endpoint for version 1' });
 });
 
-// "New Near You" API Endpoint with enhanced error logging
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
@@ -68,12 +67,8 @@ app.get('/api/services/new-near-you', async (req, res) => {
 
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching new services:', error.stack || error);
-    res.status(500).json({
-      error: 'Internal Server Error',
-      message: error.message,
-      stack: error.stack // Remove this line in production for security reasons
-    });
+    console.error('Error fetching new services:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -88,8 +83,8 @@ app.get('*', (req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  console.error('Unhandled application error:', error.stack || error);
-  res.status(500).send('Something broke!');
+  console.error('Unhandled application error:', error);
+  res.status(500).send('An error occurred.');
 });
 
 app.listen(port, () => {
