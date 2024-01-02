@@ -1,7 +1,7 @@
 // SearchResultsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import Card from './Card'; // Assuming you have a Card component
+import Card from './Card'; // Assuming you have a Card component to display each search result
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -28,12 +28,19 @@ function SearchResultsPage() {
           return response.json();
         })
         .then(data => {
-          setSearchResults(data);
+          if (!Array.isArray(data)) {
+            console.error('Expected search results to be an array, but got:', data);
+            setSearchResults([]); // Reset to empty array if not array
+            setSearchError('No search results');
+          } else {
+            setSearchResults(data);
+          }
           setIsLoading(false);
         })
         .catch(error => {
           console.error('Search request failed:', error);
           setSearchError('Failed to fetch search results');
+          setSearchResults([]); // Reset to empty array on error
           setIsLoading(false);
         });
     }
@@ -46,7 +53,12 @@ function SearchResultsPage() {
       {!isLoading && searchResults && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {searchResults.map(result => (
-            <Card key={result.id} /* other props */ />
+            <Card
+              key={result.id}
+              title={result.name}
+              description={result.description}
+              imageUrl={result.image || '/placeholder-image.jpg'} // Replace with actual image property if available
+            />
           ))}
         </div>
       )}
