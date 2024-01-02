@@ -4,20 +4,41 @@ import { useParams } from 'react-router-dom';
 function BusinessPage() {
   const { id } = useParams();
   const [business, setBusiness] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Fetch the business details based on the id
-    // Example: fetch(`https://api.example.com/business/${id}`).then(...);
+    setIsLoading(true);
+    fetch(`https://deendirectorybackend.onrender.com/api/business/${id}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Business not found');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setBusiness(data);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setIsLoading(false);
+      });
   }, [id]);
 
-  if (!business) {
+  if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
   return (
     <div>
       <h1>{business.name}</h1>
-      {/* Render other business details */}
+      <p>{business.description}</p>
+      {/* Add more details you want to display */}
     </div>
   );
 }

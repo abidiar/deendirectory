@@ -7,7 +7,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 const path = require('path');
-const fetch = require('node-fetch');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -88,8 +88,7 @@ app.get('/api/search', async (req, res) => {
     const result = await pool.query(searchQuery, values);
 
     if (result.rows.length === 0) {
-      // Instead of returning 404, return 200 with a custom message
-      return res.status(200).json({ message: 'No results found' });
+      return res.status(200).json({ message: 'No results found' }); // Custom message for no results
     }
 
     res.json(result.rows);
@@ -125,6 +124,24 @@ app.get('/api/services/new-near-you', async (req, res) => {
   } catch (error) {
     console.error('Error fetching new services:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Business Detail API Endpoint
+app.get('/api/business/:id', async (req, res) => {
+  const businessId = req.params.id;
+  try {
+    const businessQuery = 'SELECT * FROM services WHERE id = $1;';
+    const businessResult = await pool.query(businessQuery, [businessId]);
+
+    if (businessResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    res.json(businessResult.rows[0]);
+  } catch (error) {
+    console.error('Error fetching business details:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
