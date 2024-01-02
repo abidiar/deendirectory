@@ -88,7 +88,8 @@ app.get('/api/search', async (req, res) => {
     const result = await pool.query(searchQuery, values);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'No services found matching your criteria' });
+      // Instead of returning 404, return 200 with a custom message
+      return res.status(200).json({ message: 'No results found' });
     }
 
     res.json(result.rows);
