@@ -43,6 +43,7 @@ app.get('/api/v1/example', (req, res) => {
   res.json({ message: 'This is an example API endpoint for version 1' });
 });
 
+// "New Near You" API Endpoint
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
     const { latitude, longitude } = req.query;
@@ -69,6 +70,39 @@ app.get('/api/services/new-near-you', async (req, res) => {
   } catch (error) {
     console.error('Error fetching new services:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Search API Endpoint
+app.get('/api/search', async (req, res) => {
+  try {
+    const { searchTerm, location } = req.query;
+
+    // Validate the input
+    if (!searchTerm || !location) {
+      return res.status(400).json({ message: 'Search term and location are required' });
+    }
+
+    // Use ILIKE for case-insensitive matching and % for partial matches
+    // Adjust the query as needed based on your search requirements
+    const searchQuery = `
+      SELECT id, name, description, latitude, longitude, location, date_added
+      FROM services
+      WHERE name ILIKE $1 OR description ILIKE $1
+      AND ST_DWithin(location, ST_MakePoint($2, $3)::geography, 10000)  -- 10km radius, adjust as needed
+      ORDER BY date_added DESC;`;
+    const values = [`%${searchTerm}%`, longitude, latitude];  // Assuming you're passing longitude and latitude for location
+
+    const result = await pool.query(searchQuery, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'No services found matching your criteria' });
+    }
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error executing search query:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
