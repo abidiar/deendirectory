@@ -3,9 +3,10 @@ import Hero from './Hero';
 import FeaturedCategories from './FeaturedCategories';
 import NewNearYou from './NewNearYou';
 import ProfessionalCallToAction from './ProfessionalCallToAction';
+import Card from './Card'; // Assuming you have a Card component to display each service
 
 function MainLayout() {
-  const [searchResults, setSearchResults] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
 
@@ -37,13 +38,15 @@ function MainLayout() {
       <Hero onSearch={handleSearch} />
       {isLoading && <div>Loading...</div>}
       {searchError && <div className="text-red-500">{searchError}</div>}
-      {!isLoading && searchResults && (
-        <div>
-          {/* Render search results here */}
+      {!isLoading && searchResults && Array.isArray(searchResults) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {searchResults.map(result => (
-            <div key={result.id}>
-              {/* Display result details */}
-            </div>
+            <Card
+              key={result.id}
+              title={result.name}
+              description={result.description}
+              imageUrl={result.image || '/placeholder-image.jpg'} // Replace with actual image property if available
+            />
           ))}
         </div>
       )}
