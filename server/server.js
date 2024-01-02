@@ -7,6 +7,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 const path = require('path');
+const fetch = require('node-fetch');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -43,6 +44,59 @@ app.get('/api/v1/example', (req, res) => {
   res.json({ message: 'This is an example API endpoint for version 1' });
 });
 
+// Function to convert zip code to coordinates using OpenCage
+async function convertZipCodeToCoordinates(zipCode) {
+  const apiKey = process.env.OPENCAGE_API_KEY; // Your OpenCage API Key
+  const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(zipCode)}&key=${apiKey}&limit=1`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      const { lat, lng } = data.results[0].geometry;
+      return { latitude: lat, longitude: lng };
+    } else {
+      throw new Error('No results found for the given zip code');
+    }
+  } catch (error) {
+    console.error('Error in convertZipCodeToCoordinates:', error);
+    throw error;
+  }
+}
+
+// Search API Endpoint using OpenCage to convert zip code
+app.get('/api/search', async (req, res) => {
+  try {
+    const { searchTerm, zipCode } = req.query;
+
+    // Validate input
+    if (!searchTerm || !zipCode) {
+      return res.status(400).json({ message: 'Search term and zip code are required' });
+    }
+
+    // Convert zip code to coordinates
+    const { latitude, longitude } = await convertZipCodeToCoordinates(zipCode);
+
+    // Construct search query using latitude and longitude
+    const searchQuery = `
+      SELECT * FROM services
+      WHERE name ILIKE $1
+      AND ST_DWithin(location, ST_MakePoint($2, $3)::geography, 10000)
+      ORDER BY date_added DESC;`;
+    const values = [`%${searchTerm}%`, longitude, latitude];
+
+    const result = await pool.query(searchQuery, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'No services found matching your criteria' });
+    }
+
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 // "New Near You" API Endpoint
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
@@ -70,39 +124,6 @@ app.get('/api/services/new-near-you', async (req, res) => {
   } catch (error) {
     console.error('Error fetching new services:', error);
     res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// Search API Endpoint
-app.get('/api/search', async (req, res) => {
-  try {
-    const { searchTerm, location } = req.query;
-
-    // Validate the input
-    if (!searchTerm || !location) {
-      return res.status(400).json({ message: 'Search term and location are required' });
-    }
-
-    // Use ILIKE for case-insensitive matching and % for partial matches
-    // Adjust the query as needed based on your search requirements
-    const searchQuery = `
-      SELECT id, name, description, latitude, longitude, location, date_added
-      FROM services
-      WHERE name ILIKE $1 OR description ILIKE $1
-      AND ST_DWithin(location, ST_MakePoint($2, $3)::geography, 10000)  -- 10km radius, adjust as needed
-      ORDER BY date_added DESC;`;
-    const values = [`%${searchTerm}%`, longitude, latitude];  // Assuming you're passing longitude and latitude for location
-
-    const result = await pool.query(searchQuery, values);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'No services found matching your criteria' });
-    }
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error executing search query:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
