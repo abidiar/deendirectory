@@ -45,9 +45,9 @@ app.get('/api/v1/example', (req, res) => {
 });
 
 // Function to convert zip code to coordinates using OpenCage
-async function convertZipCodeToCoordinates(zipCode) {
+async function convertZipCodeToCoordinates(location) {
   const apiKey = process.env.OPENCAGE_API_KEY; // Your OpenCage API Key
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(zipCode)}&key=${apiKey}&limit=1`;
+  const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${apiKey}&limit=1`;
 
   try {
     const response = await fetch(url);
@@ -56,7 +56,7 @@ async function convertZipCodeToCoordinates(zipCode) {
       const { lat, lng } = data.results[0].geometry;
       return { latitude: lat, longitude: lng };
     } else {
-      throw new Error('No results found for the given zip code');
+      throw new Error('No results found for the given location');
     }
   } catch (error) {
     console.error('Error in convertZipCodeToCoordinates:', error);
@@ -67,15 +67,15 @@ async function convertZipCodeToCoordinates(zipCode) {
 // Search API Endpoint using OpenCage to convert zip code
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, zipCode } = req.query;
+    const { searchTerm, location } = req.query;
 
     // Validate input
-    if (!searchTerm || !zipCode) {
-      return res.status(400).json({ message: 'Search term and zip code are required' });
+    if (!searchTerm || !location) {
+      return res.status(400).json({ message: 'Search term and location are required' });
     }
 
     // Convert zip code to coordinates
-    const { latitude, longitude } = await convertZipCodeToCoordinates(zipCode);
+    const { latitude, longitude } = await convertZipCodeToCoordinates(location);
 
     // Construct search query using latitude and longitude
     const searchQuery = `

@@ -30,7 +30,7 @@ function SearchBar({ onSearch }) {
           <input
             type="text"
             className="w-1/4 p-4 focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Zipcode"
+            placeholder="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
