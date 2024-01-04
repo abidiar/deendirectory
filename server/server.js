@@ -87,9 +87,8 @@ app.get('/api/search', async (req, res) => {
     const searchQuery = `
       SELECT * FROM services
       WHERE name ILIKE $1
-      AND ST_DWithin(location, ST_MakePoint($2, $3)::geography, 10000)
       ORDER BY date_added DESC;`;
-    const values = [`%${searchTerm}%`, longitude, latitude];
+    const values = [`%${searchTerm}%`];
 
     const result = await pool.query(searchQuery, values);
 
