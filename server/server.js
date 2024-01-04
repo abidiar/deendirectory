@@ -75,15 +75,12 @@ app.get('/api/search', async (req, res) => {
   try {
     const { searchTerm, location } = req.query;
 
-    // Validate input
     if (!searchTerm || !location) {
       return res.status(400).json({ message: 'Search term and location are required' });
     }
 
-    // Convert zip code to coordinates
     const { latitude, longitude } = await convertZipCodeToCoordinates(location);
 
-    // Construct search query using latitude and longitude
     const searchQuery = `
       SELECT * FROM services
       WHERE name ILIKE $1
@@ -93,7 +90,7 @@ app.get('/api/search', async (req, res) => {
     const result = await pool.query(searchQuery, values);
 
     if (result.rows.length === 0) {
-      return res.status(200).json({ message: 'No results found' }); // Custom message for no results
+      return res.status(200).json({ message: 'No results found' });
     }
 
     res.json(result.rows);
@@ -156,7 +153,6 @@ app.use(express.static(path.join(__dirname, '../client/dist')));
 app.use(express.static(path.join(__dirname, '../client/dist'), {
   setHeaders: (res, path) => {
     if (express.static.mime.lookup(path) === 'text/html') {
-      // Custom Cache-Control for HTML files
       res.setHeader('Cache-Control', 'public, max-age=0');
     }
   }
