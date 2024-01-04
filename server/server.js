@@ -7,7 +7,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 const path = require('path');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -35,6 +35,12 @@ const limiter = rateLimit({
   max: 100
 });
 app.use(limiter);
+
+// Set Cache-Control for API responses
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -146,6 +152,16 @@ app.get('/api/business/:id', async (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Cache-Control for static files
+app.use(express.static(path.join(__dirname, '../client/dist'), {
+  setHeaders: (res, path) => {
+    if (express.static.mime.lookup(path) === 'text/html') {
+      // Custom Cache-Control for HTML files
+      res.setHeader('Cache-Control', 'public, max-age=0');
+    }
+  }
+}));
 
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api/')) {
