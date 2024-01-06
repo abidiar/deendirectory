@@ -99,22 +99,55 @@ app.get('/api/search', async (req, res) => {
 });
 
 app.get('/api/services/new-near-you', async (req, res) => {
-  // ... existing new-near-you endpoint logic ...
+  try {
+    const { latitude, longitude } = req.query;
+    const radius = 40233.6; // 25 miles in meters
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ message: 'Latitude and longitude are required' });
+    }
+
+    const query = `
+      SELECT * FROM services
+      WHERE ST_DWithin(
+        location,
+        ST_MakePoint($1, $2)::GEOGRAPHY,
+        $3
+      ) AND date_added >= current_date - interval '30 days'
+      ORDER BY date_added DESC;
+    `;
+
+    const values = [longitude, latitude, radius];
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'No new services found near you' });
+    }
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching new services:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 app.get('/api/business/:id', async (req, res) => {
-  // ... existing business detail endpoint logic ...
+  const businessId = req.params.id;
+  try {
+    const businessQuery = 'SELECT * FROM services WHERE id = $1;';
+    const businessResult = await pool.query(businessQuery, [businessId]);
+
+    if (businessResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    res.json(businessResult.rows[0]);
+  } catch (error) {
+    console.error('Error fetching business details:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
 });
 
-app.use(express.static(path.join(__dirname, '../client/dist')));
-
-app.use(express.static(path.join(__dirname, '../client/dist'), {
-  setHeaders: (res, path) => {
-    if (express.static.mime.lookup(path) === 'text/html') {
-      res.setHeader('Cache-Control', 'public, max-age=0');
-    }
-  }
-}));
 
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api/')) {

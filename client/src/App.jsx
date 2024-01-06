@@ -7,6 +7,8 @@ import Footer from './components/Footer';
 import HomeServices from './components/HomeServices';
 import SearchResultsPage from './components/SearchResultsPage'; // Make sure to import this
 import BusinessPage from './components/BusinessPage'; // Business detail page
+import Babysitters from './components/Babysitters'; // Placeholder import
+import Cleaners from './components/Cleaners';  
 
 function App() {
   return (
