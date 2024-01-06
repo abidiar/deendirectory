@@ -17,6 +17,8 @@ function App() {
           <Routes>
             <Route path="/" element={<MainLayout />} /> {/* MainLayout includes NewNearYou */}
             <Route path="/home-services" element={<HomeServices />} />
+            <Route path="/home-services/babysitters" element={<Babysitters />} />
+            <Route path="/home-services/cleaners" element={<Cleaners />} />
             <Route path="/search-results" element={<SearchResultsPage />} /> {/* Search results route */}
             <Route path="/business/:id" element={<BusinessPage />} /> {/* Individual business route */}
             {/* Other routes can be added here as needed */}

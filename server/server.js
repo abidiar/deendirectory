@@ -124,6 +124,49 @@ app.get('*', (req, res) => {
   }
 });
 
+// GET /api/categories - Fetch all categories
+app.get('/api/categories', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM categories;');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/services/cleaners', async (req, res) => {
+  try {
+    const cleanersQuery = 'SELECT * FROM services WHERE category_id = (SELECT id FROM categories WHERE name = \'Cleaners\');';
+    const cleaners = await pool.query(cleanersQuery);
+
+    if (cleaners.rows.length === 0) {
+      return res.status(404).json({ message: 'No cleaners found' });
+    }
+
+    res.json(cleaners.rows);
+  } catch (error) {
+    console.error('Error fetching cleaners:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/services/babysitters', async (req, res) => {
+  try {
+    const babysittersQuery = 'SELECT * FROM services WHERE category_id = (SELECT id FROM categories WHERE name = \'Babysitters\');';
+    const babysitters = await pool.query(babysittersQuery);
+
+    if (babysitters.rows.length === 0) {
+      return res.status(404).json({ message: 'No babysitters found' });
+    }
+
+    res.json(babysitters.rows);
+  } catch (error) {
+    console.error('Error fetching babysitters:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.use((error, req, res, next) => {
   console.error('Unhandled application error:', error);
   res.status(500).send('An error occurred.');
