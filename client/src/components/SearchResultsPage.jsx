@@ -1,4 +1,3 @@
-// SearchResultsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Card from './Card'; // Assuming you have a Card component to display each service
@@ -14,12 +13,21 @@ function SearchResultsPage() {
   const query = useQuery();
   const searchTerm = query.get('searchTerm');
   const location = query.get('location');
+  const latitude = query.get('latitude');
+  const longitude = query.get('longitude');
 
   useEffect(() => {
-    if (searchTerm && location) {
+    if (searchTerm) {
       setIsLoading(true);
       setSearchError('');
-      const searchUrl = `https://deendirectorybackend.onrender.com/api/search?searchTerm=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(location)}`;
+      let searchUrl = `https://deendirectorybackend.onrender.com/api/search?searchTerm=${encodeURIComponent(searchTerm)}`;
+
+      // Append location or coordinates to the URL based on what is available
+      if (location) {
+        searchUrl += `&location=${encodeURIComponent(location)}`;
+      } else if (latitude && longitude) {
+        searchUrl += `&latitude=${latitude}&longitude=${longitude}`;
+      }
 
       fetch(searchUrl)
         .then(response => {
@@ -30,11 +38,9 @@ function SearchResultsPage() {
         })
         .then(data => {
           if (data.message) {
-            // No results found, set an empty array for searchResults
             setSearchResults([]);
             setSearchError(data.message);
           } else {
-            // Data found, update searchResults
             setSearchResults(data);
           }
           setIsLoading(false);
@@ -45,7 +51,7 @@ function SearchResultsPage() {
           setIsLoading(false);
         });
     }
-  }, [searchTerm, location]);
+  }, [searchTerm, location, latitude, longitude]);
 
   return (
     <div>

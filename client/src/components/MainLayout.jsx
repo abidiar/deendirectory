@@ -9,7 +9,16 @@ function MainLayout() {
   let navigate = useNavigate();
 
   const handleSearch = (searchTerm, location) => {
-    navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(location)}`);
+    if (location) {
+      navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(location)}`);
+    } else {
+      navigator.geolocation.getCurrentPosition((position) => {
+        navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm)}&latitude=${position.coords.latitude}&longitude=${position.coords.longitude}`);
+      }, (err) => {
+        console.error(err);
+        alert('Unable to retrieve your location');
+      });
+    }
   };
 
   return (
