@@ -9,59 +9,57 @@ const { Pool } = require('pg');
 const path = require('path');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
+// Initialize Express app
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Trust the first proxy when behind a reverse proxy on Render.com
 app.set('trust proxy', 1);
 
+// Create a new PostgreSQL pool using connection string from environment variable
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
 });
 
+// CORS configuration
 app.use(cors({
-  origin: 'https://deendirectory.onrender.com',
+  origin: 'https://deendirectory.onrender.com', // Make sure this matches the domain of your frontend application
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
+
+// Security-related HTTP headers
 app.use(helmet());
+
+// GZIP compression
 app.use(compression());
+
+// HTTP request logger
 app.use(morgan('dev'));
+
+// Parse JSON and url-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Apply rate limiting to all requests
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
 
+// API route for the homepage to verify the server is running
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
+// API route example for version 1
 app.get('/api/v1/example', (req, res) => {
   res.json({ message: 'This is an example API endpoint for version 1' });
 });
 
-async function convertZipCodeToCoordinates(location) {
-  const apiKey = process.env.OPENCAGE_API_KEY;
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${apiKey}&limit=1`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    if (data.results && data.results.length > 0) {
-      const { lat, lng } = data.results[0].geometry;
-      return { latitude: lat, longitude: lng };
-    } else {
-      throw new Error('No results found for the given location');
-    }
-  } catch (error) {
-    console.error('Error in convertZipCodeToCoordinates:', error);
-    throw error;
-  }
-}
+// ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
 
 app.get('/api/search', async (req, res) => {
   try {
@@ -148,25 +146,18 @@ app.get('/api/business/:id', async (req, res) => {
   }
 });
 
-
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-  } else {
-    res.status(404).send('API route not found');
-  }
-});
-
-// GET /api/categories - Fetch all categories
+// API route to get all categories
 app.get('/api/categories', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM categories;');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
+// ... (Other API routes like /api/services/cleaners, /api/services/babysitters)
 
 app.get('/api/services/cleaners', async (req, res) => {
   try {
@@ -200,11 +191,25 @@ app.get('/api/services/babysitters', async (req, res) => {
   }
 });
 
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// All other GET requests not handled before will return the React app
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+  } else {
+    res.status(404).send('API route not found');
+  }
+});
+
+// Global error handler
 app.use((error, req, res, next) => {
   console.error('Unhandled application error:', error);
   res.status(500).send('An error occurred.');
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
