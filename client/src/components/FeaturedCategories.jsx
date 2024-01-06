@@ -12,7 +12,8 @@ function FeaturedCategories() {
       .then(response => response.json())
       .then(data => {
         setCategories(data);
-        if (data.length > 0) {
+        // Ensure data[0] and data[0].subcategories are defined and are arrays
+        if (data.length > 0 && Array.isArray(data[0].subcategories)) {
           setActiveCategory(data[0].name);
           setActiveSubCategories(data[0].subcategories);
         }
@@ -23,7 +24,8 @@ function FeaturedCategories() {
   const handleCategoryClick = (categoryName) => {
     const selectedCategory = categories.find(category => category.name === categoryName);
     setActiveCategory(categoryName);
-    setActiveSubCategories(selectedCategory ? selectedCategory.subcategories : []);
+    // Ensure selectedCategory.subcategories is defined and is an array
+    setActiveSubCategories(Array.isArray(selectedCategory?.subcategories) ? selectedCategory.subcategories : []);
   };
 
   return (
