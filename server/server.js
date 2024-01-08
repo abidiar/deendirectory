@@ -146,24 +146,33 @@ app.get('/api/business/:id', async (req, res) => {
   }
 });
 
-// API route to get all categories
+// Endpoint to get all categories with their subcategories
 app.get('/api/categories', async (req, res) => {
   try {
-    let result;
-
-    // Check if the 'ids' query parameter is provided
-    if (req.query.ids) {
-      // Fetch only the specified categories
-      const categoryIds = req.query.ids.split(',').map(id => parseInt(id));
-      result = await pool.query('SELECT * FROM categories WHERE id = ANY($1)', [categoryIds]);
-    } else {
-      // Fetch all categories if no specific IDs are provided
-      result = await pool.query('SELECT * FROM categories;');
-    }
-
-    res.json(result.rows);
+    const categoriesResult = await pool.query(`
+      SELECT c.id, c.name, c.parent_category_id, 
+      COALESCE(json_agg(sc.*) FILTER (WHERE sc.id IS NOT NULL), '[]') as subcategories
+      FROM categories c
+      LEFT JOIN categories sc ON c.id = sc.parent_category_id
+      GROUP BY c.id;
+    `);
+    res.json(categoriesResult.rows);
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error('Error fetching categories with subcategories:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
+// Endpoint to get services by subcategory ID
+app.get('/api/services/subcategory/:id', async (req, res) => {
+  const subcategoryId = parseInt(req.params.id);
+  try {
+    const servicesResult = await pool.query(`
+      SELECT * FROM services WHERE category_id = $1;
+    `, [subcategoryId]);
+    res.json(servicesResult.rows);
+  } catch (error) {
+    console.error('Error fetching services for subcategory:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
