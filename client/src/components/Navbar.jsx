@@ -33,7 +33,7 @@ function Navbar() {
             <div className="flex space-x-4">
               {/* Update this a tag to use Link if needed */}
               <Link to="/business-services" className="text-primary-dark hover:text-primary-light px-3 py-2 rounded-md text-sm font-medium">
-                For Businesses/Services
+                Add Businesses/Services
               </Link>
               {/* Additional links */}
             </div>
