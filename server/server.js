@@ -177,6 +177,27 @@ app.get('/api/services/subcategory/:id', async (req, res) => {
   }
 });
 
+app.get('/api/category/:id/services', async (req, res) => {
+  const categoryId = parseInt(req.params.id);
+  try {
+    // Query to select services from the selected category and its subcategories
+    const servicesQuery = `
+      WITH RECURSIVE subcategories AS (
+        SELECT id FROM categories WHERE id = $1
+        UNION ALL
+        SELECT c.id FROM categories c INNER JOIN subcategories s ON c.parent_category_id = s.id
+      )
+      SELECT s.* FROM services s INNER JOIN subcategories sc ON s.category_id = sc.id;
+    `;
+
+    const servicesResult = await pool.query(servicesQuery, [categoryId]);
+    res.json(servicesResult.rows);
+  } catch (error) {
+    console.error(`Error fetching services for category ${categoryId}:`, error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 // ... (Other API routes like /api/services/cleaners, /api/services/babysitters)
 
 app.get('/api/services/cleaners', async (req, res) => {
