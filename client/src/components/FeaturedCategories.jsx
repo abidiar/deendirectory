@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom';
 
 function FeaturedCategories() {
   const [categories, setCategories] = useState([]);
+  const featuredCategoryIds = '1,2,3,4,5'; // A comma-separated string of the featured category IDs
 
   useEffect(() => {
-    // Fetch categories from API
-    fetch('https://deendirectorybackend.onrender.com/api/categories')
+    // Fetch specific featured categories from API
+    fetch(`https://deendirectorybackend.onrender.com/api/categories?ids=${featuredCategoryIds}`)
       .then(response => response.json())
       .then(data => {
-        // Assuming each category item has an 'imageUrl' and 'name' property
         setCategories(data);
       })
-      .catch(error => console.error('Error fetching categories:', error));
+      .catch(error => console.error('Error fetching featured categories:', error));
   }, []);
 
   return (

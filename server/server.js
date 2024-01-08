@@ -149,7 +149,18 @@ app.get('/api/business/:id', async (req, res) => {
 // API route to get all categories
 app.get('/api/categories', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM categories;');
+    let result;
+
+    // Check if the 'ids' query parameter is provided
+    if (req.query.ids) {
+      // Fetch only the specified categories
+      const categoryIds = req.query.ids.split(',').map(id => parseInt(id));
+      result = await pool.query('SELECT * FROM categories WHERE id = ANY($1)', [categoryIds]);
+    } else {
+      // Fetch all categories if no specific IDs are provided
+      result = await pool.query('SELECT * FROM categories;');
+    }
+
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching categories:', error);
