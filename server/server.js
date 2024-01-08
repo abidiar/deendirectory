@@ -229,7 +229,6 @@ app.get('*', (req, res) => {
   }
 });
 
-
 // Endpoint to get services by category ID, including services in its subcategories
 app.get('/api/category/:id/services', async (req, res) => {
   const categoryId = parseInt(req.params.id);
@@ -238,18 +237,16 @@ app.get('/api/category/:id/services', async (req, res) => {
     const servicesQuery = `
       WITH RECURSIVE subcategories AS (
         SELECT id FROM categories WHERE id = $1
-        UNION
-        SELECT c.id FROM categories c
-        INNER JOIN subcategories s ON s.id = c.parent_category_id
+        UNION ALL
+        SELECT c.id FROM categories c INNER JOIN subcategories s ON c.parent_category_id = s.id
       )
-      SELECT s.* FROM services s
-      INNER JOIN subcategories sc ON s.category_id = sc.id;
+      SELECT s.* FROM services s INNER JOIN subcategories sc ON s.category_id = sc.id;
     `;
 
     const servicesResult = await pool.query(servicesQuery, [categoryId]);
     res.json(servicesResult.rows);
   } catch (error) {
-    console.error('Error fetching services for category:', error);
+    console.error(`Error fetching services for category ${categoryId}:`, error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
+
 function BusinessPage() {
   const { id } = useParams();
   const [business, setBusiness] = useState(null);
@@ -10,7 +11,7 @@ function BusinessPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`https://deendirectorybackend.onrender.com/api/business/${id}`)
+    fetch(`https://deendirectorybackend.onrender.com/api/services/${id}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Business not found');
