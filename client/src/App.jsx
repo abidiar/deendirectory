@@ -10,6 +10,7 @@ import BusinessPage from './components/BusinessPage'; // Business detail page
 import Babysitters from './components/Babysitters'; // Placeholder import
 import Cleaners from './components/Cleaners';
 import SubcategoryPage from './components/SubcategoryPage'; // Import the SubcategoryPage component
+import CategoryPage from './components/CategoryPage'; // Import the CategoryPage component
 
 function App() {
   return (
@@ -18,14 +19,15 @@ function App() {
         <Navbar />
         <main className="flex-grow">
           <Routes>
-            <Route path="/" element={<MainLayout />} /> {/* MainLayout includes NewNearYou */}
+            <Route path="/" element={<MainLayout />} />
             <Route path="/home-services" element={<HomeServices />} />
             <Route path="/home-services/babysitters" element={<Babysitters />} />
             <Route path="/home-services/cleaners" element={<Cleaners />} />
-            <Route path="/search-results" element={<SearchResultsPage />} /> {/* Search results route */}
-            <Route path="/business/:id" element={<BusinessPage />} /> {/* Individual business route */}
-            <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} /> {/* Subcategory route */}
-            {/* Other routes can be added here as needed */}
+            <Route path="/search-results" element={<SearchResultsPage />} />
+            <Route path="/business/:id" element={<BusinessPage />} />
+            <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
+            <Route path="/category/:categoryId" element={<CategoryPage />} /> {/* New route for CategoryPage */}
+            {/* Add other routes as needed */}
           </Routes>
         </main>
         <Footer />

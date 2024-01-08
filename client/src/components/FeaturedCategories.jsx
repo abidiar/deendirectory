@@ -10,8 +10,8 @@ function FeaturedCategories() {
     fetch(`https://deendirectorybackend.onrender.com/api/categories?ids=${featuredCategoryIds}`)
       .then(response => response.json())
       .then(data => {
-        // Filter out categories that do not have subcategories if needed
-        setCategories(data.filter(category => category.subcategories && category.subcategories.length > 0));
+        // Assuming that the API returns categories with a field 'subcategories' for each category
+        setCategories(data);
       })
       .catch(error => console.error('Error fetching featured categories:', error));
   }, []);
@@ -32,20 +32,6 @@ function FeaturedCategories() {
                 <h3 className="font-heading font-bold text-center text-white">{category.name}</h3>
               </div>
             </Link>
-            {category.subcategories && (
-              <div className="mt-3">
-                <strong>Subcategories:</strong>
-                <ul className="list-disc pl-5">
-                  {category.subcategories.map(subcategory => (
-                    <li key={subcategory.id}>
-                      <Link to={`/subcategory/${subcategory.id}`} className="text-primary hover:text-primary-dark transition-colors">
-                        {subcategory.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         ))}
       </div>

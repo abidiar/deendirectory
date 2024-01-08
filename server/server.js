@@ -211,6 +211,12 @@ app.get('/api/services/babysitters', async (req, res) => {
   }
 });
 
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('Unhandled application error:', error);
+  res.status(500).send('An error occurred.');
+});
+
 // Serve static files from the React app build directory
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
@@ -223,10 +229,29 @@ app.get('*', (req, res) => {
   }
 });
 
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error('Unhandled application error:', error);
-  res.status(500).send('An error occurred.');
+
+// Endpoint to get services by category ID, including services in its subcategories
+app.get('/api/category/:id/services', async (req, res) => {
+  const categoryId = parseInt(req.params.id);
+  try {
+    // Query to select services from the selected category and its subcategories
+    const servicesQuery = `
+      WITH RECURSIVE subcategories AS (
+        SELECT id FROM categories WHERE id = $1
+        UNION
+        SELECT c.id FROM categories c
+        INNER JOIN subcategories s ON s.id = c.parent_category_id
+      )
+      SELECT s.* FROM services s
+      INNER JOIN subcategories sc ON s.category_id = sc.id;
+    `;
+
+    const servicesResult = await pool.query(servicesQuery, [categoryId]);
+    res.json(servicesResult.rows);
+  } catch (error) {
+    console.error('Error fetching services for category:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
 });
 
 // Start the server
