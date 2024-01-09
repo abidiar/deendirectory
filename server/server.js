@@ -49,6 +49,29 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Utility function for converting zip code to coordinates
+async function convertZipCodeToCoordinates(zipCode) {
+  const apiKey = process.env.OPENCAGE_API_KEY; // Use the API key from environment variables
+  const url = `https://api.opencagedata.com/geocode/v1/json?q=${zipCode}&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.results.length > 0 && data.results[0].geometry) {
+      return {
+        latitude: data.results[0].geometry.lat,
+        longitude: data.results[0].geometry.lng
+      };
+    } else {
+      throw new Error('No results found for the given zip code.');
+    }
+  } catch (error) {
+    console.error('Error converting zip code to coordinates:', error);
+    throw error;
+  }
+}
+
 // API route for the homepage to verify the server is running
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -64,7 +87,6 @@ app.get('/api/v1/example', (req, res) => {
 app.get('/api/search', async (req, res) => {
   try {
     const { searchTerm, location, latitude, longitude } = req.query;
-
     if (!searchTerm) {
       return res.status(400).json({ message: 'Search term is required' });
     }
@@ -74,16 +96,17 @@ app.get('/api/search', async (req, res) => {
       coords = await convertZipCodeToCoordinates(location);
     } else if (latitude && longitude) {
       coords = { latitude: parseFloat(latitude), longitude: parseFloat(longitude) };
-    } else {
-      return res.status(400).json({ message: 'Location or coordinates are required' });
     }
 
-    const searchQuery = `
-      SELECT * FROM services
-      WHERE name ILIKE $1
-      ORDER BY date_added DESC;`;
-    const values = [`%${searchTerm}%`];
+    let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
+    let values = [`%${searchTerm}%`];
 
+    if (coords) {
+      searchQuery += ' AND ST_DWithin(location, ST_MakePoint($2, $3)::GEOGRAPHY, $4)';
+      values.push(coords.longitude, coords.latitude, 40233.6); // 25 mile radius
+    }
+
+    searchQuery += ' ORDER BY date_added DESC;';
     const result = await pool.query(searchQuery, values);
 
     if (result.rows.length === 0) {
@@ -92,6 +115,7 @@ app.get('/api/search', async (req, res) => {
 
     res.json(result.rows);
   } catch (error) {
+    console.error('Search error:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
