@@ -19,10 +19,11 @@ function SearchBar({ onSearch }) {
   };
 
   const isValidLocation = (location) => {
-    const cityStateRegex = /^[a-zA-Z\s]+,\s[A-Z]{2}$/; // Match city, state pattern
-    const zipCodeRegex = /^\d{5}$/; // Match 5-digit zip code
-
-    return cityStateRegex.test(location) || zipCodeRegex.test(location);
+    const trimmedLocation = location.trim(); // Trim whitespace
+    const cityStateRegex = /^[a-zA-Z\s]+,\s[A-Z]{2}$/i; // Case-insensitive
+    const zipCodeRegex = /^\d{5}$/;
+  
+    return cityStateRegex.test(trimmedLocation) || zipCodeRegex.test(trimmedLocation);
   };
 
   return (
