@@ -93,22 +93,32 @@ app.get('/api/search', async (req, res) => {
       return res.status(400).json({ message: 'Search term is required' });
     }
 
-    let coords = null;
-    if (location) {
-      coords = await fetchCoordinatesFromOpenCage(location);
-    } else if (latitude && longitude) {
-      coords = { latitude: parseFloat(latitude), longitude: parseFloat(longitude) };
-    }
-
     let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
     let values = [`%${searchTerm}%`];
 
-    if (coords) {
+    if (location) {
+      // Fetch coordinates from OpenCage if location is provided
+      try {
+        const coords = await fetchCoordinatesFromOpenCage(location);
+        if (coords) {
+          searchQuery += ' AND ST_DWithin(location, ST_MakePoint($2, $3)::GEOGRAPHY, $4)';
+          values.push(coords.longitude, coords.latitude, 40233.6); // Add coordinates and radius
+        } else {
+          console.error('Failed to fetch coordinates for location:', location);
+          // You might consider handling this case differently, e.g., informing the user or retrying
+        }
+      } catch (error) {
+        console.error('Error fetching coordinates from OpenCage API:', error);
+        // Handle the error appropriately, e.g., log it and potentially inform the user
+      }
+    } else if (latitude && longitude) {
+      // Use provided coordinates directly
       searchQuery += ' AND ST_DWithin(location, ST_MakePoint($2, $3)::GEOGRAPHY, $4)';
-      values.push(coords.longitude, coords.latitude, 40233.6); // 25 mile radius
+      values.push(longitude, latitude, 40233.6);
     }
 
     searchQuery += ' ORDER BY date_added DESC;';
+
     const result = await pool.query(searchQuery, values);
 
     if (result.rows.length === 0) {
