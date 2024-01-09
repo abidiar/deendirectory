@@ -129,7 +129,7 @@ app.get('/api/services/new-near-you', async (req, res) => {
   }
 });
 
-app.get('/api/business/:id', async (req, res) => {
+app.get('/api/services/:id', async (req, res) => {
   const businessId = req.params.id;
   try {
     const businessQuery = 'SELECT * FROM services WHERE id = $1;';
