@@ -5,12 +5,24 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 function SearchBar({ onSearch }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [location, setLocation] = useState('');
+  const [locationError, setLocationError] = useState('');
 
   const handleSearch = (event) => {
     event.preventDefault();
-    if (onSearch) {
-      onSearch(searchTerm, location);
+    if (isValidLocation(location)) {
+      if (onSearch) {
+        onSearch(searchTerm, location);
+      }
+    } else {
+      setLocationError('Please enter a valid location (e.g., city, state or zip code)');
     }
+  };
+
+  const isValidLocation = (location) => {
+    const cityStateRegex = /^[a-zA-Z\s]+,\s[A-Z]{2}$/; // Match city, state pattern
+    const zipCodeRegex = /^\d{5}$/; // Match 5-digit zip code
+
+    return cityStateRegex.test(location) || zipCodeRegex.test(location);
   };
 
   return (
@@ -19,7 +31,9 @@ function SearchBar({ onSearch }) {
         <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl">
           <input
             type="text"
-            className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            className={`flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary ${
+              locationError ? 'border-red-500' : ''
+            }`} // Add border color for visual feedback
             placeholder="Service or Business"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -28,7 +42,9 @@ function SearchBar({ onSearch }) {
           <span className="bg-gray-300 w-px h-10 self-center"></span>
           <input
             type="text"
-            className="w-1/4 p-4 focus:outline-none focus:ring-2 focus:ring-primary"
+            className={`w-1/4 p-4 focus:outline-none focus:ring-2 focus:ring-primary ${
+              locationError ? 'border-red-500' : ''
+            }`}
             placeholder="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
@@ -41,6 +57,7 @@ function SearchBar({ onSearch }) {
             <FontAwesomeIcon icon={faSearch} />
           </button>
         </div>
+        {locationError && <div className="text-red-500 text-sm">{locationError}</div>}
       </form>
     </div>
   );
