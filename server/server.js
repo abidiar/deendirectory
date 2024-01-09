@@ -149,16 +149,19 @@ app.get('/api/services/:id', async (req, res) => {
 // Endpoint to get all categories with their subcategories
 app.get('/api/categories', async (req, res) => {
   try {
-    const categoriesResult = await pool.query(`
-      SELECT c.id, c.name, c.parent_category_id, 
-      COALESCE(json_agg(sc.*) FILTER (WHERE sc.id IS NOT NULL), '[]') as subcategories
-      FROM categories c
-      LEFT JOIN categories sc ON c.id = sc.parent_category_id
-      GROUP BY c.id;
-    `);
-    res.json(categoriesResult.rows);
+    const ids = req.query.ids;
+    let query = 'SELECT * FROM categories';
+    let params = [];
+
+    if (ids) {
+      query += ' WHERE id = ANY($1::int[])';
+      params = [ids.split(',')]; // Split the string by commas and cast each to integer
+    }
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching categories with subcategories:', error);
+    console.error('Error fetching categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
@@ -194,6 +197,25 @@ app.get('/api/category/:id/services', async (req, res) => {
     res.json(servicesResult.rows);
   } catch (error) {
     console.error(`Error fetching services for category ${categoryId}:`, error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
+app.get('/api/category/:id/businesses', async (req, res) => {
+  const categoryId = parseInt(req.params.id);
+  try {
+    const query = `
+      WITH RECURSIVE subcategories AS (
+        SELECT id FROM categories WHERE id = $1
+        UNION ALL
+        SELECT c.id FROM categories c JOIN subcategories s ON c.parent_category_id = s.id
+      )
+      SELECT s.* FROM services s JOIN subcategories sc ON s.category_id = sc.id;
+    `;
+    const result = await pool.query(query, [categoryId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(`Error fetching businesses for category ${categoryId}:`, error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });

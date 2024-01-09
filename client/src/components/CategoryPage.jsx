@@ -2,17 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 function CategoryPage() {
-  const [services, setServices] = useState([]);
-  const { categoryId } = useParams();
-
-  useEffect(() => {
-    fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/services`)
-      .then(response => response.json())
-      .then(data => {
-        setServices(data);
-      })
-      .catch(error => console.error('Error fetching services:', error));
-  }, [categoryId]);
+    const { categoryId } = useParams();
+    const [businesses, setBusinesses] = useState([]);
+  
+    useEffect(() => {
+      fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/businesses`)
+        .then(response => response.json())
+        .then(data => setBusinesses(data))
+        .catch(error => console.error('Error:', error));
+    }, [categoryId]);
 
   return (
     <div className="bg-neutral-light">

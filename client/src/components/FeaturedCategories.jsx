@@ -3,17 +3,17 @@ import { Link } from 'react-router-dom';
 
 function FeaturedCategories() {
   const [categories, setCategories] = useState([]);
-  const featuredCategoryIds = '1,8,3,7,5'; // Adjusted to include some example category IDs
+  const featuredCategoryIds = [1, 8, 3, 7, 5]; // The IDs of categories to feature
 
   useEffect(() => {
-    // Fetch specific featured categories from API
-    fetch(`https://deendirectorybackend.onrender.com/api/categories?ids=${featuredCategoryIds}`)
+    fetch(`https://deendirectorybackend.onrender.com/api/categories`)
       .then(response => response.json())
       .then(data => {
-        // Assuming that the API returns categories with a field 'subcategories' for each category
-        setCategories(data);
+        // Filter the categories to only include the featured ones
+        const featured = data.filter(category => featuredCategoryIds.includes(category.id));
+        setCategories(featured);
       })
-      .catch(error => console.error('Error fetching featured categories:', error));
+      .catch(error => console.error('Error fetching categories:', error));
   }, []);
 
   return (
