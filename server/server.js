@@ -11,7 +11,6 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 
 // Initialize Express app
 const app = express();
-const port = process.env.PORT || 5000;
 
 // Trust the first proxy when behind a reverse proxy on Render.com
 app.set('trust proxy', 1);
@@ -322,6 +321,6 @@ app.get('/api/category/:id/services', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 // Start the server
-app.listen(port, () => {
+app.listen(PORT, () => {
   console.log(`Server is running on port ${port}`);
 });
