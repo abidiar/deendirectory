@@ -1,7 +1,5 @@
-// BusinessPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-
 
 function BusinessPage() {
   const { id } = useParams();
@@ -29,18 +27,31 @@ function BusinessPage() {
   }, [id]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl font-heading text-primary-dark">Loading...</div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl font-heading text-accent-coral">Error: {error}</div>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1>{business.name}</h1>
-      <p>{business.description}</p>
-      {/* Add more details you want to display */}
+    <div className="bg-neutral-light min-h-screen">
+      <div className="container mx-auto p-6">
+        <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+          <h1 className="text-4xl font-heading font-bold text-primary-dark mb-4">{business.name}</h1>
+          <p className="text-neutral-dark">{business.description}</p>
+          {/* Add more details you want to display */}
+        </div>
+        {/* Add other sections or components related to the business here */}
+      </div>
     </div>
   );
 }
