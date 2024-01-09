@@ -1,4 +1,3 @@
-// SearchBar.js
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -24,8 +23,8 @@ function SearchBar({ onSearch }) {
             placeholder="Service or Business"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search for services or businesses"
           />
-          {/* Vertical Divider */}
           <span className="bg-gray-300 w-px h-10 self-center"></span>
           <input
             type="text"
@@ -33,6 +32,7 @@ function SearchBar({ onSearch }) {
             placeholder="Location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+            aria-label="Location"
           />
           <button
             type="submit"
