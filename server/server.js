@@ -51,26 +51,25 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Utility function for converting zip code to coordinates
-async function convertLocationToCoordinates(location) {
+// Utility function to directly fetch coordinates from OpenCage API
+async function fetchCoordinatesFromOpenCage(location) {
   const apiKey = process.env.OPENCAGE_API_KEY;
   const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${apiKey}`;
 
   try {
     const response = await fetch(url);
     const data = await response.json();
-
     if (data.results.length > 0 && data.results[0].geometry) {
       return {
         latitude: data.results[0].geometry.lat,
         longitude: data.results[0].geometry.lng
       };
     } else {
-      throw new Error('No results found for the given location.');
+      return null; // No coordinates found
     }
   } catch (error) {
-    console.error('Error converting location to coordinates:', error);
-    throw error;
+    console.error('Error fetching coordinates:', error);
+    return null;
   }
 }
 
@@ -89,13 +88,14 @@ app.get('/api/v1/example', (req, res) => {
 app.get('/api/search', async (req, res) => {
   try {
     const { searchTerm, location, latitude, longitude } = req.query;
+
     if (!searchTerm) {
       return res.status(400).json({ message: 'Search term is required' });
     }
 
-    let coords;
+    let coords = null;
     if (location) {
-      coords = await convertLocationToCoordinates(location);
+      coords = await fetchCoordinatesFromOpenCage(location);
     } else if (latitude && longitude) {
       coords = { latitude: parseFloat(latitude), longitude: parseFloat(longitude) };
     }
