@@ -1,4 +1,3 @@
-// SearchResultsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Card from './Card'; // Assuming you have a Card component for displaying each service
@@ -18,8 +17,16 @@ function SearchResultsPage() {
   const longitude = query.get('longitude');
 
   useEffect(() => {
+    // Check if the required query parameters are present
+    if (!searchTerm) {
+      setSearchError('Search term is missing.');
+      return;
+    }
+
     setIsLoading(true);
     let searchUrl = `https://deendirectorybackend.onrender.com/api/search?searchTerm=${encodeURIComponent(searchTerm)}`;
+
+    // Check if location or latitude and longitude are present and add them to the search URL
     if (location) {
       searchUrl += `&location=${encodeURIComponent(location)}`;
     } else if (latitude && longitude) {
@@ -29,17 +36,22 @@ function SearchResultsPage() {
     fetch(searchUrl)
       .then(response => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          // If the HTTP status code is not ok, throw an error with the status text
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         return response.json();
       })
       .then(data => {
+        // Check if the data structure includes an array for search results
+        if (!Array.isArray(data)) {
+          throw new Error('Data format is incorrect, expected an array.');
+        }
         setSearchResults(data);
         setIsLoading(false);
       })
       .catch(error => {
         console.error('Search request failed:', error);
-        setSearchError('Failed to fetch search results');
+        setSearchError(error.message); // Set the error message to state
         setIsLoading(false);
       });
   }, [searchTerm, location, latitude, longitude]);
@@ -61,7 +73,7 @@ function SearchResultsPage() {
           ))}
         </div>
       )}
-      {!isLoading && searchResults && searchResults.length === 0 && <div>No results found.</div>}
+      {!isLoading && !searchError && searchResults && searchResults.length === 0 && <div>No results found.</div>}
     </div>
   );
 }
