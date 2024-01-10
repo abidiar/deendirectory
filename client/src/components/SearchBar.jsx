@@ -26,7 +26,7 @@ function SearchBar({ onSearch }) {
   // Function to convert coordinates to a readable location
   const fetchLocationName = async (latitude, longitude) => {
     // Example API call (use your own implementation/backend call here)
-    const apiKey = 'YOUR_OPENCAGE_API_KEY'; // Replace with your API key
+    const apiKey = '79ab6a8bbb7846a898018bac23bbb538'; // Replace with your API key
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
 
     try {
