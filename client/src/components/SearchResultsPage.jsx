@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import Card from './Card'; // Assuming you have a Card component for displaying each service
+import { LocationContext } from '../context/LocationContext'; // Assuming this context provides the backendUrl
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -15,18 +16,17 @@ function SearchResultsPage() {
   const location = query.get('location');
   const latitude = query.get('latitude');
   const longitude = query.get('longitude');
+  const { backendUrl } = useContext(LocationContext); // Retrieve the backendUrl from context
 
   useEffect(() => {
-    // Check if the required query parameters are present
     if (!searchTerm) {
       setSearchError('Search term is missing.');
       return;
     }
 
     setIsLoading(true);
-    let searchUrl = `https://deendirectorybackend.onrender.com/api/search?searchTerm=${encodeURIComponent(searchTerm)}`;
+    let searchUrl = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm)}`;
 
-    // Check if location or latitude and longitude are present and add them to the search URL
     if (location) {
       searchUrl += `&location=${encodeURIComponent(location)}`;
     } else if (latitude && longitude) {
@@ -34,29 +34,29 @@ function SearchResultsPage() {
     }
 
     fetch(searchUrl)
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(errorData => {
-          throw new Error(`HTTP ${response.status}: ${errorData.message || response.statusText}`);
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (!Array.isArray(data)) {
-        setSearchError('Data format is incorrect, expected an array of results.');
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errorData => {
+            throw new Error(`HTTP ${response.status}: ${errorData.message || response.statusText}`);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          setSearchError('Data format is incorrect, expected an array of results.');
+          setIsLoading(false);
+        } else {
+          setSearchResults(data);
+          setIsLoading(false);
+        }
+      })
+      .catch(error => {
+        console.error('Search request failed:', error);
+        setSearchError(error.message);
         setIsLoading(false);
-      } else {
-        setSearchResults(data);
-        setIsLoading(false);
-      }
-    })
-    .catch(error => {
-      console.error('Search request failed:', error);
-      setSearchError(error.message);
-      setIsLoading(false);
-    });
-}, [searchTerm, location, latitude, longitude]);
+      });
+  }, [searchTerm, location, latitude, longitude, backendUrl]);
 
   return (
     <div>
