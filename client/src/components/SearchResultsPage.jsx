@@ -34,27 +34,29 @@ function SearchResultsPage() {
     }
 
     fetch(searchUrl)
-      .then(response => {
-        if (!response.ok) {
-          // If the HTTP status code is not ok, throw an error with the status text
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        // Check if the data structure includes an array for search results
-        if (!Array.isArray(data)) {
-          throw new Error('Data format is incorrect, expected an array.');
-        }
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(`HTTP ${response.status}: ${errorData.message || response.statusText}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (!Array.isArray(data)) {
+        setSearchError('Data format is incorrect, expected an array of results.');
+        setIsLoading(false);
+      } else {
         setSearchResults(data);
         setIsLoading(false);
-      })
-      .catch(error => {
-        console.error('Search request failed:', error);
-        setSearchError(error.message); // Set the error message to state
-        setIsLoading(false);
-      });
-  }, [searchTerm, location, latitude, longitude]);
+      }
+    })
+    .catch(error => {
+      console.error('Search request failed:', error);
+      setSearchError(error.message);
+      setIsLoading(false);
+    });
+}, [searchTerm, location, latitude, longitude]);
 
   return (
     <div>
