@@ -26,7 +26,7 @@ const pool = new Pool({
 
 // CORS configuration
 app.use(cors({
-  origin: 'https://deendirectory.onrender.com', // Make sure this matches the domain of your frontend application
+  origin: 'https://deendirectory.onrender.com',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
 }));
@@ -85,9 +85,10 @@ app.get('/api/v1/example', (req, res) => {
 
 // ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
 
+// API route for search
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, location, latitude, longitude } = req.query;
+    const { searchTerm, location } = req.query;
 
     if (!searchTerm) {
       return res.status(400).json({ message: 'Search term is required' });
@@ -97,32 +98,19 @@ app.get('/api/search', async (req, res) => {
     let values = [`%${searchTerm}%`];
 
     if (location) {
-      // Fetch coordinates from OpenCage if location is provided
-      try {
-        const coords = await fetchCoordinatesFromOpenCage(location);
-        if (coords) {
-          searchQuery += ' AND ST_DWithin(location, ST_MakePoint($2, $3)::GEOGRAPHY, $4)';
-          values.push(coords.longitude, coords.latitude, 40233.6); // Add coordinates and radius
-        } else {
-          console.error('Failed to fetch coordinates for location:', location);
-          // You might consider handling this case differently, e.g., informing the user or retrying
-        }
-      } catch (error) {
-        console.error('Error fetching coordinates from OpenCage API:', error);
-        // Handle the error appropriately, e.g., log it and potentially inform the user
+      const coords = await fetchCoordinatesFromOpenCage(location);
+      if (coords) {
+        searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
+        values.push(coords.longitude, coords.latitude, 40233.6); // 25 miles in meters
+      } else {
+        return res.status(404).json({ message: 'Coordinates for the provided location could not be found' });
       }
-    } else if (latitude && longitude) {
-      // Use provided coordinates directly
-      searchQuery += ' AND ST_DWithin(location, ST_MakePoint($2, $3)::GEOGRAPHY, $4)';
-      values.push(longitude, latitude, 40233.6);
     }
-
-    searchQuery += ' ORDER BY date_added DESC;';
 
     const result = await pool.query(searchQuery, values);
 
     if (result.rows.length === 0) {
-      return res.status(200).json({ message: 'No results found' });
+      return res.status(200).json([]);
     }
 
     res.json(result.rows);
