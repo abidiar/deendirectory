@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
@@ -6,6 +6,42 @@ function SearchBar({ onSearch }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [location, setLocation] = useState('');
   const [locationError, setLocationError] = useState('');
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        // Call a function to convert coordinates to a readable location
+        const userLocation = await fetchLocationName(latitude, longitude);
+        setLocation(userLocation);
+      }, (error) => {
+        console.error('Geolocation error:', error);
+        setLocationError('Failed to retrieve your location.');
+      });
+    } else {
+      setLocationError('Geolocation is not supported by this browser.');
+    }
+  }, []);
+
+  // Function to convert coordinates to a readable location
+  const fetchLocationName = async (latitude, longitude) => {
+    // Example API call (use your own implementation/backend call here)
+    const apiKey = 'YOUR_OPENCAGE_API_KEY'; // Replace with your API key
+    const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.results.length > 0) {
+        return data.results[0].formatted; // Adjust based on the API response structure
+      } else {
+        throw new Error('No location found');
+      }
+    } catch (error) {
+      console.error('Error fetching location name:', error);
+      return ''; // Return empty string or a default value
+    }
+  };
 
   const handleSearch = (event) => {
     event.preventDefault();
