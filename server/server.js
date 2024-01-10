@@ -51,6 +51,25 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Utility function to reverse geocode using OpenCage API
+async function reverseGeocode(latitude, longitude) {
+  const apiKey = process.env.OPENCAGE_API_KEY;
+  const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.results.length > 0) {
+      return data.results[0].formatted; // or any other format you need
+    } else {
+      return null; // No location found
+    }
+  } catch (error) {
+    console.error('Error in reverse geocoding:', error);
+    return null;
+  }
+}
+
 // Utility function to directly fetch coordinates from OpenCage API
 async function fetchCoordinatesFromOpenCage(location) {
   const apiKey = process.env.OPENCAGE_API_KEY;
@@ -84,6 +103,21 @@ app.get('/api/v1/example', (req, res) => {
 });
 
 // ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
+
+app.get('/api/reverse-geocode', async (req, res) => {
+  const { latitude, longitude } = req.query;
+
+  if (!latitude || !longitude) {
+    return res.status(400).json({ error: 'Latitude and longitude are required.' });
+  }
+
+  const locationName = await reverseGeocode(latitude, longitude);
+  if (locationName) {
+    res.json({ location: locationName });
+  } else {
+    res.status(404).json({ error: 'Location not found.' });
+  }
+});
 
 // API route for search
 app.get('/api/search', async (req, res) => {

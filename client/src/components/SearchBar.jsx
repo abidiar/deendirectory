@@ -23,25 +23,21 @@ function SearchBar({ onSearch }) {
     }
   }, []);
 
-  // Function to convert coordinates to a readable location
-  const fetchLocationName = async (latitude, longitude) => {
-    // Example API call (use your own implementation/backend call here)
-    const apiKey = '79ab6a8bbb7846a898018bac23bbb538'; // Replace with your API key
-    const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.results.length > 0) {
-        return data.results[0].formatted; // Adjust based on the API response structure
-      } else {
-        throw new Error('No location found');
-      }
-    } catch (error) {
-      console.error('Error fetching location name:', error);
-      return ''; // Return empty string or a default value
+// Function to convert coordinates to a readable location
+const fetchLocationName = async (latitude, longitude) => {
+  try {
+    const response = await fetch(`/api/reverse-geocode?latitude=${latitude}&longitude=${longitude}`);
+    const data = await response.json();
+    if (response.ok) {
+      return data.location; // Adjust based on your backend response structure
+    } else {
+      throw new Error(data.error || 'Failed to fetch location name');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching location name:', error);
+    return ''; // Return empty string or a default value
+  }
+};
 
   const handleSearch = (event) => {
     event.preventDefault();
