@@ -1,99 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
+import { LocationContext } from '../context/LocationContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 function SearchBar({ onSearch }) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [location, setLocation] = useState('');
-  const [locationError, setLocationError] = useState('');
+    const { location } = useContext(LocationContext);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [searchError, setSearchError] = useState('');
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        // Call a function to convert coordinates to a readable location
-        const userLocation = await fetchLocationName(latitude, longitude);
-        setLocation(userLocation);
-      }, (error) => {
-        console.error('Geolocation error:', error);
-        setLocationError('Failed to retrieve your location.');
-      });
-    } else {
-      setLocationError('Geolocation is not supported by this browser.');
-    }
-  }, []);
+    const handleSearch = async (event) => {
+        event.preventDefault();
+        setIsLoading(true);
+        setSearchError('');
 
-// Function to convert coordinates to a readable location
-const fetchLocationName = async (latitude, longitude) => {
-  try {
-    const response = await fetch(`/api/reverse-geocode?latitude=${latitude}&longitude=${longitude}`);
-    const data = await response.json();
-    if (response.ok) {
-      return data.location; // Adjust based on your backend response structure
-    } else {
-      throw new Error(data.error || 'Failed to fetch location name');
-    }
-  } catch (error) {
-    console.error('Error fetching location name:', error);
-    return ''; // Return empty string or a default value
-  }
-};
+        try {
+            // Construct the API URL based on your backend route for searching
+            const url = `/api/search?searchTerm=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(location)}`;
+            const response = await fetch(url);
+            const data = await response.json();
 
-  const handleSearch = (event) => {
-    event.preventDefault();
-    if (isValidLocation(location)) {
-      if (onSearch) {
-        onSearch(searchTerm, location);
-      }
-    } else {
-      setLocationError('Please enter a valid location (e.g., city, state or zip code)');
-    }
-  };
+            if (response.ok) {
+                onSearch(data); // Assuming `onSearch` is a prop function to handle search results
+                setIsLoading(false);
+            } else {
+                throw new Error(data.message || 'Error occurred while searching');
+            }
+        } catch (error) {
+            console.error('Search error:', error);
+            setSearchError(error.message);
+            setIsLoading(false);
+        }
+    };
 
-  const isValidLocation = (location) => {
-    const trimmedLocation = location.trim(); // Trim whitespace
-    const cityStateRegex = /^[a-zA-Z\s]+,\s[A-Z]{2}$/i; // Case-insensitive
-    const zipCodeRegex = /^\d{5}$/;
-  
-    return cityStateRegex.test(trimmedLocation) || zipCodeRegex.test(trimmedLocation);
-  };
-
-  return (
-    <div className="mt-6">
-      <form className="flex justify-center" onSubmit={handleSearch}>
-        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl">
-          <input
-            type="text"
-            className={`flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary ${
-              locationError ? 'border-red-500' : ''
-            }`} // Add border color for visual feedback
-            placeholder="Service or Business"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Search for services or businesses"
-          />
-          <span className="bg-gray-300 w-px h-10 self-center"></span>
-          <input
-            type="text"
-            className={`w-1/4 p-4 focus:outline-none focus:ring-2 focus:ring-primary ${
-              locationError ? 'border-red-500' : ''
-            }`}
-            placeholder="Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            aria-label="Location"
-          />
-          <button
-            type="submit"
-            className="bg-accent-coral text-white rounded-r-lg p-4 hover:bg-accent-coral-dark focus:bg-accent-coral-dark focus:outline-none transition-colors duration-200"
-          >
-            <FontAwesomeIcon icon={faSearch} />
-          </button>
+    return (
+        <div className="mt-6">
+            <form className="flex justify-center" onSubmit={handleSearch}>
+                <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl">
+                    <input
+                        type="text"
+                        className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Service or Business"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        aria-label="Search for services or businesses"
+                    />
+                    <span className="bg-gray-300 w-px h-10 self-center"></span>
+                    <input
+                        type="text"
+                        className="w-1/4 p-4 focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Location"
+                        value={location}
+                        onChange={(e) => {/* handle location change if needed */}}
+                        aria-label="Location"
+                    />
+                    <button
+                        type="submit"
+                        className="bg-accent-coral text-white rounded-r-lg p-4 hover:bg-accent-coral-dark focus:bg-accent-coral-dark focus:outline-none transition-colors duration-200"
+                        disabled={isLoading}
+                    >
+                        <FontAwesomeIcon icon={faSearch} />
+                    </button>
+                </div>
+                {isLoading && <div>Loading...</div>}
+                {searchError && <div className="text-red-500">{searchError}</div>}
+            </form>
         </div>
-        {locationError && <div className="text-red-500 text-sm">{locationError}</div>}
-      </form>
-    </div>
-  );
+    );
 }
 
 export default SearchBar;

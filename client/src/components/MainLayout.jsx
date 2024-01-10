@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero from './Hero';
 import FeaturedCategories from './FeaturedCategories';
 import NewNearYou from './NewNearYou';
 import ProfessionalCallToAction from './ProfessionalCallToAction';
+import { LocationContext } from '../context/LocationContext';
 
 function MainLayout() {
+  const { location } = useContext(LocationContext);
   let navigate = useNavigate();
 
   const handleSearch = (searchTerm, location) => {
