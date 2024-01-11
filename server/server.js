@@ -51,44 +51,27 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Utility function to reverse geocode using OpenCage API
-async function reverseGeocode(latitude, longitude) {
-  const apiKey = process.env.OPENCAGE_API_KEY;
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
+// Replace fetchCoordinatesFromOpenCage with fetchCoordinatesFromGoogle
+async function fetchCoordinatesFromGoogle(location) {
+  const apiKey = process.env.GOOGLE_GEO_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
 
   try {
-    const response = await fetch(url);
-    const data = await response.json();
-    if (data.results.length > 0) {
-      return data.results[0].formatted; // or any other format you need
-    } else {
-      return null; // No location found
-    }
-  } catch (error) {
-    console.error('Error in reverse geocoding:', error);
-    return null;
-  }
-}
+      const response = await fetch(url);
+      const data = await response.json();
 
-// Utility function to directly fetch coordinates from OpenCage API
-async function fetchCoordinatesFromOpenCage(location) {
-  const apiKey = process.env.OPENCAGE_API_KEY;
-  const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    if (data.results.length > 0 && data.results[0].geometry) {
-      return {
-        latitude: data.results[0].geometry.lat,
-        longitude: data.results[0].geometry.lng
-      };
-    } else {
-      return null; // No coordinates found
-    }
+      if (data.status === 'OK' && data.results.length > 0) {
+          const geometry = data.results[0].geometry.location;
+          return {
+              latitude: geometry.lat,
+              longitude: geometry.lng
+          };
+      } else {
+          return null;
+      }
   } catch (error) {
-    console.error('Error fetching coordinates:', error);
-    return null;
+      console.error('Error fetching coordinates from Google:', error);
+      return null;
   }
 }
 
@@ -104,56 +87,38 @@ app.get('/api/v1/example', (req, res) => {
 
 // ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
 
-app.get('/api/reverse-geocode', async (req, res) => {
-  const { latitude, longitude } = req.query;
-
-  if (!latitude || !longitude) {
-    return res.status(400).json({ error: 'Latitude and longitude are required.' });
-  }
-
-  const locationName = await reverseGeocode(latitude, longitude);
-  if (locationName) {
-    res.json({ location: locationName });
-  } else {
-    res.status(404).json({ error: 'Location not found.' });
-  }
-});
-
 // API route for search
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, location } = req.query;
+      const { searchTerm, location } = req.query;
 
-    if (!searchTerm) {
-      return res.status(400).json({ message: 'Search term is required' });
-    }
-
-    let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
-    let values = [`%${searchTerm}%`];
-
-    if (location) {
-      const coords = await fetchCoordinatesFromOpenCage(location);
-      if (coords) {
-        searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
-        values.push(coords.longitude, coords.latitude, 40233.6);
-      } else {
-        return res.status(404).json({ message: 'Could not find coordinates for the given location' });
+      if (!searchTerm) {
+          return res.status(400).json({ message: 'Search term is required' });
       }
-    } else {
-      // Optionally handle cases where location is not provided
-      // e.g., return res.status(400).json({ message: 'Location is required' });
-    }
 
-    const result = await pool.query(searchQuery, values);
+      let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
+      let values = [`%${searchTerm}%`];
 
-    if (result.rows.length === 0) {
-      return res.status(200).json([]);
-    }
+      if (location) {
+          const coords = await fetchCoordinatesFromGoogle(location);  // Using Google's API function
+          if (coords) {
+              searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
+              values.push(coords.longitude, coords.latitude, 40233.6); // 25 miles in meters
+          } else {
+              return res.status(404).json({ message: 'Could not find coordinates for the given location' });
+          }
+      }
 
-    res.json(result.rows);
+      const result = await pool.query(searchQuery, values);
+
+      if (result.rows.length === 0) {
+          return res.status(200).json([]);
+      }
+
+      res.json(result.rows);
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+      console.error('Search error:', error);
+      res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
