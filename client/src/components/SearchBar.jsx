@@ -10,11 +10,11 @@ function SearchBar({ onSearch }) {
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState('');
 
-    const handleSearch = async (event) => {
-        event.preventDefault();
-        const currentSearchTerm = event.target.searchTerm.value; // Directly using the value from the form
+const handleSearch = async (event) => {
+    event.preventDefault();
+        const currentSearchTerm = searchTerm.trim();
 
-        if (!currentSearchTerm.trim()) {
+        if (!currentSearchTerm) {
             setSearchError('Please enter a search term');
             return;
         }

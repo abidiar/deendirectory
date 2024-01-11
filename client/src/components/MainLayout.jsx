@@ -7,8 +7,13 @@ import ProfessionalCallToAction from './ProfessionalCallToAction';
 import { LocationContext } from '../context/LocationContext';
 
 function MainLayout() {
-  const { location, backendUrl } = useContext(LocationContext); // Added backendUrl
+  const { location, backendUrl } = useContext(LocationContext);
   let navigate = useNavigate();
+
+  const handleLocationError = (err) => {
+    console.error(err);
+    // Update your state or UI to show the error message as needed
+  };
 
   const handleSearch = (searchTerm, locationInput) => {
     if (locationInput) {
@@ -16,10 +21,7 @@ function MainLayout() {
     } else {
       navigator.geolocation.getCurrentPosition((position) => {
         navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm)}&latitude=${position.coords.latitude}&longitude=${position.coords.longitude}`);
-      }, (err) => {
-        console.error(err);
-        alert('Unable to retrieve your location');
-      });
+      }, handleLocationError);
     }
   };
 

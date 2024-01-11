@@ -128,16 +128,19 @@ app.get('/api/search', async (req, res) => {
       return res.status(400).json({ message: 'Search term is required' });
     }
 
+    // Adjusted to ensure search works without location
     let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
     let values = [`%${searchTerm}%`];
 
+    // Only add location-based search if location is provided
     if (location) {
       const coords = await fetchCoordinatesFromOpenCage(location);
       if (coords) {
         searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
         values.push(coords.longitude, coords.latitude, 40233.6); // 25 miles in meters
       } else {
-        return res.status(404).json({ message: 'Coordinates for the provided location could not be found' });
+        // Provide a clear error message if coordinates can't be fetched
+        return res.status(404).json({ message: 'Could not find coordinates for the given location' });
       }
     }
 
