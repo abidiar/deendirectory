@@ -51,6 +51,30 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Add this function to convert city and state to coordinates
+async function convertCityStateToCoords(city, state) {
+  const apiKey = process.env.GOOGLE_GEO_API_KEY;
+  const location = `${city}, ${state}`;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status === 'OK' && data.results.length > 0) {
+      return {
+        latitude: data.results[0].geometry.location.lat,
+        longitude: data.results[0].geometry.location.lng,
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error converting city and state to coordinates:', error);
+    return null;
+  }
+}
+
 // Replace fetchCoordinatesFromOpenCage with fetchCoordinatesFromGoogle
 async function fetchCoordinatesFromGoogle(location) {
   const apiKey = process.env.GOOGLE_GEO_API_KEY;
@@ -152,6 +176,51 @@ app.get('/api/services/new-near-you', async (req, res) => {
   } catch (error) {
     console.error('Error fetching new services:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Endpoint to add a new service
+app.post('/api/services/add', async (req, res) => {
+  const { name, description, category_id, city, state } = req.body;
+  const coords = await convertCityStateToCoords(city, state);
+
+  if (!coords) {
+    return res.status(400).json({ message: 'Invalid city or state' });
+  }
+
+  try {
+    const insertQuery = `
+      INSERT INTO services (name, description, latitude, longitude, location, date_added, category_id)
+      VALUES ($1, $2, $3, $4, ST_MakePoint($3, $4), NOW(), $5)
+      RETURNING *;
+    `;
+    const values = [name, description, coords.latitude, coords.longitude, category_id];
+    const result = await pool.query(insertQuery, values);
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error adding service:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
+// Endpoint to add a new service
+app.post('/api/services/add', async (req, res) => {
+  const { name, description, latitude, longitude, category_id } = req.body;
+
+  try {
+      const insertQuery = `
+          INSERT INTO services (name, description, latitude, longitude, location, date_added, category_id)
+          VALUES ($1, $2, $3, $4, ST_MakePoint($3, $4), NOW(), $5)
+          RETURNING *;
+      `;
+      const values = [name, description, latitude, longitude, category_id];
+      const result = await pool.query(insertQuery, values);
+
+      res.status(201).json(result.rows[0]);
+  } catch (error) {
+      console.error('Error adding service:', error);
+      res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 

@@ -12,6 +12,7 @@ import Babysitters from './components/Babysitters';
 import Cleaners from './components/Cleaners';
 import SubcategoryPage from './components/SubcategoryPage';
 import CategoryPage from './components/CategoryPage';
+import AddServicePage from './pages/AddServicePage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
               <Route path="/business/:id" element={<BusinessPage />} />
               <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
               <Route path="/category/:categoryId" element={<CategoryPage />} />
+              <Route path="/add-service" element={<AddServicePage />} />
               {/* Add other routes as needed */}
             </Routes>
           </main>
