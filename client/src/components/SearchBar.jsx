@@ -32,7 +32,8 @@ function SearchBar({ onSearch }) {
             const data = await response.json();
 
             if (response.ok) {
-                onSearch(data);
+                // Temporary hardcoded call to onSearch for diagnostic purposes
+                onSearch('test search term', 'test location input');
             } else {
                 throw new Error(data.message || 'Error occurred while searching');
             }
