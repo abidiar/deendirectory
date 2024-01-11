@@ -4,19 +4,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 function SearchBar({ onSearch }) {
-    const { location, backendUrl } = useContext(LocationContext);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [locationInput, setLocationInput] = useState(location || '');
+    const { backendUrl } = useContext(LocationContext);
+    const [searchTerm, setSearchTerm] = useState(''); // Ensure this is always a string
+    const [locationInput, setLocationInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState('');
 
     const handleSearch = async (event) => {
         event.preventDefault();
+
+        // Defensive programming: Check if searchTerm is a string and then trim
+        const currentSearchTerm = typeof searchTerm === 'string' ? searchTerm.trim() : '';
         
-        // Use state searchTerm directly instead of event target value
-        const currentSearchTerm = searchTerm.trim();
-        
-        // Debug log to check the searchTerm before onSearch call
         console.log('Search Term before onSearch call:', currentSearchTerm);
 
         if (!currentSearchTerm) {
@@ -34,13 +33,13 @@ function SearchBar({ onSearch }) {
 
             if (response.ok) {
                 onSearch(data);
-                setIsLoading(false);
             } else {
                 throw new Error(data.message || 'Error occurred while searching');
             }
         } catch (error) {
             console.error('Search error:', error);
             setSearchError(error.message);
+        } finally {
             setIsLoading(false);
         }
     };
