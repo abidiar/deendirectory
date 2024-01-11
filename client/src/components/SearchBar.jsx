@@ -13,9 +13,7 @@ function SearchBar({ onSearch }) {
     const handleSearch = async (event) => {
         event.preventDefault();
 
-        // Defensive programming: Check if searchTerm is a string and then trim
         const currentSearchTerm = typeof searchTerm === 'string' ? searchTerm.trim() : '';
-        
         console.log('Search Term before onSearch call:', currentSearchTerm);
 
         if (!currentSearchTerm) {
@@ -32,8 +30,7 @@ function SearchBar({ onSearch }) {
             const data = await response.json();
 
             if (response.ok) {
-                // Temporary hardcoded call to onSearch for diagnostic purposes
-                onSearch('test search term', 'test location input');
+                onSearch(currentSearchTerm, locationInput);
             } else {
                 throw new Error(data.message || 'Error occurred while searching');
             }
