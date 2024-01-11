@@ -10,18 +10,26 @@ function MainLayout() {
   const { location, backendUrl } = useContext(LocationContext);
   let navigate = useNavigate();
 
-  const handleLocationError = (err) => {
-    console.error(err);
-    // Update your state or UI to show the error message as needed
-  };
-
   const handleSearch = (searchTerm, locationInput) => {
+    // Debug log to check the searchTerm
+    console.log('Received search term in MainLayout:', searchTerm);
+
+    if (!searchTerm.trim()) {
+      // Ideally, update your UI to reflect this error
+      console.error('Search term is missing.');
+      return;
+    }
+
     if (locationInput) {
       navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm)}&location=${encodeURIComponent(locationInput)}`);
     } else {
       navigator.geolocation.getCurrentPosition((position) => {
         navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm)}&latitude=${position.coords.latitude}&longitude=${position.coords.longitude}`);
-      }, handleLocationError);
+      }, (err) => {
+        console.error('Geolocation error:', err);
+        // Update state or UI to handle the error instead of alert
+        // setError('Unable to retrieve your location. Please enter it manually.');
+      });
     }
   };
 

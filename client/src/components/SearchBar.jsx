@@ -10,9 +10,14 @@ function SearchBar({ onSearch }) {
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState('');
 
-const handleSearch = async (event) => {
-    event.preventDefault();
+    const handleSearch = async (event) => {
+        event.preventDefault();
+        
+        // Use state searchTerm directly instead of event target value
         const currentSearchTerm = searchTerm.trim();
+        
+        // Debug log to check the searchTerm before onSearch call
+        console.log('Search Term before onSearch call:', currentSearchTerm);
 
         if (!currentSearchTerm) {
             setSearchError('Please enter a search term');
