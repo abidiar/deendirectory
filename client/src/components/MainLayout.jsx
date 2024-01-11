@@ -11,12 +11,13 @@ function MainLayout() {
   let navigate = useNavigate();
 
   const handleSearch = (searchTerm, locationInput) => {
-    // Debug log to check the searchTerm
     console.log('Received search term in MainLayout:', searchTerm);
+    console.log('Received location input in MainLayout:', locationInput);
 
-    if (!searchTerm.trim()) {
-      // Ideally, update your UI to reflect this error
-      console.error('Search term is missing.');
+    // Additional check to ensure searchTerm is a string and not empty
+    if (typeof searchTerm !== 'string' || !searchTerm.trim()) {
+      console.error('Search term is missing or invalid:', searchTerm);
+      // Update your UI to reflect this error
       return;
     }
 
