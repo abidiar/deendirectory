@@ -128,8 +128,9 @@ app.get('/api/search', async (req, res) => {
           const coords = await fetchCoordinatesFromGoogle(location);
           if (coords) {
               console.log(`[Search API] Coordinates found: ${JSON.stringify(coords)}`);
+              const radius = 40233.6;  // Define radius here
               searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
-              values.push(coords.longitude, coords.latitude, 40233.6);
+              values.push(coords.longitude, coords.latitude, radius); // Use radius variable
           } else {
               console.error('[Search API] No coordinates found');
               return res.status(404).json({ message: 'Could not find coordinates for the given location' });
@@ -138,7 +139,6 @@ app.get('/api/search', async (req, res) => {
 
       console.log(`[Search API] SQL Query: ${searchQuery}, Values: ${values}`);
       const result = await pool.query(searchQuery, values);
-      console.log(`[Search API] Query Result: `, result.rows);
 
       if (result.rows.length === 0) {
           console.log('[Search API] No results found');
