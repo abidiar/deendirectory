@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { LocationContext } from '../context/LocationContext'; // Adjust the path as necessary
 
 function AddServiceForm() {
     const [categories, setCategories] = useState([]);
@@ -11,13 +12,14 @@ function AddServiceForm() {
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submissionError, setSubmissionError] = useState('');
+    const { backendUrl } = useContext(LocationContext);
 
     useEffect(() => {
-        fetch('https://deendirectorybackend.onrender.com/api/categories')
+        fetch(`${backendUrl}/api/categories`)
             .then(response => response.json())
             .then(data => setCategories(data))
             .catch(error => console.error('Error fetching categories:', error));
-    }, []);
+    }, [backendUrl]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,7 +31,7 @@ function AddServiceForm() {
         setSubmissionError('');
 
         try {
-            const response = await fetch('https://deendirectorybackend.onrender.com/api/services/add', {
+            const response = await fetch(`${backendUrl}/api/services/add`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
