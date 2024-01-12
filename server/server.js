@@ -349,24 +349,6 @@ app.get('/api/services/babysitters', async (req, res) => {
   }
 });
 
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error('Unhandled application error:', error);
-  res.status(500).send('An error occurred.');
-});
-
-// Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, '../client/dist')));
-
-// All other GET requests not handled before will return the React app
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
-  } else {
-    res.status(404).send('API route not found');
-  }
-});
-
 // Endpoint to get services by category ID, including services in its subcategories
 app.get('/api/category/:id/services', async (req, res) => {
   const categoryId = parseInt(req.params.id);
@@ -387,6 +369,20 @@ app.get('/api/category/:id/services', async (req, res) => {
     console.error(`Error fetching services for category ${categoryId}:`, error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('Unhandled application error:', error);
+  res.status(500).send('An error occurred.');
+});
+
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// All other GET requests not handled before will return the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
 });
 
 // Start the server
