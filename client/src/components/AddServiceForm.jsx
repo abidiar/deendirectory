@@ -57,8 +57,31 @@ function AddServiceForm() {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Form fields */}
-            {/* ... existing fields ... */}
+            <input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-light focus:border-primary-light"
+                placeholder="Business Name"
+            />
+            <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-light focus:border-primary-light"
+                placeholder="Description"
+            ></textarea>
+            <select
+                name="category_id"
+                value={formData.category_id}
+                onChange={handleChange}
+                className="block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-light focus:border-primary-light"
+            >
+                <option value="">Select a Category</option>
+                {categories.map(category => (
+                    <option key={category.id} value={category.id}>{category.name}</option>
+                ))}
+            </select>
             <input
                 name="city"
                 value={formData.city}
