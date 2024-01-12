@@ -128,7 +128,7 @@ app.get('/api/search', async (req, res) => {
           const coords = await fetchCoordinatesFromGoogle(location);
           if (coords) {
               console.log(`[Search API] Coordinates found: ${JSON.stringify(coords)}`);
-              const radius = 40233.6;  // Define radius here
+              const radius = 80467.2;  // Define radius here
               searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
               values.push(coords.longitude, coords.latitude, radius); // Use radius variable
           } else {
