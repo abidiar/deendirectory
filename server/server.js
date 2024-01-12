@@ -63,8 +63,8 @@ async function convertCityStateToCoords(city, state) {
 
     if (data.status === 'OK' && data.results.length > 0) {
       return {
-        latitude: data.results[0].geometry.location.lat,
-        longitude: data.results[0].geometry.location.lng,
+        latitude: parseFloat(data.results[0].geometry.location.lat.toFixed(6)),
+        longitude: parseFloat(data.results[0].geometry.location.lng.toFixed(6)),
       };
     } else {
       return null;
@@ -81,21 +81,20 @@ async function fetchCoordinatesFromGoogle(location) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
 
   try {
-      const response = await fetch(url);
-      const data = await response.json();
+    const response = await fetch(url);
+    const data = await response.json();
 
-      if (data.status === 'OK' && data.results.length > 0) {
-          const geometry = data.results[0].geometry.location;
-          return {
-              latitude: geometry.lat,
-              longitude: geometry.lng
-          };
-      } else {
-          return null;
-      }
-  } catch (error) {
-      console.error('Error fetching coordinates from Google:', error);
+    if (data.status === 'OK' && data.results.length > 0) {
+      return {
+        latitude: parseFloat(data.results[0].geometry.location.lat.toFixed(6)),
+        longitude: parseFloat(data.results[0].geometry.location.lng.toFixed(6))
+      };
+    } else {
       return null;
+    }
+  } catch (error) {
+    console.error('Error fetching coordinates from Google:', error);
+    return null;
   }
 }
 
@@ -215,8 +214,6 @@ app.post('/api/services/add', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
-
-
 
 
 app.get('/api/services/:id', async (req, res) => {

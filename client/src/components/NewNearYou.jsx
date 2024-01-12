@@ -11,7 +11,9 @@ function NewNearYou() {
   }, []);
 
   function success(position) {
-    const { latitude, longitude } = position.coords;
+    let { latitude, longitude } = position.coords;
+    latitude = parseFloat(latitude.toFixed(6));
+    longitude = parseFloat(longitude.toFixed(6));
     fetchNewNearYouServices(latitude, longitude);
   }
 
