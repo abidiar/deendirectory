@@ -204,25 +204,7 @@ app.post('/api/services/add', async (req, res) => {
   }
 });
 
-// Endpoint to add a new service
-app.post('/api/services/add', async (req, res) => {
-  const { name, description, latitude, longitude, category_id } = req.body;
 
-  try {
-      const insertQuery = `
-          INSERT INTO services (name, description, latitude, longitude, location, date_added, category_id)
-          VALUES ($1, $2, $3, $4, ST_MakePoint($3, $4), NOW(), $5)
-          RETURNING *;
-      `;
-      const values = [name, description, latitude, longitude, category_id];
-      const result = await pool.query(insertQuery, values);
-
-      res.status(201).json(result.rows[0]);
-  } catch (error) {
-      console.error('Error adding service:', error);
-      res.status(500).json({ error: 'Internal Server Error', details: error.message });
-  }
-});
 
 app.get('/api/services/:id', async (req, res) => {
   const businessId = req.params.id;
