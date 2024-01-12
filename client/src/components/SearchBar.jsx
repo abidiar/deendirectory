@@ -5,18 +5,16 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 function SearchBar({ onSearch }) {
     const { backendUrl } = useContext(LocationContext);
-    const [searchTerm, setSearchTerm] = useState(''); // Ensure this is always a string
+    const [searchTerm, setSearchTerm] = useState('');
     const [locationInput, setLocationInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState('');
 
     const handleSearch = async (event) => {
         event.preventDefault();
+        console.log(`[SearchBar] Search initiated with term: ${searchTerm} and location: ${locationInput}`);
 
-        const currentSearchTerm = typeof searchTerm === 'string' ? searchTerm.trim() : '';
-        console.log('Search Term before onSearch call:', currentSearchTerm);
-
-        if (!currentSearchTerm) {
+        if (!searchTerm.trim()) {
             setSearchError('Please enter a search term');
             return;
         }
@@ -25,17 +23,17 @@ function SearchBar({ onSearch }) {
         setSearchError('');
 
         try {
-            const url = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(currentSearchTerm)}&location=${encodeURIComponent(locationInput)}`;
+            const url = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm.trim())}&location=${encodeURIComponent(locationInput)}`;
             const response = await fetch(url);
             const data = await response.json();
 
             if (response.ok) {
-                onSearch(currentSearchTerm, locationInput);
+                onSearch(searchTerm.trim(), locationInput);
             } else {
                 throw new Error(data.message || 'Error occurred while searching');
             }
         } catch (error) {
-            console.error('Search error:', error);
+            console.error('[SearchBar] Search error:', error);
             setSearchError(error.message);
         } finally {
             setIsLoading(false);

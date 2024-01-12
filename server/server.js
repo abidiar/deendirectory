@@ -115,6 +115,7 @@ app.get('/api/v1/example', (req, res) => {
 app.get('/api/search', async (req, res) => {
   try {
       const { searchTerm, location } = req.query;
+      console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}`);
 
       if (!searchTerm) {
           return res.status(400).json({ message: 'Search term is required' });
@@ -124,27 +125,32 @@ app.get('/api/search', async (req, res) => {
       let values = [`%${searchTerm}%`];
 
       if (location) {
-          const coords = await fetchCoordinatesFromGoogle(location);  // Using Google's API function
+          const coords = await fetchCoordinatesFromGoogle(location);
           if (coords) {
+              console.log(`[Search API] Coordinates found: ${JSON.stringify(coords)}`);
               searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
-              values.push(coords.longitude, coords.latitude, 40233.6); // 25 miles in meters
+              values.push(coords.longitude, coords.latitude, 40233.6);
           } else {
+              console.error('[Search API] No coordinates found');
               return res.status(404).json({ message: 'Could not find coordinates for the given location' });
           }
       }
 
+      console.log(`[Search API] SQL Query: ${searchQuery}, Values: ${values}`);
       const result = await pool.query(searchQuery, values);
 
       if (result.rows.length === 0) {
+          console.log('[Search API] No results found');
           return res.status(200).json([]);
       }
 
       res.json(result.rows);
   } catch (error) {
-      console.error('Search error:', error);
+      console.error('[Search API] Search error:', error);
       res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
 
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
@@ -182,9 +188,12 @@ app.get('/api/services/new-near-you', async (req, res) => {
 // Endpoint to add a new service
 app.post('/api/services/add', async (req, res) => {
   const { name, description, category_id, city, state } = req.body;
+  console.log(`[Add Service API] Adding service: ${name}, City: ${city}, State: ${state}`);
+
   const coords = await convertCityStateToCoords(city, state);
 
   if (!coords) {
+    console.error('[Add Service API] Invalid city or state for coordinates');
     return res.status(400).json({ message: 'Invalid city or state' });
   }
 
@@ -195,14 +204,17 @@ app.post('/api/services/add', async (req, res) => {
       RETURNING *;
     `;
     const values = [name, description, coords.latitude, coords.longitude, category_id];
+    console.log(`[Add Service API] SQL Insert Query: ${insertQuery}, Values: ${values}`);
     const result = await pool.query(insertQuery, values);
 
+    console.log(`[Add Service API] Service added with ID: ${result.rows[0].id}`);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error adding service:', error);
+    console.error('[Add Service API] Error adding service:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
 
 
 
