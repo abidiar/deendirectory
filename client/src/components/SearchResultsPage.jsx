@@ -33,7 +33,8 @@ function SearchResultsPage() {
         } else if (latitude && longitude) {
             searchUrl += `&latitude=${latitude}&longitude=${longitude}`;
         }
-
+        console.log(`[SearchResultsPage] Fetching search results from URL: ${searchUrl}`);
+        
         fetch(searchUrl)
             .then(response => response.json())
             .then(data => {

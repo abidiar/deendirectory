@@ -138,6 +138,7 @@ app.get('/api/search', async (req, res) => {
 
       console.log(`[Search API] SQL Query: ${searchQuery}, Values: ${values}`);
       const result = await pool.query(searchQuery, values);
+      console.log(`[Search API] Query Result: `, result.rows);
 
       if (result.rows.length === 0) {
           console.log('[Search API] No results found');
