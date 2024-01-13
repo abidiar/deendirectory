@@ -113,41 +113,40 @@ app.get('/api/v1/example', (req, res) => {
 // API route for search
 app.get('/api/search', async (req, res) => {
   try {
-      const { searchTerm, location } = req.query;
-      console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}`);
+    const { searchTerm, location, latitude, longitude } = req.query;
+    console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}, latitude: ${latitude}, longitude: ${longitude}`);
 
-      if (!searchTerm) {
-          return res.status(400).json({ message: 'Search term is required' });
+    let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
+    let values = [`%${searchTerm}%`];
+
+    if (latitude && longitude) {
+      const radius = 80467.2;  // Define radius here for proximity search (50 miles)
+      searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
+      values.push(longitude, latitude, radius);
+    } else if (location) {
+      const coords = await fetchCoordinatesFromGoogle(location);
+      if (coords) {
+        const radius = 80467.2;  // Define radius here for proximity search (50 miles)
+        searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
+        values.push(coords.longitude, coords.latitude, radius);
+      } else {
+        console.error('[Search API] No coordinates found');
+        return res.status(404).json({ message: 'Could not find coordinates for the given location' });
       }
+    }
 
-      let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
-      let values = [`%${searchTerm}%`];
+    console.log(`[Search API] SQL Query: ${searchQuery}, Values: ${values}`);
+    const result = await pool.query(searchQuery, values);
 
-      if (location) {
-          const coords = await fetchCoordinatesFromGoogle(location);
-          if (coords) {
-              console.log(`[Search API] Coordinates found: ${JSON.stringify(coords)}`);
-              const radius = 80467.2;  // Define radius here
-              searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
-              values.push(coords.longitude, coords.latitude, radius); // Use radius variable
-          } else {
-              console.error('[Search API] No coordinates found');
-              return res.status(404).json({ message: 'Could not find coordinates for the given location' });
-          }
-      }
+    if (result.rows.length === 0) {
+      console.log('[Search API] No results found');
+      return res.status(200).json([]);
+    }
 
-      console.log(`[Search API] SQL Query: ${searchQuery}, Values: ${values}`);
-      const result = await pool.query(searchQuery, values);
-
-      if (result.rows.length === 0) {
-          console.log('[Search API] No results found');
-          return res.status(200).json([]);
-      }
-
-      res.json(result.rows);
+    res.json(result.rows);
   } catch (error) {
-      console.error('[Search API] Search error:', error);
-      res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    console.error('[Search API] Search error:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
