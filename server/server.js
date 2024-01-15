@@ -116,17 +116,25 @@ app.get('/api/search', async (req, res) => {
     const { searchTerm, location, latitude, longitude } = req.query;
     console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}, latitude: ${latitude}, longitude: ${longitude}`);
 
-    let searchQuery = 'SELECT * FROM services WHERE name ILIKE $1';
+    // Update the SELECT statement to include new fields in the services table
+    let searchQuery = `
+      SELECT
+        id, name, description, latitude, longitude, location, date_added,
+        category_id, street_address, city, state, postal_code, country,
+        phone_number, website, hours, is_halal_certified, average_rating, review_count
+      FROM services
+      WHERE name ILIKE $1
+    `;
     let values = [`%${searchTerm}%`];
 
     if (latitude && longitude) {
-      const radius = 80467.2;  // Define radius here for proximity search (50 miles)
+      const radius = 40233.6;  // Define radius here for proximity search (25 miles)
       searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
       values.push(longitude, latitude, radius);
     } else if (location) {
       const coords = await fetchCoordinatesFromGoogle(location);
       if (coords) {
-        const radius = 80467.2;  // Define radius here for proximity search (50 miles)
+        const radius = 40233.6;  // Define radius here for proximity search (25 miles)
         searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
         values.push(coords.longitude, coords.latitude, radius);
       } else {
@@ -143,13 +151,35 @@ app.get('/api/search', async (req, res) => {
       return res.status(200).json([]);
     }
 
-    res.json(result.rows);
+    // Map the result to include only the necessary fields
+    const services = result.rows.map(service => ({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      latitude: service.latitude,
+      longitude: service.longitude,
+      location: service.location,
+      date_added: service.date_added,
+      category_id: service.category_id,
+      street_address: service.street_address,
+      city: service.city,
+      state: service.state,
+      postal_code: service.postal_code,
+      country: service.country,
+      phone_number: service.phone_number,
+      website: service.website,
+      hours: service.hours,
+      is_halal_certified: service.is_halal_certified,
+      average_rating: service.average_rating,
+      review_count: service.review_count
+    }));
+
+    res.json(services);
   } catch (error) {
     console.error('[Search API] Search error:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
-
 
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
@@ -160,11 +190,16 @@ app.get('/api/services/new-near-you', async (req, res) => {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
     }
 
+    // Update the SELECT statement to include new fields
     const query = `
-      SELECT * FROM services
+      SELECT
+        id, name, description, latitude, longitude, location, date_added,
+        category_id, street_address, city, state, postal_code, country,
+        phone_number, website, hours, is_halal_certified, average_rating, review_count
+      FROM services
       WHERE ST_DWithin(
-        location,
-        ST_MakePoint($1, $2)::GEOGRAPHY,
+        location::GEOGRAPHY,
+        ST_SetSRID(ST_MakePoint($1, $2), 4326)::GEOGRAPHY,
         $3
       ) AND date_added >= current_date - interval '30 days'
       ORDER BY date_added DESC;
@@ -177,32 +212,82 @@ app.get('/api/services/new-near-you', async (req, res) => {
       return res.status(404).json({ message: 'No new services found near you' });
     }
 
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error fetching new services:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+    // Map the result to include only the necessary fields
+    const newServices = result.rows.map(service => ({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      latitude: service.latitude,
+      longitude
+: service.longitude,
+location: service.location,
+date_added: service.date_added,
+category_id: service.category_id,
+street_address: service.street_address,
+city: service.city,
+state: service.state,
+postal_code: service.postal_code,
+country: service.country,
+phone_number: service.phone_number,
+website: service.website,
+hours: service.hours,
+is_halal_certified: service.is_halal_certified === 't', // Assuming the database stores this as a boolean
+average_rating: service.average_rating,
+review_count: service.review_count
+}));
+
+res.json(newServices);
+} catch (error) {
+console.error('Error fetching new services:', error);
+res.status(500).json({ error: 'Internal Server Error' });
+}
 });
 
 // Endpoint to add a new service
 app.post('/api/services/add', async (req, res) => {
-  const { name, description, category_id, city, state } = req.body;
-  console.log(`[Add Service API] Adding service: ${name}, City: ${city}, State: ${state}`);
+  const {
+    name,
+    description,
+    category_id,
+    street_address,
+    city,
+    state,
+    postal_code,
+    country,
+    phone_number,
+    website,
+    hours,
+    is_halal_certified
+  } = req.body;
 
-  const coords = await convertCityStateToCoords(city, state);
-
-  if (!coords) {
-    console.error('[Add Service API] Invalid city or state for coordinates');
-    return res.status(400).json({ message: 'Invalid city or state' });
+  // Convert city and state to coordinates if provided
+  let coords = { latitude: null, longitude: null };
+  if (city && state) {
+    coords = await convertCityStateToCoords(city, state);
+    if (!coords) {
+      console.error('[Add Service API] Invalid city or state for coordinates');
+      return res.status(400).json({ message: 'Invalid city or state' });
+    }
   }
 
   try {
     const insertQuery = `
-      INSERT INTO services (name, description, latitude, longitude, location, date_added, category_id)
-      VALUES ($1, $2, $3, $4, ST_MakePoint($3, $4), NOW(), $5)
+      INSERT INTO services (
+        name, description, latitude, longitude, location, date_added,
+        category_id, street_address, city, state, postal_code,
+        country, phone_number, website, hours, is_halal_certified
+      )
+      VALUES (
+        $1, $2, $3, $4, ST_SetSRID(ST_MakePoint($3, $4), 4326),
+        NOW(), $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+      )
       RETURNING *;
     `;
-    const values = [name, description, coords.latitude, coords.longitude, category_id];
+    const values = [
+      name, description, coords.latitude, coords.longitude, category_id,
+      street_address, city, state, postal_code, country,
+      phone_number, website, hours, is_halal_certified
+    ];
     console.log(`[Add Service API] SQL Insert Query: ${insertQuery}, Values: ${values}`);
     const result = await pool.query(insertQuery, values);
 
@@ -214,34 +299,154 @@ app.post('/api/services/add', async (req, res) => {
   }
 });
 
+app.post('/api/users/register', async (req, res) => {
+  // Implement user registration logic
+});
+
+app.post('/api/reviews/add', async (req, res) => {
+  // Implement logic to add a review
+  // This should be a function called within the review add/update endpoints
+async function updateAverageRating(business_id) {
+  // Implement logic to calculate and update the average rating
+}
+});
+
+app.post('/api/photos/add', async (req, res) => {
+  // Implement logic to add a photo
+});
+
+app.put('/api/services/:id', async (req, res) => {
+  const businessId = req.params.id;
+  const {
+    name,
+    description,
+    category_id,
+    street_address,
+    city,
+    state,
+    postal_code,
+    country,
+    phone_number,
+    website,
+    hours,
+    is_halal_certified
+    // Add other fields you want to update here
+  } = req.body;
+
+  try {
+    // Construct the update query dynamically to include only the fields provided in the request
+    const fields = [
+      { key: 'name', value: name },
+      { key: 'description', value: description },
+      { key: 'category_id', value: category_id },
+      { key: 'street_address', value: street_address },
+      { key: 'city', value: city },
+      { key: 'state', value: state },
+      { key: 'postal_code', value: postal_code },
+      { key: 'country', value: country },
+      { key: 'phone_number', value: phone_number },
+      { key: 'website', value: website },
+      { key: 'hours', value: hours },
+      { key: 'is_halal_certified', value: is_halal_certified }
+      // Add other fields you want to update here
+    ].filter(field => field.value !== undefined);
+
+    const updates = fields.map(field => `${field.key} = $${fields.indexOf(field) + 2}`).join(', ');
+    const values = fields.map(field => field.value);
+    values.unshift(businessId); // Add businessId as the first parameter for the WHERE clause
+
+    if(fields
+.length === 0) {
+return res.status(400).json({ message: 'No fields to update' });
+}
+
+const updateQuery = `
+  UPDATE services
+  SET ${updates}
+  WHERE id = $1
+  RETURNING *;
+`;
+
+const result = await pool.query(updateQuery, values);
+
+if(result.rowCount === 0) {
+  return res.status(404).json({ message: 'Business not found' });
+}
+
+res.json(result.rows[0]);
+} catch (error) {
+console.error('Error updating business details:', error);
+res.status(500).json({ error: 'Internal Server Error', details: error.message });
+}
+});
 
 app.get('/api/services/:id', async (req, res) => {
   const businessId = req.params.id;
   try {
-    const businessQuery = 'SELECT * FROM services WHERE id = $1;';
-    const businessResult = await pool.query(businessQuery, [businessId]);
+    // Update the SELECT statement to explicitly specify the columns to return
+    const businessQuery = `
+      SELECT
+        id, name, description, latitude, longitude, location, date_added,
+        category_id, street_address, city, state, postal_code, country,
+        phone_number, website, hours, is_halal_certified, average_rating, review_count
+      FROM services
+      WHERE id = $1;
+    `;
+    const businessResult = await pool.query(businessQuery,
+[businessId]);
 
-    if (businessResult.rows.length === 0) {
-      return res.status(404).json({ message: 'Business not found' });
-    }
+if (businessResult.rows.length === 0) {
+  return res.status(404).json({ message: 'Business not found' });
+}
 
-    res.json(businessResult.rows[0]);
-  } catch (error) {
-    console.error('Error fetching business details:', error);
-    res.status(500).json({ error: 'Internal Server Error', details: error.message });
-  }
+// Map the result to include only the necessary fields
+const serviceDetails = {
+  id: businessResult.rows[0].id,
+  name: businessResult.rows[0].name,
+  description: businessResult.rows[0].description,
+  latitude: businessResult.rows[0].latitude,
+  longitude: businessResult.rows[0].longitude,
+  location: businessResult.rows[0].location,
+  date_added: businessResult.rows[0].date_added,
+  category_id: businessResult.rows[0].category_id,
+  street_address: businessResult.rows[0].street_address,
+  city: businessResult.rows[0].city,
+  state: businessResult.rows[0].state,
+  postal_code: businessResult.rows[0].postal_code,
+  country: businessResult.rows[0].country,
+  phone_number: businessResult.rows[0].phone_number,
+  website: businessResult.rows[0].website,
+  hours: businessResult.rows[0].hours,
+  is_halal_certified: businessResult.rows[0].is_halal_certified,
+  average_rating: businessResult.rows[0].average_rating,
+  review_count:
+businessResult.rows[0].review_count
+};
+
+res.json(serviceDetails);
+} catch (error) {
+console.error('Error fetching business details:', error);
+res.status(500).json({ error: 'Internal Server Error', details: error.message });
+}
 });
 
 // Endpoint to get all categories with their subcategories
 app.get('/api/categories', async (req, res) => {
   try {
     const ids = req.query.ids;
-    let query = 'SELECT * FROM categories';
+    let query = `
+      SELECT c.id, c.name, c.parent_category_id, 
+             array_agg(sc.*) as subcategories
+      FROM categories c
+      LEFT JOIN categories sc ON c.id = sc.parent_category_id
+    `;
     let params = [];
 
     if (ids) {
-      query += ' WHERE id = ANY($1::int[])';
-      params = [ids.split(',')]; // Split the string by commas and cast each to integer
+      query += ' WHERE c.id = ANY($1::int[]) GROUP BY c.id';
+      params = [ids.split(',')];
+    } else {
+      query += ' GROUP BY c.id';
     }
 
     const result = await pool.query(query, params);
@@ -256,9 +461,21 @@ app.get('/api/categories', async (req, res) => {
 app.get('/api/services/subcategory/:id', async (req, res) => {
   const subcategoryId = parseInt(req.params.id);
   try {
-    const servicesResult = await pool.query(`
-      SELECT * FROM services WHERE category_id = $1;
-    `, [subcategoryId]);
+    // Update the SELECT statement to include new fields
+    const servicesQuery = `
+      SELECT
+        id, name, description, latitude, longitude, location, date_added,
+        category_id, street_address, city, state, postal_code, country,
+        phone_number, website, hours, is_halal_certified, average_rating, review_count
+      FROM services
+      WHERE category_id = $1;
+    `;
+    const servicesResult = await pool.query(servicesQuery, [subcategoryId]);
+
+    if (servicesResult.rows.length === 0) {
+      return res.status(404).json({ message: 'No services found for this subcategory' });
+    }
+
     res.json(servicesResult.rows);
   } catch (error) {
     console.error('Error fetching services for subcategory:', error);
@@ -269,14 +486,18 @@ app.get('/api/services/subcategory/:id', async (req, res) => {
 app.get('/api/category/:id/services', async (req, res) => {
   const categoryId = parseInt(req.params.id);
   try {
-    // Query to select services from the selected category and its subcategories
+    // Update the SELECT statement to include new fields
     const servicesQuery = `
       WITH RECURSIVE subcategories AS (
         SELECT id FROM categories WHERE id = $1
         UNION ALL
         SELECT c.id FROM categories c INNER JOIN subcategories s ON c.parent_category_id = s.id
       )
-      SELECT s.* FROM services s INNER JOIN subcategories sc ON s.category_id = sc.id;
+      SELECT
+        s.id, s.name, s.description, s.latitude, s.longitude, s.location, s.date_added,
+        s.category_id, s.street_address, s.city, s.state, s.postal_code, s.country,
+        s.phone_number, s.website, s.hours, s.is_halal_certified, s.average_rating, s.review_count
+      FROM services s INNER JOIN subcategories sc ON s.category_id = sc.id;
     `;
 
     const servicesResult = await pool.query(servicesQuery, [categoryId]);
@@ -290,13 +511,18 @@ app.get('/api/category/:id/services', async (req, res) => {
 app.get('/api/category/:id/businesses', async (req, res) => {
   const categoryId = parseInt(req.params.id);
   try {
+    // Update the SELECT statement to include new fields
     const query = `
       WITH RECURSIVE subcategories AS (
         SELECT id FROM categories WHERE id = $1
         UNION ALL
         SELECT c.id FROM categories c JOIN subcategories s ON c.parent_category_id = s.id
       )
-      SELECT s.* FROM services s JOIN subcategories sc ON s.category_id = sc.id;
+      SELECT
+        s.id, s.name, s.description, s.latitude, s.longitude, s.location, s.date_added,
+        s.category_id, s.street_address, s.city, s.state, s.postal_code, s.country,
+        s.phone_number, s.website, s.hours, s.is_halal_certified, s.average_rating, s.review_count
+      FROM services s JOIN subcategories sc ON s.category_id = sc.id;
     `;
     const result = await pool.query(query, [categoryId]);
     res.json(result.rows);
@@ -337,28 +563,6 @@ app.get('/api/services/babysitters', async (req, res) => {
   } catch (error) {
     console.error('Error fetching babysitters:', error);
     res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// Endpoint to get services by category ID, including services in its subcategories
-app.get('/api/category/:id/services', async (req, res) => {
-  const categoryId = parseInt(req.params.id);
-  try {
-    // Query to select services from the selected category and its subcategories
-    const servicesQuery = `
-      WITH RECURSIVE subcategories AS (
-        SELECT id FROM categories WHERE id = $1
-        UNION ALL
-        SELECT c.id FROM categories c INNER JOIN subcategories s ON c.parent_category_id = s.id
-      )
-      SELECT s.* FROM services s INNER JOIN subcategories sc ON s.category_id = sc.id;
-    `;
-
-    const servicesResult = await pool.query(servicesQuery, [categoryId]);
-    res.json(servicesResult.rows);
-  } catch (error) {
-    console.error(`Error fetching services for category ${categoryId}:`, error);
-    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 

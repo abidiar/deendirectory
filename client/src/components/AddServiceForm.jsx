@@ -7,34 +7,46 @@ function AddServiceForm() {
         name: '',
         description: '',
         category_id: '',
+        street_address: '',
         city: '',
         state: '',
+        postal_code: '',
+        country: '',
+        phone_number: '',
+        website: '',
+        hours: '',
+        is_halal_certified: false,
+
     });
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [submissionError, setSubmissionError] = useState('');
-    const { backendUrl } = useContext(LocationContext);
-
-    useEffect(() => {
-        fetch(`${backendUrl}/api/categories`)
-            .then(response => response.json())
-            .then(data => {
-                setCategories(data);
-            })
-            .catch(error => {
-                console.error('Error fetching categories:', error);
-            });
-    }, [backendUrl]);
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitted(false);
-        setSubmissionError('');
-    
-        try {
+        const [submissionError, setSubmissionError] = useState('');
+        const { backendUrl } = useContext(LocationContext);
+        
+        useEffect(() => {
+            fetch(`${backendUrl}/api/categories`)
+                .then(response => response.json())
+                .then(data => {
+                    setCategories(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching categories:', error);
+                });
+        }, [backendUrl]);
+        
+        const handleChange = (e) => {
+            setFormData({ ...formData, [e.target.name]: e.target.value });
+        };
+        
+        const handleCheckboxChange = (e) => {
+            setFormData({ ...formData, [e.target.name]: e.target.checked });
+        };
+        
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            setIsSubmitted(false);
+            setSubmissionError('');
+        
+            try {
             const geocodeResponse = await fetch(`${backendUrl}/api/geocode?city=${encodeURIComponent(formData.city)}&state=${encodeURIComponent(formData.state)}`);
             
             if (!geocodeResponse.ok) {
@@ -69,12 +81,19 @@ function AddServiceForm() {
                 category_id: '',
                 city: '',
                 state: '',
+                website: '',
+                hours: '',
+                is_halal_certified: false,
+                street_address: '',
+                postal_code: '',
+                country: '',
+                phone_number: '',
             });
         } catch (error) {
             setSubmissionError(error.message);
         }
     };
-
+    
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>

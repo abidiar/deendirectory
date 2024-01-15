@@ -6,14 +6,17 @@ function BusinessPage() {
   const [business, setBusiness] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'https://deendirectorybackend.onrender.com';
+
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`https://deendirectorybackend.onrender.com/api/services/${id}`)
+    fetch(`${backendUrl}/api/services/${id}`)
       .then(response => {
         if (!response.ok) {
-          throw new Error('Business not found');
+          throw new Error(response.status === 404 ? 'Business not found' : 'An error occurred');
         }
+        
         return response.json();
       })
       .then(data => {
