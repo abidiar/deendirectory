@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { LocationContext } from '../context/LocationContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -10,12 +10,22 @@ function SearchBar({ onSearch }) {
     const [isHalalCertified, setIsHalalCertified] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-    const handleSearch = async (event) => {
-        event.preventDefault();
-        console.log(`[SearchBar] Search initiated with term: ${searchTerm} and location: ${locationInput}, isHalalCertified: ${isHalalCertified}`);
+    useEffect(() => {
+        const timerId = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 500); // 500ms delay
 
-        if (!searchTerm.trim()) {
+        return () => {
+            clearTimeout(timerId);
+        };
+   
+}, [searchTerm]);
+
+useEffect(() => {
+    const performSearch = async () => {
+        if (!debouncedSearchTerm.trim()) {
             setSearchError('Please enter a search term');
             return;
         }
@@ -24,7 +34,7 @@ function SearchBar({ onSearch }) {
         setSearchError('');
 
         try {
-            const url = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm.trim())}&location=${encodeURIComponent(locationInput)}&isHalalCertified=${isHalalCertified}`;
+            const url = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(debouncedSearchTerm.trim())}&location=${encodeURIComponent(locationInput)}&isHalalCertified=${isHalalCertified}`;
             const response = await fetch(url);
             const data = await response.json();
 
@@ -40,6 +50,43 @@ function SearchBar({ onSearch }) {
             setIsLoading(false);
         }
     };
+
+    if (debouncedSearchTerm) {
+        performSearch();
+    }
+}, [debouncedSearchTerm, locationInput, isHalalCertified, backendUrl, onSearch]); // Effect runs on debouncedSearchTerm change
+
+
+const handleSearch = async (event) => {
+    event.preventDefault();
+console.log(`[SearchBar] Search initiated with term: ${searchTerm} and location: ${locationInput}, isHalalCertified: ${isHalalCertified}`);
+
+if (!searchTerm.trim()) {
+    setSearchError('Please enter a search term');
+    return;
+}
+
+setIsLoading(true);
+setSearchError('');
+
+try {
+    const url = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm.trim())}&location=${encodeURIComponent(locationInput)}&isHalalCertified=${isHalalCertified}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (response.ok) {
+        onSearch(data); // Pass the search result data to the onSearch handler
+    } else {
+       throw new Error(data.message || 'Error occurred while searching');
+
+}
+} catch (error) {
+console.error('[SearchBar] Search error:', error);
+setSearchError(error.message);
+} finally {
+setIsLoading(false);
+}
+};
 
     const handleLocationChange = (e) => {
         setLocationInput(e.target.value);

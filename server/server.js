@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { body, validationResult } = require('express-validator');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -7,6 +8,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 const path = require('path');
+const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // Initialize Express app
@@ -565,6 +567,8 @@ app.get('/api/services/babysitters', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+app.use('/api/services', servicesRouter);
 
 // Global error handler
 app.use((error, req, res, next) => {

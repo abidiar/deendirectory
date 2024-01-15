@@ -35,15 +35,20 @@ useEffect(() => {
     }
 
     fetch(searchUrl)
-        .then(response => response.json())
-        .then(data => {
-            setSearchResults(data);
-            setIsLoading(false);
-        })
-        .catch(error => {
-            setSearchError('Error fetching search results: ' + error.message);
-            setIsLoading(false);
-        });
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        setSearchResults(data);
+        setIsLoading(false);
+    })
+    .catch(error => {
+        setSearchError('Error fetching search results: ' + error.message);
+        setIsLoading(false);
+    });
 }, [searchTerm, location, latitude, longitude, backendUrl]);
 
 return (
