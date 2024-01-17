@@ -6,14 +6,36 @@ function FeaturedCategories() {
   const featuredCategoryIds = [1, 8, 3, 7, 5]; // The IDs of categories to feature
 
   useEffect(() => {
-    fetch(`https://deendirectorybackend.onrender.com/api/categories`)
-      .then(response => response.json())
-      .then(data => {
-        // Filter the categories to only include the featured ones
-        const featured = data.filter(category => featuredCategoryIds.includes(category.id));
-        setCategories(featured);
-      })
-      .catch(error => console.error('Error fetching categories:', error));
+    // Function to fetch categories based on location
+    const fetchCategories = (latitude, longitude) => {
+      fetch(`https://deendirectorybackend.onrender.com/api/categories?lat=${latitude}&lng=${longitude}`)
+        .then(response => response.json())
+        .then(data => {
+          // Filter the categories to only include the featured ones
+          const featured = data.filter(category => featuredCategoryIds.includes(category.id));
+          setCategories(featured);
+        })
+        .catch(error => console.error('Error fetching categories:', error));
+    };
+
+    // Get user's location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          fetchCategories(latitude, longitude);
+        },
+        error => {
+          console.error('Error getting location:', error);
+          // Optional: Fetch categories without location if error
+          fetchCategories();
+        }
+      );
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+      // Optional: Fetch categories without location if not supported
+      fetchCategories();
+    }
   }, []);
 
   return (

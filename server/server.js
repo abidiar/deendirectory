@@ -351,24 +351,48 @@ res.status(500).json({ error: 'Internal Server Error', details: error.message })
 }
 });
 
-// Endpoint to get all categories with their subcategories
 app.get('/api/categories', async (req, res) => {
   try {
-    const ids = req.query.ids;
+    const { ids, lat, lng } = req.query;
+    const radius = 40233.6; // Define the radius for proximity search (in meters)
+
     let query = `
-      SELECT c.id, c.name, c.parent_category_id, 
-             array_agg(sc.*) as subcategories
-      FROM categories c
-      LEFT JOIN categories sc ON c.id = sc.parent_category_id
+      SELECT 
+        c.id, 
+        c.name, 
+        c.parent_category_id, 
+        array_agg(JSONB_BUILD_OBJECT('id', s.id, 'name', s.name, /* other service fields */)) FILTER (WHERE s.id IS NOT NULL) AS services 
+      FROM 
+        categories c 
+      LEFT JOIN 
+        services s ON c.id = s.category_id
     `;
+
+    let whereClauses = [];
     let params = [];
 
     if (ids) {
-      query += ' WHERE c.id = ANY($1::int[]) GROUP BY c.id';
-      params = [ids.split(',')];
-    } else {
-      query += ' GROUP BY c.id';
+      params.push(ids.split(','));
+      whereClauses.push('c.id = ANY($1::int[])');
     }
+
+    if (lat && lng) {
+      params.push(lat, lng, radius);
+      whereClauses.push(`
+        (s.latitude IS NULL AND s.longitude IS NULL) OR
+        (ST_DWithin(
+          ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
+          ST_MakePoint($${params.length - 1}, $${params.length - 2})::GEOGRAPHY,
+          $${params.length}
+        ))
+      `);
+    }
+
+    if (whereClauses.length > 0) {
+      query += ' WHERE ' + whereClauses.join(' AND ');
+    }
+
+    query += ' GROUP BY c.id';
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -377,6 +401,7 @@ app.get('/api/categories', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
 
 // Endpoint to get services by subcategory ID
 app.get('/api/services/subcategory/:id', async (req, res) => {
