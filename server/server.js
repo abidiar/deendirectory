@@ -6,6 +6,7 @@ const path = require('path');
 const { convertCityStateToCoords, fetchCoordinatesFromGoogle } = require('./utils/locationUtils');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Initialize Express app
 const app = express();
@@ -549,6 +550,32 @@ app.get('/api/services/babysitters', async (req, res) => {
   } catch (error) {
     console.error('Error fetching babysitters:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/api/reverse-geocode', async (req, res) => {
+  const { latitude, longitude } = req.query;
+
+  if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+  }
+
+  const apiKey = process.env.GOOGLE_GEO_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
+
+  try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === 'OK' && data.results.length > 0) {
+          const location = data.results[0].formatted_address;
+          res.json({ location });
+      } else {
+          res.status(404).json({ error: 'Location not found' });
+      }
+  } catch (error) {
+      console.error('Error in reverse geocoding:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
