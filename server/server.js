@@ -1,15 +1,11 @@
 require('dotenv').config();
-const { body, validationResult } = require('express-validator');
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const compression = require('compression');
-const rateLimit = require('express-rate-limit');
-const { Pool } = require('pg');
+const { body, validationResult } = require('express-validator');
+const pool = require('./db/db');
 const path = require('path');
+const { convertCityStateToCoords, fetchCoordinatesFromGoogle } = require('./utils/locationUtils');
+const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // Initialize Express app
 const app = express();
@@ -20,85 +16,8 @@ const PORT = process.env.PORT || 5000;
 // Trust the first proxy when behind a reverse proxy on Render.com
 app.set('trust proxy', 1);
 
-// Create a new PostgreSQL pool using connection string from environment variable
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
-});
-
-// CORS configuration
-app.use(cors({
-  origin: 'https://deendirectory.onrender.com',
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-}));
-
-// Security-related HTTP headers
-app.use(helmet());
-
-// GZIP compression
-app.use(compression());
-
-// HTTP request logger
-app.use(morgan('dev'));
-
-// Parse JSON and url-encoded bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Apply rate limiting to all requests
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
-
-// Add this function to convert city and state to coordinates
-async function convertCityStateToCoords(city, state) {
-  const apiKey = process.env.GOOGLE_GEO_API_KEY;
-  const location = `${city}, ${state}`;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === 'OK' && data.results.length > 0) {
-      return {
-        latitude: parseFloat(data.results[0].geometry.location.lat.toFixed(6)),
-        longitude: parseFloat(data.results[0].geometry.location.lng.toFixed(6)),
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error converting city and state to coordinates:', error);
-    return null;
-  }
-}
-
-// Replace fetchCoordinatesFromOpenCage with fetchCoordinatesFromGoogle
-async function fetchCoordinatesFromGoogle(location) {
-  const apiKey = process.env.GOOGLE_GEO_API_KEY;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === 'OK' && data.results.length > 0) {
-      return {
-        latitude: parseFloat(data.results[0].geometry.location.lat.toFixed(6)),
-        longitude: parseFloat(data.results[0].geometry.location.lng.toFixed(6))
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error fetching coordinates from Google:', error);
-    return null;
-  }
-}
+// Setup middlewares
+setupMiddlewares(app);
 
 // API route for the homepage to verify the server is running
 app.get('/', (req, res) => {
