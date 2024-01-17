@@ -145,13 +145,13 @@ function AddServiceForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label htmlFor="phone_number" className="block text-sm font-medium text-neutral-dark">Phone Number</label>
-                    <input id="phone_number" name="phone_number" type="tel" required
+                    <input id="phone_number" name="phone_number" type="tel" 
                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
                            value={formData.phone_number} onChange={handleChange} />
                 </div>
                 <div>
                     <label htmlFor="website" className="block text-sm font-medium text-neutral-dark">Website</label>
-                    <input id="website" name="website" type="url" required
+                    <input id="website" name="website" type="url" 
                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
                            value={formData.website} onChange={handleChange} />
                 </div>

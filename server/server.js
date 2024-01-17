@@ -303,7 +303,10 @@ res.status(500).json({ error: 'Internal Server Error', details: error.message })
 });
 
 app.get('/api/services/:id', async (req, res) => {
-  const businessId = req.params.id;
+  const businessId = parseInt(req.params.id, 10);
+  if (isNaN(businessId)) {
+    return res.status(400).json({ error: 'Business ID must be an integer' });
+  }
   try {
     // Update the SELECT statement to explicitly specify the columns to return
     const businessQuery = `
