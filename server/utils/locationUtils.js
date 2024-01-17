@@ -1,6 +1,5 @@
-
 const NodeCache = require('node-cache');
-const { fetchWithRetry } = require('./fetchUtils'); // Adjust the path if necessary
+const { fetchWithRetry } = require('./fetchUtils'); // Make sure this path is correct for your project structure
 
 // Initialize a cache with a default TTL of 1 hour (3600 seconds)
 const geocodeCache = new NodeCache({ stdTTL: 3600 });
@@ -11,8 +10,8 @@ async function convertCityStateToCoords(city, state) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
 
   try {
-    const response = await fetchWithRetry(url);
-    const data = await response.json();
+    // fetchWithRetry already returns the parsed JSON data
+    const data = await fetchWithRetry(url);
 
     if (data.status === 'OK' && data.results.length > 0) {
       return {
@@ -41,8 +40,9 @@ async function fetchCoordinatesFromGoogle(location) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
 
   try {
-    const response = await fetchWithRetry(url);
-    const data = await response.json();
+    // fetchWithRetry already returns the parsed JSON data
+    const data = await fetchWithRetry(url);
+
     if (data.status === 'OK' && data.results.length > 0) {
       const coords = {
         latitude: parseFloat(data.results[0].geometry.location.lat.toFixed(6)),
