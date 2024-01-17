@@ -168,56 +168,65 @@ res.status(500).json({ error: 'Internal Server Error' });
 // Endpoint to add a new service
 app.post('/api/services/add', async (req, res) => {
   const {
-    name,
-    description,
-    category_id,
-    street_address,
-    city,
-    state,
-    postal_code,
-    country,
-    phone_number,
-    website,
-    hours,
-    is_halal_certified
+      name,
+      description,
+      category, // Changed from category_id
+      street_address,
+      city,
+      state,
+      postal_code,
+      country,
+      phone_number,
+      website,
+      hours,
+      is_halal_certified
   } = req.body;
 
   // Convert city and state to coordinates if provided
   let coords = { latitude: null, longitude: null };
   if (city && state) {
-    coords = await convertCityStateToCoords(city, state);
-    if (!coords) {
-      console.error('[Add Service API] Invalid city or state for coordinates');
-      return res.status(400).json({ message: 'Invalid city or state' });
-    }
+      coords = await convertCityStateToCoords(city, state);
+      if (!coords) {
+          console.error('[Add Service API] Invalid city or state for coordinates');
+          return res.status(400).json({ message: 'Invalid city or state' });
+      }
   }
 
   try {
-    const insertQuery = `
-      INSERT INTO services (
-        name, description, latitude, longitude, location, date_added,
-        category_id, street_address, city, state, postal_code,
-        country, phone_number, website, hours, is_halal_certified
-      )
-      VALUES (
-        $1, $2, $3, $4, ST_SetSRID(ST_MakePoint($3, $4), 4326),
-        NOW(), $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
-      )
-      RETURNING *;
-    `;
-    const values = [
-      name, description, coords.latitude, coords.longitude, category_id,
-      street_address, city, state, postal_code, country,
-      phone_number, website, hours, is_halal_certified
-    ];
-    console.log(`[Add Service API] SQL Insert Query: ${insertQuery}, Values: ${values}`);
-    const result = await pool.query(insertQuery, values);
+      // Convert category name to category ID
+      const categoryQuery = 'SELECT id FROM categories WHERE name = $1';
+      const categoryResult = await pool.query(categoryQuery, [category]);
+      if (categoryResult.rows.length === 0) {
+          return res.status(400).json({ message: 'Invalid category name' });
+      }
+      const categoryId = categoryResult.rows[0].id;
 
-    console.log(`[Add Service API] Service added with ID: ${result.rows[0].id}`);
-    res.status(201).json(result.rows[0]);
+      // Insert the new service
+      const insertQuery = `
+          INSERT INTO services (
+              name, description, latitude, longitude, location, date_added,
+              category_id, street_address, city, state, postal_code,
+              country, phone_number, website, hours, is_halal_certified
+          )
+          VALUES (
+              $1, $2, $3, $4, ST_SetSRID(ST_MakePoint($3, $4), 4326),
+              NOW(), $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+          )
+          RETURNING *;
+      `;
+      const values = [
+          name, description, coords.latitude, coords.longitude, categoryId,
+          street_address, city, state, postal_code, country,
+          phone_number, website, hours, is_halal_certified
+      ];
+      console.log(`[Add Service API] SQL Insert Query: ${insertQuery}, Values: ${values}`);
+      const result = await pool.query(insertQuery, values);
+
+      console.log(`[Add Service API] Service added with ID: ${result.rows[0].id}`);
+      res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('[Add Service API] Error adding service:', error);
-    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+      console.error('[Add Service API] Error adding service:', error);
+      res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 

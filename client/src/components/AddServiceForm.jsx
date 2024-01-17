@@ -6,7 +6,7 @@ function AddServiceForm() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        category_id: '',
+        category: '', // Changed from category_id
         street_address: '',
         city: '',
         state: '',
@@ -46,8 +46,6 @@ function AddServiceForm() {
         setSubmissionError('');
 
         try {
-            // Add your geocoding logic here if needed
-
             const serviceResponse = await fetch(`${backendUrl}/api/services/add`, {
                 method: 'POST',
                 headers: {
@@ -62,11 +60,10 @@ function AddServiceForm() {
             }
 
             setIsSubmitted(true);
-            // Reset form to initial state
             setFormData({
                 name: '',
                 description: '',
-                category_id: '',
+                category: '',
                 city: '',
                 state: '',
                 website: '',
@@ -102,13 +99,13 @@ function AddServiceForm() {
 
             {/* Category Dropdown */}
             <div>
-                <label htmlFor="category_id" className="block text-sm font-medium text-neutral-dark">Category</label>
-                <select id="category_id" name="category_id" required
+                <label htmlFor="category" className="block text-sm font-medium text-neutral-dark">Category</label>
+                <select id="category" name="category" required
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
-                        value={formData.category_id} onChange={handleChange}>
+                        value={formData.category} onChange={handleChange}>
                     <option value="">Select a Category</option>
                     {categories.map((category) => (
-                        <option key={category.id} value={category.id}>{category.name}</option>
+                        <option key={category.id} value={category.name}>{category.name}</option>
                     ))}
                 </select>
             </div>
