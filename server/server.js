@@ -356,52 +356,92 @@ app.get('/api/categories', async (req, res) => {
     const { ids, lat, lng } = req.query;
     const radius = 40233.6; // Define the radius for proximity search (in meters)
 
+    let queryParams = [];
+    let whereClauses = [];
+    let index = 1; // Used for parameter placeholders ($1, $2, etc.)
+
     let query = `
       SELECT 
         c.id, 
         c.name, 
-        c.parent_category_id, 
-        array_agg(JSONB_BUILD_OBJECT('id', s.id, 'name', s.name, /* other service fields */)) FILTER (WHERE s.id IS NOT NULL) AS services 
-      FROM 
-        categories c 
-      LEFT JOIN 
-        services s ON c.id = s.category_id
+        c.parent_category_id
     `;
 
-    let whereClauses = [];
-    let params = [];
+    if (lat && lng) {
+      // Add services and location-based filtering only if lat and lng are provided
+      query += `,
+        COALESCE(json_agg(json_build_object(
+          'id', s.id, 
+          'name', s.name, 
+          'description', s.description,
+          'latitude', s.latitude,
+          'longitude', s.longitude,
+          'location', s.location,
+          'date_added', s.date_added,
+          'category_id', s.category_id,
+          'street_address', s.street_address,
+          'city', s.city,
+          'state', s.state,
+          'postal_code', s.postal_code,
+          'country', s.country,
+          'phone_number', s.phone_number,
+          'website', s.website,
+          'hours', s.hours,
+          'is_halal_certified', s.is_halal_certified,
+          'average_rating', s.average_rating,
+          'review_count', s.review_count
+        )) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
+          ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
+          ST_MakePoint($${index + 1}, $${index})::GEOGRAPHY,
+          $${index + 2}
+        )), '[]') AS services
+      `;
 
-    if (ids) {
-      params.push(ids.split(','));
-      whereClauses.push('c.id = ANY($1::int[])');
+      queryParams.push(parseFloat(lat), parseFloat(lng), radius);
+      index += 3; // Increase the index to account for the added parameters
+    } else {
+      // If no location is provided, return an empty array for services
+      query += `,
+        '[]'::json AS services
+      `;
     }
 
+    // Continue with the rest of the query
+    query += `
+      FROM 
+        categories c
+    `;
+
     if (lat && lng) {
-      params.push(lat, lng, radius);
-      whereClauses.push(`
-        (s.latitude IS NULL AND s.longitude IS NULL) OR
-        (ST_DWithin(
-          ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
-          ST_MakePoint($${params.length - 1}, $${params.length - 2})::GEOGRAPHY,
-          $${params.length}
-        ))
-      `);
+      // Join with services only if lat and lng are provided
+      query += `
+      LEFT JOIN 
+        services s ON c.id = s.category_id
+      `;
+    }
+
+    if (ids) {
+      // Filtering by category IDs
+      queryParams.push(ids.split(',').map(Number)); // Convert to array of numbers
+      whereClauses.push(`c.id = ANY($${index}::int[])`);
+      index++;
     }
 
     if (whereClauses.length > 0) {
       query += ' WHERE ' + whereClauses.join(' AND ');
     }
 
-    query += ' GROUP BY c.id';
+    query += `
+      GROUP BY c.id
+    `;
 
-    const result = await pool.query(query, params);
+    const result = await pool.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
-
 
 // Endpoint to get services by subcategory ID
 app.get('/api/services/subcategory/:id', async (req, res) => {
