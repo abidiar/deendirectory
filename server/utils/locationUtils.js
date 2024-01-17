@@ -12,6 +12,7 @@ async function convertCityStateToCoords(city, state) {
   try {
     // fetchWithRetry already returns the parsed JSON data
     const data = await fetchWithRetry(url);
+    console.log('Google API response:', data);
 
     if (data.status === 'OK' && data.results.length > 0) {
       return {
