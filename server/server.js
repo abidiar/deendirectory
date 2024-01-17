@@ -167,6 +167,7 @@ res.status(500).json({ error: 'Internal Server Error' });
 
 // Endpoint to add a new service
 app.post('/api/services/add', async (req, res) => {
+  console.log("Request body:", req.body);
   const {
       name,
       description,
