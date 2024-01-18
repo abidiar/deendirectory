@@ -2,7 +2,6 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const db = require('../db/db'); // Ensure this path is correct
 const { convertCityStateToCoords } = require('../utils/locationUtils'); // Ensure this path is correct
-
 const router = express.Router();
 
 router.post('/add', [
@@ -11,6 +10,7 @@ router.post('/add', [
     body('category').trim().isLength({ min: 1 }).withMessage('Category is required'),
     // Add more validation rules here if needed
 ], async (req, res) => {
+    console.log('Received request body:', req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -47,12 +47,13 @@ router.post('/add', [
         const values = [name, description, coords.latitude, coords.longitude, categoryId 
             /* Add other values here if necessary */
         ];
-
+        console.log(`Executing query: ${insertQuery}`);
+        console.log(`With values: ${values}`);
         // Execute the query
         const result = await db.query(insertQuery, values);
         res.status(201).json(result.rows[0]);
     } catch (err) {
-        console.error('Error executing query', err.stack);
+        console.error('Error during database insertion:', err.stack);
         res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });

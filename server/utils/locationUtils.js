@@ -6,9 +6,11 @@ const geocodeCache = new NodeCache({ stdTTL: 3600 });
 
 // Function to convert a city and state to geographic coordinates
 async function convertCityStateToCoords(city, state) {
+  console.log(`Converting city and state to coords: City = ${city}, State = ${state}`);
   const apiKey = process.env.GOOGLE_GEO_API_KEY;
   const location = `${city}, ${state}`;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
+  console.log(`Google Maps API URL: ${url}`);
 
   try {
     // fetchWithRetry already returns the parsed JSON data
@@ -69,6 +71,7 @@ async function fetchCoordinatesFromGoogle(location) {
         latitude: parseFloat(data.results[0].geometry.location.lat.toFixed(6)),
         longitude: parseFloat(data.results[0].geometry.location.lng.toFixed(6)),
       };
+      console.log(`Converted Coordinates: ${JSON.stringify(coords)}`);
       geocodeCache.set(cacheKey, coords);
       console.log('Caching coordinates for:', location);
       return coords;
@@ -76,7 +79,7 @@ async function fetchCoordinatesFromGoogle(location) {
       return null;
     }
   } catch (error) {
-    console.error('Error fetching coordinates from Google:', error);
+    console.error('Error in convertCityStateToCoords:', error);
     return null;
   }
 }
