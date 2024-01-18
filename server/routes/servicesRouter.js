@@ -1,13 +1,23 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const db = require('../db/db'); // Ensure this path is correct
-const { convertCityStateToCoords } = require('../utils/locationUtils'); // Ensure this path is correct
+const db = require('../db/db');
+const { convertCityStateToCoords } = require('../utils/locationUtils');
+
 const router = express.Router();
+
+// Regex for basic US address validation (street, city, state, and ZIP code)
+function isValidUSAddress(address) {
+    const regex = /^[0-9]{1,6}\s[a-zA-Z0-9\s,'-]{3,40},\s[a-zA-Z\s]{2,20},\s[A-Z]{2}\s[0-9]{5}$/;
+    return regex.test(address);
+}
 
 router.post('/add', [
     body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
     body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
     body('category').trim().isLength({ min: 1 }).withMessage('Category is required'),
+    body('is_halal_certified').optional().isBoolean().withMessage('is_halal_certified must be a boolean'),
+    body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/).withMessage('Phone number must be in the format (XXX) XXX-XXXX'),
+    body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/).withMessage('Postal code must be a valid ZIP code (XXXXX or XXXXX-XXXX)'),
     // Add more validation rules here if needed
 ], async (req, res) => {
     console.log('Received request body:', req.body);
@@ -16,7 +26,12 @@ router.post('/add', [
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, description, category, city, state, /* other fields from req.body */ } = req.body;
+    const { name, description, category, city, state, street_address, is_halal_certified/* other fields from req.body */ } = req.body;
+
+    // Validate the street address using the regex function
+    if (street_address && !isValidUSAddress(street_address)) {
+        return res.status(400).json({ message: 'Invalid address format' });
+    }
 
     try {
         // Convert category name to category ID
@@ -35,27 +50,24 @@ router.post('/add', [
             }
         }
 
-        // SQL query to insert a new service
-        const insertQuery = `
-            INSERT INTO services (
-                name, description, latitude, longitude, category_id
-                /* Add other fields here if necessary */
-            ) VALUES ($1, $2, $3, $4, $5
-                /* Add other placeholders here if necessary */
-            ) RETURNING *;
-        `;
-        const values = [name, description, coords.latitude, coords.longitude, categoryId 
-            /* Add other values here if necessary */
-        ];
-        console.log(`Executing query: ${insertQuery}`);
-        console.log(`With values: ${values}`);
-        // Execute the query
-        const result = await db.query(insertQuery, values);
-        res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.error('Error during database insertion:', err.stack);
-        res.status(500).json({ error: 'Internal server error', details: err.message });
-    }
+    // SQL query to insert a new service
+    const insertQuery = `
+        INSERT INTO services (
+            name, description, latitude, longitude, category_id, street_address, is_halal_certified
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
+    `;
+    const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, is_halal_certified];
+    
+    console.log(`Executing query: ${insertQuery}`);
+    console.log(`With values: ${values}`);
+    
+    // Execute the query
+    const result = await db.query(insertQuery, values);
+    res.status(201).json(result.rows[0]);
+} catch (err) {
+    console.error('Error during database insertion:', err.stack);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+}
 });
 
 module.exports = router;

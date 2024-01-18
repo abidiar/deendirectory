@@ -5,32 +5,47 @@ const { fetchWithRetry } = require('./fetchUtils'); // Make sure this path is co
 const geocodeCache = new NodeCache({ stdTTL: 3600 });
 
 async function convertCityStateToCoords(city, state) {
-  console.log(`Converting city and state to coords: City = ${city}, State = ${state}`);
   const apiKey = process.env.GOOGLE_GEO_API_KEY;
   const location = `${city}, ${state}`;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
-  console.log(`Google Maps API URL: ${url}`);
 
   try {
-    const data = await fetchWithRetry(url);
-    console.log('Google API response:', data);
+      const response = await fetchWithRetry(url);
+      const data = await response.json();
 
-    if (data.status === 'OK' && data.results.length > 0) {
-      const result = data.results[0];
+      switch (data.status) {
+          case 'OK':
+              // Valid response
+              const result = data.results[0];
+              return {
+                  latitude: result.geometry.location.lat,
+                  longitude: result.geometry.location.lng,
+              };
 
-      // Bypassing validation and directly returning coordinates
-      return {
-        latitude: parseFloat(result.geometry.location.lat.toFixed(6)),
-        longitude: parseFloat(result.geometry.location.lng.toFixed(6)),
-      };
-    } else {
-      console.error('No valid geocode results found for the given location');
-      return null;
-    }
+          case 'ZERO_RESULTS':
+              console.error('No results found for the given location.');
+              break;
+
+          case 'OVER_QUERY_LIMIT':
+              console.error('Query limit exceeded for Google Maps API.');
+              break;
+
+          case 'REQUEST_DENIED':
+              console.error('Google Maps API request was denied.');
+              break;
+
+          case 'INVALID_REQUEST':
+              console.error('Invalid request sent to Google Maps API.');
+              break;
+
+          default:
+              console.error('Unexpected error from Google Maps API:', data.status);
+      }
   } catch (error) {
-    console.error('Error converting city and state to coordinates:', error);
-    return null;
+      console.error('Error in convertCityStateToCoords:', error);
   }
+
+  return null; // Return null in case of any error
 }
 
 // Function to fetch coordinates from Google using an address
