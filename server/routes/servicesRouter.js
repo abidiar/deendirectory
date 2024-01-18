@@ -1,21 +1,22 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const db = require('../db/db'); // Adjust the path as needed
-const { convertCityStateToCoords } = require('../utils/locationUtils'); // Adjust the path as needed
+const db = require('../db/db'); // Ensure this path is correct
+const { convertCityStateToCoords } = require('../utils/locationUtils'); // Ensure this path is correct
 
 const router = express.Router();
 
 router.post('/add', [
     body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
     body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
-    // Add more validation rules as needed
+    body('category').trim().isLength({ min: 1 }).withMessage('Category is required'),
+    // Add more validation rules here if needed
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, description, category, city, state /* Add other fields as needed */ } = req.body;
+    const { name, description, category, city, state, /* other fields from req.body */ } = req.body;
 
     try {
         // Convert category name to category ID
@@ -26,7 +27,7 @@ router.post('/add', [
         const categoryId = categoryResult.rows[0].id;
 
         // Convert city and state to coordinates
-        let coords = null;
+        let coords = { latitude: null, longitude: null };
         if (city && state) {
             coords = await convertCityStateToCoords(city, state);
             if (!coords) {
@@ -34,19 +35,25 @@ router.post('/add', [
             }
         }
 
-        // Insert the new service
+        // SQL query to insert a new service
         const insertQuery = `
-            INSERT INTO services (name, description, latitude, longitude, category_id /* Add other fields */)
-            VALUES ($1, $2, $3, $4, $5 /* Add other placeholders */)
-            RETURNING *;
+            INSERT INTO services (
+                name, description, latitude, longitude, category_id
+                /* Add other fields here if necessary */
+            ) VALUES ($1, $2, $3, $4, $5
+                /* Add other placeholders here if necessary */
+            ) RETURNING *;
         `;
-        const values = [name, description, coords?.latitude, coords?.longitude, categoryId /* Add other values */];
+        const values = [name, description, coords.latitude, coords.longitude, categoryId 
+            /* Add other values here if necessary */
+        ];
 
+        // Execute the query
         const result = await db.query(insertQuery, values);
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error('Error executing query', err.stack);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', details: err.message });
     }
 });
 

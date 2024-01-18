@@ -3,7 +3,6 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const pool = require('./db/db');
 const path = require('path');
-const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
