@@ -4,7 +4,6 @@ const { fetchWithRetry } = require('./fetchUtils'); // Make sure this path is co
 // Initialize a cache with a default TTL of 1 hour (3600 seconds)
 const geocodeCache = new NodeCache({ stdTTL: 3600 });
 
-// Function to convert a city and state to geographic coordinates
 async function convertCityStateToCoords(city, state) {
   console.log(`Converting city and state to coords: City = ${city}, State = ${state}`);
   const apiKey = process.env.GOOGLE_GEO_API_KEY;
@@ -13,32 +12,17 @@ async function convertCityStateToCoords(city, state) {
   console.log(`Google Maps API URL: ${url}`);
 
   try {
-    // fetchWithRetry already returns the parsed JSON data
     const data = await fetchWithRetry(url);
     console.log('Google API response:', data);
 
     if (data.status === 'OK' && data.results.length > 0) {
-      // Validate that the returned location matches the input city and state
       const result = data.results[0];
-      const addressComponents = result.address_components;
 
-      const resultCity = addressComponents.find(component =>
-        component.types.includes('locality') || component.types.includes('sublocality')
-      )?.short_name.toLowerCase();
-
-      const resultState = addressComponents.find(component =>
-        component.types.includes('administrative_area_level_1')
-      )?.short_name.toLowerCase();
-
-      if (resultCity === city.toLowerCase() && resultState === state.toLowerCase()) {
-        return {
-          latitude: parseFloat(result.geometry.location.lat.toFixed(6)),
-          longitude: parseFloat(result.geometry.location.lng.toFixed(6)),
-        };
-      } else {
-        console.error(`[Geocode Validation] Mismatch in city/state. Expected: ${city}, ${state}. Got: ${resultCity}, ${resultState}.`);
-        return null;
-      }
+      // Bypassing validation and directly returning coordinates
+      return {
+        latitude: parseFloat(result.geometry.location.lat.toFixed(6)),
+        longitude: parseFloat(result.geometry.location.lng.toFixed(6)),
+      };
     } else {
       console.error('No valid geocode results found for the given location');
       return null;
