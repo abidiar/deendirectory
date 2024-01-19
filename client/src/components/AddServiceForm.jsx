@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { LocationContext } from '../context/LocationContext';
+import MaskedInput from 'react-text-mask';
 
 function AddServiceForm() {
     const [categories, setCategories] = useState([]);
@@ -33,6 +34,10 @@ function AddServiceForm() {
     }, [backendUrl]);
     
     const handleChange = (e) => {
+        // If the postal code field is being updated, automatically uppercase the state abbreviation
+        if (e.target.name === 'state') {
+            e.target.value = e.target.value.toUpperCase();
+        }
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
     
@@ -130,22 +135,41 @@ function AddServiceForm() {
                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
                            value={formData.state} onChange={handleChange} />
                 </div>
-                <div>
-                    <label htmlFor="postal_code" className="block text-sm font-medium text-neutral-dark">Postal Code</label>
-                    <input id="postal_code" name="postal_code" type="text" required
-                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
-                           value={formData.postal_code} onChange={handleChange} />
-                </div>
+            {/* Postal Code */}
+            <div>
+                <label htmlFor="postal_code" className="block text-sm font-medium text-neutral-dark">Postal Code</label>
+                <input
+                    id="postal_code"
+                    name="postal_code"
+                    type="text"
+                    pattern="\d{5}(-\d{4})?"
+                    title="Postal code must be a valid ZIP code (XXXXX or XXXXX-XXXX)"
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
+                    value={formData.postal_code}
+                    onChange={handleChange}
+                />
+            </div>
             </div>
 
             {/* Contact Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="phone_number" className="block text-sm font-medium text-neutral-dark">Phone Number</label>
-                    <input id="phone_number" name="phone_number" type="tel" 
-                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
-                           value={formData.phone_number} onChange={handleChange} />
-                </div>
+             {/* Phone Number */}
+             <div>
+                <label htmlFor="phone_number" className="block text-sm font-medium text-neutral-dark">Phone Number</label>
+                <MaskedInput
+                    mask={['(', /[1-9]/, /\d/, /\d/, ')', ' ', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
+                    placeholder="(123) 456-7890"
+                    guide={false}
+                    id="phone_number"
+                    name="phone_number"
+                    type="tel"
+                    value={formData.phone_number}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
                 <div>
                     <label htmlFor="website" className="block text-sm font-medium text-neutral-dark">Website</label>
                     <input id="website" name="website" type="url" 
