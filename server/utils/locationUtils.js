@@ -10,34 +10,29 @@ async function convertCityStateToCoords(city, state) {
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
 
   try {
-      const response = await fetchWithRetry(url);
-      const data = await response.json();
+      const data = await fetchWithRetry(url); // 'data' is the parsed JSON from the fetchWithRetry function
+
+      if (data && data.status === 'OK') {
+          const result = data.results[0];
+          return {
+              latitude: result.geometry.location.lat,
+              longitude: result.geometry.location.lng,
+          };
+      }
 
       switch (data.status) {
-          case 'OK':
-              // Valid response
-              const result = data.results[0];
-              return {
-                  latitude: result.geometry.location.lat,
-                  longitude: result.geometry.location.lng,
-              };
-
           case 'ZERO_RESULTS':
               console.error('No results found for the given location.');
               break;
-
           case 'OVER_QUERY_LIMIT':
               console.error('Query limit exceeded for Google Maps API.');
               break;
-
           case 'REQUEST_DENIED':
               console.error('Google Maps API request was denied.');
               break;
-
           case 'INVALID_REQUEST':
               console.error('Invalid request sent to Google Maps API.');
               break;
-
           default:
               console.error('Unexpected error from Google Maps API:', data.status);
       }
