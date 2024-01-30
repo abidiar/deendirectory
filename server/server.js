@@ -164,54 +164,42 @@ res.status(500).json({ error: 'Internal Server Error' });
 }
 });
 
+// Set featured category IDs
+const featuredCategoryIds = [1, 8, 3, 7, 5];
+
 app.get('/api/categories/featured', async (req, res) => {
   const { lat, lng } = req.query;
-  const featuredCategoryIds = [1, 8, 3, 7, 5];
-  const radius = 40233.6; // 25 miles in meters
 
-  let queryParams = [featuredCategoryIds];
-  let index = 2; // Start from $2 because $1 is used for featuredCategoryIds
-
+  // Create query to fetch categories based on fixed IDs and optional location parameters
   let query = `
-    SELECT 
-      c.id, 
-      c.name,
-      COALESCE(json_agg(
-        json_build_object(
-          'id', s.id, 
-          'name', s.name, 
-          // ... Add other service fields you need
-        ) 
-        ORDER BY s.date_added DESC
-      ) FILTER (WHERE s.category_id = c.id), '[]') AS services
-    FROM 
-      categories c
-    LEFT JOIN 
-      services s ON c.id = s.category_id
-      AND ST_DWithin(
-        ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
-        ST_SetSRID(ST_MakePoint($${index}, $${index+1}), 4326)::GEOGRAPHY,
-        $${index+2}
-      )
-    WHERE 
-      c.id = ANY($1)
-    GROUP BY 
-      c.id
+    SELECT id, name, description, ...
+    FROM categories
+    WHERE id = ANY($1)
   `;
 
+  const queryParams = [featuredCategoryIds];
+
+  // If latitude and longitude are provided, modify the query to filter based on location
   if (lat && lng) {
-    queryParams.push(parseFloat(lng), parseFloat(lat), radius);
-  } else {
-    // If lat and lng aren't provided, you can decide how to handle it:
-    // Option 1: Return an error indicating that location is required
-    // Option 2: Return all services without location filtering
+    query += `
+      AND EXISTS (
+        SELECT 1 FROM services
+        WHERE services.category_id = categories.id
+        AND ST_DWithin(
+          services.location::GEOGRAPHY,
+          ST_MakePoint($2, $3)::GEOGRAPHY,
+          40233.6
+        )
+      )
+    `;
+    queryParams.push(parseFloat(lng), parseFloat(lat));
   }
 
+  // Execute the query
   try {
     const result = await pool.query(query, queryParams);
-    // Filter out categories that have no nearby services
-    const filteredCategories = result.rows.filter(category => category.services.length > 0);
-    res.json(filteredCategories);
+    // Send back the filtered categories
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching featured categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
