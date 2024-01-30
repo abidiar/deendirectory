@@ -170,13 +170,11 @@ app.get('/api/categories/nearby', async (req, res) => {
   const radius = 40233.6; // 25 miles in meters
 
   let queryParams = [featuredIds];
-  let index = 1;
-
   let query = `
     SELECT
       c.id,
-      c.name,
-      -- Include additional category fields as needed
+      c.name
+      -- Add additional fields as needed
     FROM
       categories c
     WHERE
@@ -184,20 +182,20 @@ app.get('/api/categories/nearby', async (req, res) => {
   `;
 
   if (lat && lng) {
-    query += `
-      AND EXISTS (
+    query += ` AND EXISTS (
         SELECT 1
         FROM services s
         WHERE s.category_id = c.id
-        AND ST_DWithin(
-          ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
-          ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
-          $4
-        )
-      )
-    `;
+          AND ST_DWithin(
+            ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
+            ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
+            $4
+          )
+      )`;
     queryParams.push(parseFloat(lng), parseFloat(lat), radius);
   }
+
+  query += ' GROUP BY c.id, c.name'; // Add GROUP BY clause if needed
 
   try {
     const result = await pool.query(query, queryParams);
