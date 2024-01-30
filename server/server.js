@@ -181,11 +181,11 @@ app.get('/api/categories/featured', async (req, res) => {
       locationFilter = `
         AND ST_DWithin(
           ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
-          ST_MakePoint(${floatLng}, ${floatLat})::GEOGRAPHY,
+          ST_MakePoint($2, $3)::GEOGRAPHY,
           40233.6
         )
       `;
-      queryParams.push(floatLng, floatLat);
+      queryParams.push(floatLng, floatLat); // Correctly add lng and lat to queryParams
     }
   }
 
