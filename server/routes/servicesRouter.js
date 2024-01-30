@@ -14,9 +14,9 @@ router.post('/add', [
     body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
     body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
     body('category').trim().isLength({ min: 1 }).withMessage('Category is required'),
-    body('is_halal_certified').optional().isBoolean().withMessage('is_halal_certified must be a boolean'),
-    body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/).withMessage('Phone number must be in the format (XXX) XXX-XXXX'),
-    body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/).withMessage('Postal code must be a valid ZIP code (XXXXX or XXXXX-XXXX)'),
+    body('is_halal_certified').optional().isBoolean(),
+    body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/),
+    body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/),
     // Add more validation rules here if needed
 ], async (req, res) => {
     const errors = validationResult(req);
@@ -25,16 +25,21 @@ router.post('/add', [
     }
 
     const { name, description, category, city, state, street_address, postal_code, country, phone_number, website, hours, is_halal_certified } = req.body;
-
-    let coords = { latitude: null, longitude: null };
-    if (city && state) {
-        coords = await convertCityStateToCoords(city, state);
-        if (!coords) {
-            return res.status(400).json({ message: 'Invalid city or state for coordinates' });
-        }
+    
+    // Validate the street address using the regex function
+    const fullAddress = `${street_address}, ${city}, ${state} ${postal_code}`;
+    if (!isValidUSAddress(fullAddress)) {
+        return res.status(400).json({ message: 'Invalid address format' });
     }
 
     try {
+        // Convert category name to category ID
+        const categoryResult = await db.query('SELECT id FROM categories WHERE name = $1', [category]);
+        if (categoryResult.rows.length === 0) {
+            return res.status(400).json({ message: 'Invalid category name' });
+        }
+        const categoryId = categoryResult.rows[0].id;
+
         let coords = { latitude: null, longitude: null };
         if (city && state) {
             coords = await convertCityStateToCoords(city, state);
