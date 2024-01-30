@@ -71,7 +71,7 @@ router.post('/add', [
 }
 });
 
-router.get('/api/services/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
     const businessId = parseInt(req.params.id, 10);
     if (isNaN(businessId)) {
       return res.status(400).json({ error: 'Business ID must be an integer' });

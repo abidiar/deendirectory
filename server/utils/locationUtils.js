@@ -1,47 +1,48 @@
 const NodeCache = require('node-cache');
 const { fetchWithRetry } = require('./fetchUtils'); // Make sure this path is correct for your project structure
+const NodeGeocoder = require('node-geocoder');
 
 // Initialize a cache with a default TTL of 1 hour (3600 seconds)
 const geocodeCache = new NodeCache({ stdTTL: 3600 });
 
+const options = {
+  provider: 'google', apiKey: process.env.GOOGLE_GEO_API_KEY
+};
+
+const geocoder = NodeGeocoder(options);
+
 async function convertCityStateToCoords(city, state) {
-  const apiKey = process.env.GOOGLE_GEO_API_KEY;
   const location = `${city}, ${state}`;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
+  const cacheKey = `geocode:${location}`;
+  const cachedCoords = geocodeCache.get(cacheKey);
+
+  if (cachedCoords) {
+    console.log('Returning cached coordinates for:', location);
+    return cachedCoords;
+  }
 
   try {
-      const data = await fetchWithRetry(url); // 'data' is the parsed JSON from the fetchWithRetry function
-
-      if (data && data.status === 'OK') {
-          const result = data.results[0];
-          return {
-              latitude: result.geometry.location.lat,
-              longitude: result.geometry.location.lng,
-          };
-      }
-
-      switch (data.status) {
-          case 'ZERO_RESULTS':
-              console.error('No results found for the given location.');
-              break;
-          case 'OVER_QUERY_LIMIT':
-              console.error('Query limit exceeded for Google Maps API.');
-              break;
-          case 'REQUEST_DENIED':
-              console.error('Google Maps API request was denied.');
-              break;
-          case 'INVALID_REQUEST':
-              console.error('Invalid request sent to Google Maps API.');
-              break;
-          default:
-              console.error('Unexpected error from Google Maps API:', data.status);
-      }
+    const res = await geocoder.geocode(location);
+    if (res.length) {
+      const coords = {
+        latitude: res[0].latitude,
+        longitude: res[0].longitude
+      };
+      geocodeCache.set(cacheKey, coords);
+      return coords;
+    } else {
+      console.error('No results found for the given location.');
+    }
   } catch (error) {
-      console.error('Error in convertCityStateToCoords:', error);
+    console.error('Error in convertCityStateToCoords:', error);
   }
 
   return null; // Return null in case of any error
 }
+
+module.exports = {
+  convertCityStateToCoords
+};
 
 // Function to fetch coordinates from Google using an address
 async function fetchCoordinatesFromGoogle(location) {
