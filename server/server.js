@@ -168,25 +168,33 @@ res.status(500).json({ error: 'Internal Server Error' });
 app.get('/api/categories/featured', async (req, res) => {
   const { lat, lng } = req.query;
 
+  // Base query to fetch featured categories
   let query = `
-    SELECT id, name
-    FROM categories
-    WHERE id = ANY($1)
+    SELECT c.id, c.name
+    FROM categories c
+    WHERE c.id = ANY($1)
   `;
 
   const queryParams = [featuredCategoryIds];
 
+  // If latitude and longitude are provided, modify the query to include service details
   if (lat && lng) {
-    query += `
-      AND EXISTS (
-        SELECT 1 FROM services
-        WHERE services.category_id = categories.id
-        AND ST_DWithin(
-          services.location::GEOGRAPHY,
-          ST_MakePoint($2, $3)::GEOGRAPHY,
-          40233.6
-        )
-      )
+    query = `
+      SELECT c.id, c.name,
+      COALESCE(json_agg(json_build_object(
+        'id', s.id, 
+        'name', s.name, 
+        'latitude', s.latitude,
+        'longitude', s.longitude
+      )) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
+        ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
+        ST_MakePoint($2, $3)::GEOGRAPHY,
+        40233.6
+      )), '[]') AS services
+      FROM categories c
+      LEFT JOIN services s ON c.id = s.category_id
+      WHERE c.id = ANY($1)
+      GROUP BY c.id
     `;
     queryParams.push(parseFloat(lng), parseFloat(lat));
   }
