@@ -164,6 +164,50 @@ res.status(500).json({ error: 'Internal Server Error' });
 }
 });
 
+app.get('/api/categories/nearby', async (req, res) => {
+  const { ids, lat, lng } = req.query;
+  const featuredIds = ids.split(',').map(id => parseInt(id, 10));
+  const radius = 40233.6; // 25 miles in meters
+
+  let queryParams = [featuredIds];
+  let index = 1;
+
+  let query = `
+    SELECT
+      c.id,
+      c.name,
+      -- Include additional category fields as needed
+    FROM
+      categories c
+    WHERE
+      c.id = ANY($1)
+  `;
+
+  if (lat && lng) {
+    query += `
+      AND EXISTS (
+        SELECT 1
+        FROM services s
+        WHERE s.category_id = c.id
+        AND ST_DWithin(
+          ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
+          ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
+          $4
+        )
+      )
+    `;
+    queryParams.push(parseFloat(lng), parseFloat(lat), radius);
+  }
+
+  try {
+    const result = await pool.query(query, queryParams);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching nearby categories:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 app.post('/api/users/register', async (req, res) => {
   // Implement user registration logic
 });

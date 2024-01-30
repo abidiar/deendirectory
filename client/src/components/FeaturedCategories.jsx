@@ -7,9 +7,9 @@ function FeaturedCategories() {
 
   useEffect(() => {
     const fetchCategories = (latitude, longitude) => {
-      const categoryIds = featuredCategoryIds.join(',');
-      fetch(`https://deendirectorybackend.onrender.com/api/categories?lat=${latitude}&lng=${longitude}&ids=${categoryIds}`)
-        .then(response => response.json())
+      const idsParam = featuredCategoryIds.join(',');
+      fetch(`https://deendirectorybackend.onrender.com/api/categories/nearby?lat=${latitude}&lng=${longitude}&ids=${idsParam}`)
+      .then(response => response.json())
         .then(data => {
           setCategories(data);
         })
