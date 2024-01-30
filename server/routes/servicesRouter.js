@@ -29,7 +29,8 @@ router.post('/add', [
     const { name, description, category, city, state, street_address, is_halal_certified/* other fields from req.body */ } = req.body;
 
     // Validate the street address using the regex function
-    if (street_address && !isValidUSAddress(street_address)) {
+    const fullAddress = `${street_address}, ${city}, ${state} ${postal_code}`;
+    if (!isValidUSAddress(fullAddress)) {
         return res.status(400).json({ message: 'Invalid address format' });
     }
 
