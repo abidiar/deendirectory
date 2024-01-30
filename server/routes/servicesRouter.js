@@ -14,9 +14,9 @@ router.post('/add', [
     body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
     body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
     body('category').trim().isLength({ min: 1 }).withMessage('Category is required'),
-    body('is_halal_certified').optional().isBoolean(),
-    body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/),
-    body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/),
+    body('is_halal_certified').optional().isBoolean().withMessage('is_halal_certified must be a boolean'),
+    body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/).withMessage('Phone number must be in the format (XXX) XXX-XXXX'),
+    body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/).withMessage('Postal code must be a valid ZIP code (XXXXX or XXXXX-XXXX)'),
     // Add more validation rules here if needed
 ], async (req, res) => {
     const errors = validationResult(req);
@@ -25,9 +25,13 @@ router.post('/add', [
     }
 
     const { name, description, category, city, state, street_address, postal_code, country, phone_number, website, hours, is_halal_certified } = req.body;
-    const fullAddress = `${street_address}, ${city}, ${state} ${postal_code}`;
-    if (!isValidUSAddress(fullAddress)) {
-        return res.status(400).json({ message: 'Invalid address format' });
+
+    let coords = { latitude: null, longitude: null };
+    if (city && state) {
+        coords = await convertCityStateToCoords(city, state);
+        if (!coords) {
+            return res.status(400).json({ message: 'Invalid city or state for coordinates' });
+        }
     }
 
     try {
@@ -37,18 +41,12 @@ router.post('/add', [
         }
         const categoryId = categoryResult.rows[0].id;
 
-        let coords = { latitude: null, longitude: null };
-        if (city && state) {
-            coords = await convertCityStateToCoords(city, state);
-            if (!coords) {
-                return res.status(400).json({ message: 'Invalid city or state for coordinates' });
-            }
-        }
-
         const insertQuery = `
             INSERT INTO services (
-                name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *;
+                name, description, latitude, longitude, location, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified
+            ) VALUES (
+                $1, $2, $3, $4, ST_SetSRID(ST_MakePoint($4, $3), 4326), $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+            ) RETURNING *;
         `;
         const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified];
         
