@@ -7,7 +7,6 @@ const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils'); // Adjust the path to where your locationUtils file is located
-const featuredCategoryIds = [1, 8, 3, 7, 5];
 
 
 // Initialize Express app
@@ -167,18 +166,15 @@ res.status(500).json({ error: 'Internal Server Error' });
 
 app.get('/api/categories/featured', async (req, res) => {
   const { lat, lng } = req.query;
+  const featuredCategoryIds = [1, 8, 3, 7, 5];
   let queryParams = [featuredCategoryIds];
-  let locationCondition = '';
 
-  // Check if both latitude and longitude are provided
+  let locationCondition = '';
   if (lat && lng) {
-    // Parse lat and lng to float to ensure proper format
     const floatLat = parseFloat(lat);
     const floatLng = parseFloat(lng);
     if (!isNaN(floatLat) && !isNaN(floatLng)) {
-      // Add location-based filtering to the queryParams
       queryParams.push(floatLng, floatLat);
-      // Add location-based filtering to the query
       locationCondition = `
         AND ST_DWithin(
           ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
@@ -189,30 +185,32 @@ app.get('/api/categories/featured', async (req, res) => {
     }
   }
 
-  // Construct the SQL query using location filtering within a subquery for services
+  // Construct the SQL query to fetch featured categories, including those without nearby businesses
   let query = `
     SELECT c.id, c.name,
     COALESCE(json_agg(json_build_object(
-      'id', filtered_services.id, 
-      'name', filtered_services.name, 
-      'latitude', filtered_services.latitude,
-      'longitude', filtered_services.longitude
-    )) FILTER (WHERE filtered_services.id IS NOT NULL), '[]') AS services
+      'id', s.id, 
+      'name', s.name, 
+      'latitude', s.latitude,
+      'longitude', s.longitude
+    )) FILTER (WHERE s.id IS NOT NULL ${locationCondition}), '[]') AS services
     FROM categories c
-    LEFT JOIN (
-      SELECT * FROM services s
-      WHERE 1=1
-      ${locationCondition}
-    ) AS filtered_services ON c.id = filtered_services.category_id
+    LEFT JOIN services s ON c.id = s.category_id
     WHERE c.id = ANY($1)
     GROUP BY c.id
+    UNION ALL
+    SELECT c.id, c.name, '[]'::json AS services
+    FROM categories c
+    WHERE c.id = ANY($1)
+    AND NOT EXISTS (
+      SELECT 1 FROM services s WHERE c.id = s.category_id
+    )
+    ORDER BY id
   `;
 
   try {
     const result = await pool.query(query, queryParams);
-    // Filter out categories with no services within the specified range
-    const filteredResult = result.rows.filter(category => category.services.length > 0);
-    res.json(filteredResult);
+    res.json(result.rows);
   } catch (error) {
     console.error('Error fetching featured categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
