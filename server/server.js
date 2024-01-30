@@ -165,8 +165,8 @@ res.status(500).json({ error: 'Internal Server Error' });
 });
 
 app.get('/api/categories/featured', async (req, res) => {
-  const { lat, lng } = req.query;
   const featuredCategoryIds = [1, 8, 3, 7, 5];
+  const { lat, lng } = req.query;
   let queryParams = [featuredCategoryIds];
 
   let locationCondition = '';
@@ -185,27 +185,34 @@ app.get('/api/categories/featured', async (req, res) => {
     }
   }
 
-  // Construct the SQL query to fetch featured categories, including those without nearby businesses
+  // Construct the SQL query using a CTE for featured categories
   let query = `
-    SELECT c.id, c.name,
-    COALESCE(json_agg(json_build_object(
-      'id', s.id, 
-      'name', s.name, 
-      'latitude', s.latitude,
-      'longitude', s.longitude
-    )) FILTER (WHERE s.id IS NOT NULL ${locationCondition}), '[]') AS services
-    FROM categories c
-    LEFT JOIN services s ON c.id = s.category_id
-    WHERE c.id = ANY($1)
-    GROUP BY c.id
-    UNION ALL
-    SELECT c.id, c.name, '[]'::json AS services
-    FROM categories c
-    WHERE c.id = ANY($1)
-    AND NOT EXISTS (
-      SELECT 1 FROM services s WHERE c.id = s.category_id
-    )
-    ORDER BY id
+  WITH FeaturedCategories AS (
+    SELECT id, name
+    FROM categories
+    WHERE id = ANY($1)
+  )
+  SELECT 
+    fc.id, 
+    fc.name,
+    COALESCE(
+      json_agg(
+        json_build_object(
+          'id', s.id, 
+          'name', s.name, 
+          'latitude', s.latitude,
+          'longitude', s.longitude
+        )
+      ) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
+        ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
+        ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
+        40233.6
+      )), '[]'
+    ) AS services
+  FROM FeaturedCategories fc
+  LEFT JOIN services s ON fc.id = s.category_id
+  GROUP BY fc.id
+  ORDER BY fc.id;
   `;
 
   try {
