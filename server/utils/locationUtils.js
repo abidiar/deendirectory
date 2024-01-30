@@ -54,27 +54,22 @@ async function fetchCoordinatesFromGoogle(location) {
     return cachedCoords;
   }
 
-  const apiKey = process.env.GOOGLE_GEO_API_KEY;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${apiKey}`;
-
   try {
-    // fetchWithRetry already returns the parsed JSON data
-    const data = await fetchWithRetry(url);
-
-    if (data.status === 'OK' && data.results.length > 0) {
+    const res = await geocoder.geocode(location);
+    if (res.length) {
       const coords = {
-        latitude: parseFloat(data.results[0].geometry.location.lat.toFixed(6)),
-        longitude: parseFloat(data.results[0].geometry.location.lng.toFixed(6)),
+        latitude: res[0].latitude,
+        longitude: res[0].longitude
       };
-      console.log(`Converted Coordinates: ${JSON.stringify(coords)}`);
       geocodeCache.set(cacheKey, coords);
       console.log('Caching coordinates for:', location);
       return coords;
     } else {
+      console.error('No results found for the given location:', location);
       return null;
     }
   } catch (error) {
-    console.error('Error in convertCityStateToCoords:', error);
+    console.error('Error in fetchCoordinatesFromGoogle:', error);
     return null;
   }
 }
@@ -83,3 +78,4 @@ module.exports = {
   convertCityStateToCoords,
   fetchCoordinatesFromGoogle
 };
+
