@@ -1,28 +1,15 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LocationContext } from '../context/LocationContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
-function SearchBar({ onSearch }) {
-    const { backendUrl } = useContext(LocationContext);
+function SearchBar() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [locationInput, setLocationInput] = useState('');
     const [isHalalCertified, setIsHalalCertified] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [searchError, setSearchError] = useState('');
-    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-
-    useEffect(() => {
-        const timerId = setTimeout(() => {
-            setDebouncedSearchTerm(searchTerm);
-        }, 500); // 500ms delay
-
-        return () => {
-            clearTimeout(timerId);
-        };
-    }, [searchTerm]);
 
     const handleSearch = async (event) => {
         event.preventDefault();

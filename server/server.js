@@ -6,6 +6,8 @@ const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils'); // Adjust the path to where your locationUtils file is located
+
 
 // Initialize Express app
 const app = express();
@@ -37,7 +39,6 @@ app.get('/api/search', async (req, res) => {
     const { searchTerm, location, latitude, longitude } = req.query;
     console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}, latitude: ${latitude}, longitude: ${longitude}`);
 
-    // Update the SELECT statement to include new fields in the services table
     let searchQuery = `
       SELECT
         id, name, description, latitude, longitude, location, date_added,
@@ -49,13 +50,13 @@ app.get('/api/search', async (req, res) => {
     let values = [`%${searchTerm}%`];
 
     if (latitude && longitude) {
-      const radius = 40233.6;  // Define radius here for proximity search (25 miles)
+      const radius = 40233.6;  // 25 miles
       searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
       values.push(longitude, latitude, radius);
     } else if (location) {
       const coords = await fetchCoordinatesFromGoogle(location);
       if (coords) {
-        const radius = 40233.6;  // Define radius here for proximity search (25 miles)
+        const radius = 40233.6;  // 25 miles
         searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
         values.push(coords.longitude, coords.latitude, radius);
       } else {
@@ -72,7 +73,6 @@ app.get('/api/search', async (req, res) => {
       return res.status(200).json([]);
     }
 
-    // Map the result to include only the necessary fields
     const services = result.rows.map(service => ({
       id: service.id,
       name: service.name,
