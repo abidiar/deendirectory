@@ -167,9 +167,8 @@ res.status(500).json({ error: 'Internal Server Error' });
 
 app.get('/api/categories/featured', async (req, res) => {
   const { lat, lng } = req.query;
-
   let queryParams = [featuredCategoryIds];
-  let locationFilter = '';
+  let locationCondition = '';
 
   // Check if both latitude and longitude are provided
   if (lat && lng) {
@@ -177,29 +176,34 @@ app.get('/api/categories/featured', async (req, res) => {
     const floatLat = parseFloat(lat);
     const floatLng = parseFloat(lng);
     if (!isNaN(floatLat) && !isNaN(floatLng)) {
+      // Add location-based filtering to the queryParams
+      queryParams.push(floatLng, floatLat);
       // Add location-based filtering to the query
-      locationFilter = `
+      locationCondition = `
         AND ST_DWithin(
-          ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
-          ST_MakePoint($2, $3)::GEOGRAPHY,
+          ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
+          ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
           40233.6
         )
       `;
-      queryParams.push(floatLng, floatLat); // Correctly add lng and lat to queryParams
     }
   }
 
-  // Construct the SQL query using location filtering
+  // Construct the SQL query using location filtering within a subquery for services
   let query = `
     SELECT c.id, c.name,
     COALESCE(json_agg(json_build_object(
-      'id', s.id, 
-      'name', s.name, 
-      'latitude', s.latitude,
-      'longitude', s.longitude
-    )) FILTER (WHERE s.id IS NOT NULL ${locationFilter}), '[]') AS services
+      'id', filtered_services.id, 
+      'name', filtered_services.name, 
+      'latitude', filtered_services.latitude,
+      'longitude', filtered_services.longitude
+    )) FILTER (WHERE filtered_services.id IS NOT NULL), '[]') AS services
     FROM categories c
-    LEFT JOIN services s ON c.id = s.category_id
+    LEFT JOIN (
+      SELECT * FROM services s
+      WHERE 1=1
+      ${locationCondition}
+    ) AS filtered_services ON c.id = filtered_services.category_id
     WHERE c.id = ANY($1)
     GROUP BY c.id
   `;
