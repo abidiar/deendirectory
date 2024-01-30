@@ -4,13 +4,34 @@ import { useParams, Link } from 'react-router-dom';
 function CategoryPage() {
     const { categoryId } = useParams();
     const [businesses, setBusinesses] = useState([]);
+    const [userLocation, setUserLocation] = useState(null);
 
     useEffect(() => {
-      fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/businesses`)
-        .then(response => response.json())
-        .then(data => setBusinesses(data))
-        .catch(error => console.error('Error:', error));
-    }, [categoryId]);
+      // Get user's location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation({ latitude, longitude });
+          },
+          error => {
+            console.error('Error getting location:', error);
+          }
+        );
+      } else {
+        console.error('Geolocation is not supported by this browser.');
+      }
+    }, []);
+
+    useEffect(() => {
+      // Only fetch businesses if userLocation is set
+      if (userLocation && categoryId) {
+        fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/businesses?lat=${userLocation.latitude}&lng=${userLocation.longitude}`)
+          .then(response => response.json())
+          .then(data => setBusinesses(data))
+          .catch(error => console.error('Error:', error));
+      }
+    }, [categoryId, userLocation]);
 
     return (
         <div className="bg-neutral-light">
