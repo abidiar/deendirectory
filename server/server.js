@@ -168,16 +168,14 @@ res.status(500).json({ error: 'Internal Server Error' });
 app.get('/api/categories/featured', async (req, res) => {
   const { lat, lng } = req.query;
 
-  // Create query to fetch categories based on fixed IDs and optional location parameters
   let query = `
-    SELECT id, name, description
+    SELECT id, name
     FROM categories
     WHERE id = ANY($1)
   `;
 
   const queryParams = [featuredCategoryIds];
 
-  // If latitude and longitude are provided, modify the query to filter based on location
   if (lat && lng) {
     query += `
       AND EXISTS (
@@ -193,10 +191,8 @@ app.get('/api/categories/featured', async (req, res) => {
     queryParams.push(parseFloat(lng), parseFloat(lat));
   }
 
-  // Execute the query
   try {
     const result = await pool.query(query, queryParams);
-    // Send back the filtered categories
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching featured categories:', error);
