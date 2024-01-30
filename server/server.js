@@ -7,6 +7,7 @@ const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils'); // Adjust the path to where your locationUtils file is located
+const featuredCategoryIds = [1, 8, 3, 7, 5];
 
 
 // Initialize Express app
@@ -163,9 +164,6 @@ console.error('Error fetching new services:', error);
 res.status(500).json({ error: 'Internal Server Error' });
 }
 });
-
-// Set featured category IDs
-const featuredCategoryIds = [1, 8, 3, 7, 5];
 
 app.get('/api/categories/featured', async (req, res) => {
   const { lat, lng } = req.query;
