@@ -245,59 +245,6 @@ res.status(500).json({ error: 'Internal Server Error', details: error.message })
 }
 });
 
-app.get('/api/services/:id', async (req, res) => {
-  const businessId = parseInt(req.params.id, 10);
-  if (isNaN(businessId)) {
-    return res.status(400).json({ error: 'Business ID must be an integer' });
-  }
-  try {
-    // Update the SELECT statement to explicitly specify the columns to return
-    const businessQuery = `
-      SELECT
-        id, name, description, latitude, longitude, location, date_added,
-        category_id, street_address, city, state, postal_code, country,
-        phone_number, website, hours, is_halal_certified, average_rating, review_count
-      FROM services
-      WHERE id = $1;
-    `;
-    const businessResult = await pool.query(businessQuery,
-[businessId]);
-
-if (businessResult.rows.length === 0) {
-  return res.status(404).json({ message: 'Business not found' });
-}
-
-// Map the result to include only the necessary fields
-const serviceDetails = {
-  id: businessResult.rows[0].id,
-  name: businessResult.rows[0].name,
-  description: businessResult.rows[0].description,
-  latitude: businessResult.rows[0].latitude,
-  longitude: businessResult.rows[0].longitude,
-  location: businessResult.rows[0].location,
-  date_added: businessResult.rows[0].date_added,
-  category_id: businessResult.rows[0].category_id,
-  street_address: businessResult.rows[0].street_address,
-  city: businessResult.rows[0].city,
-  state: businessResult.rows[0].state,
-  postal_code: businessResult.rows[0].postal_code,
-  country: businessResult.rows[0].country,
-  phone_number: businessResult.rows[0].phone_number,
-  website: businessResult.rows[0].website,
-  hours: businessResult.rows[0].hours,
-  is_halal_certified: businessResult.rows[0].is_halal_certified,
-  average_rating: businessResult.rows[0].average_rating,
-  review_count:
-businessResult.rows[0].review_count
-};
-
-res.json(serviceDetails);
-} catch (error) {
-console.error('Error fetching business details:', error);
-res.status(500).json({ error: 'Internal Server Error', details: error.message });
-}
-});
-
 app.get('/api/categories', async (req, res) => {
   try {
     const { ids, lat, lng } = req.query;
