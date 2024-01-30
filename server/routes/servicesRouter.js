@@ -26,7 +26,7 @@ router.post('/add', [
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, description, category, city, state, street_address, is_halal_certified/* other fields from req.body */ } = req.body;
+    const { name, description, category, city, state, street_address, postal_code, is_halal_certified/* other fields from req.body */ } = req.body;
 
     // Validate the street address using the regex function
     const fullAddress = `${street_address}, ${city}, ${state} ${postal_code}`;
