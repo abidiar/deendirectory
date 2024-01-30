@@ -6,14 +6,12 @@ function FeaturedCategories() {
   const featuredCategoryIds = [1, 8, 3, 7, 5]; // The IDs of categories to feature
 
   useEffect(() => {
-    // Function to fetch categories based on location
     const fetchCategories = (latitude, longitude) => {
-      fetch(`https://deendirectorybackend.onrender.com/api/categories?lat=${latitude}&lng=${longitude}`)
+      const categoryIds = featuredCategoryIds.join(',');
+      fetch(`https://deendirectorybackend.onrender.com/api/categories?lat=${latitude}&lng=${longitude}&ids=${categoryIds}`)
         .then(response => response.json())
         .then(data => {
-          // Filter the categories to only include the featured ones
-          const featured = data.filter(category => featuredCategoryIds.includes(category.id));
-          setCategories(featured);
+          setCategories(data);
         })
         .catch(error => console.error('Error fetching categories:', error));
     };

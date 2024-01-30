@@ -316,7 +316,8 @@ app.get('/api/categories', async (req, res) => {
 
     if (ids) {
       // Filtering by category IDs
-      queryParams.push(ids.split(',').map(Number)); // Convert to array of numbers
+      const idArray = ids.split(',').map(Number); // Convert to array of numbers
+      queryParams.push(idArray);
       whereClauses.push(`c.id = ANY($${index}::int[])`);
       index++;
     }
