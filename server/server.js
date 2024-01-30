@@ -170,33 +170,33 @@ app.get('/api/categories/featured', async (req, res) => {
 
   // Base query to fetch featured categories
   let query = `
-    SELECT c.id, c.name
+    SELECT c.id, c.name,
+    COALESCE(json_agg(json_build_object(
+      'id', s.id, 
+      'name', s.name, 
+      'latitude', s.latitude,
+      'longitude', s.longitude
+    )) FILTER (WHERE s.id IS NOT NULL), '[]') AS services
     FROM categories c
+    LEFT JOIN services s ON c.id = s.category_id
+    AND ST_DWithin(
+      ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
+      ST_MakePoint($2, $3)::GEOGRAPHY,
+      40233.6
+    )
     WHERE c.id = ANY($1)
+    GROUP BY c.id
   `;
 
+  // Initialize queryParams with featuredCategoryIds regardless of whether lat and lng are provided
   const queryParams = [featuredCategoryIds];
 
-  // If latitude and longitude are provided, modify the query to include service details
+  // Only add lat and lng to queryParams if they are provided
   if (lat && lng) {
-    query = `
-      SELECT c.id, c.name,
-      COALESCE(json_agg(json_build_object(
-        'id', s.id, 
-        'name', s.name, 
-        'latitude', s.latitude,
-        'longitude', s.longitude
-      )) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
-        ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
-        ST_MakePoint($2, $3)::GEOGRAPHY,
-        40233.6
-      )), '[]') AS services
-      FROM categories c
-      LEFT JOIN services s ON c.id = s.category_id
-      WHERE c.id = ANY($1)
-      GROUP BY c.id
-    `;
     queryParams.push(parseFloat(lng), parseFloat(lat));
+  } else {
+    // If lat and lng are not provided, default them to a location that will not match any services
+    queryParams.push(0, 0);
   }
 
   try {
