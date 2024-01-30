@@ -445,28 +445,42 @@ app.get('/api/category/:id/services', async (req, res) => {
 });
 
 app.get('/api/category/:id/businesses', async (req, res) => {
-  const categoryId = parseInt(req.params.id);
+  const categoryId = req.params.id;
+  const { lat, lng } = req.query;
+
+  // Convert lat and lng to float
+  const floatLat = parseFloat(lat);
+  const floatLng = parseFloat(lng);
+
+  // Construct the SQL query using location filtering
+  let query = `
+    SELECT
+      id,
+      name,
+      description,
+      latitude,
+      longitude,
+      location,
+      -- other columns
+    FROM services
+    WHERE category_id = $1
+    AND ST_DWithin(
+      ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::GEOGRAPHY,
+      ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
+      40233.6
+    )
+  `;
+
   try {
-    // Update the SELECT statement to include new fields
-    const query = `
-      WITH RECURSIVE subcategories AS (
-        SELECT id FROM categories WHERE id = $1
-        UNION ALL
-        SELECT c.id FROM categories c JOIN subcategories s ON c.parent_category_id = s.id
-      )
-      SELECT
-        s.id, s.name, s.description, s.latitude, s.longitude, s.location, s.date_added,
-        s.category_id, s.street_address, s.city, s.state, s.postal_code, s.country,
-        s.phone_number, s.website, s.hours, s.is_halal_certified, s.average_rating, s.review_count
-      FROM services s JOIN subcategories sc ON s.category_id = sc.id;
-    `;
-    const result = await pool.query(query, [categoryId]);
+    const queryParams = [categoryId, floatLng, floatLat];
+    const result = await pool.query(query, queryParams);
     res.json(result.rows);
   } catch (error) {
-    console.error(`Error fetching businesses for category ${categoryId}:`, error);
+    console.error('Error fetching businesses for category:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
 
 // ... (Other API routes like /api/services/cleaners, /api/services/babysitters)
 
