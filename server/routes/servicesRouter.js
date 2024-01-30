@@ -35,20 +35,20 @@ router.post('/add', [
     }
 
     try {
-        const categoryResult = await db.query('SELECT id FROM categories WHERE name = $1', [category]);
-        if (categoryResult.rows.length === 0) {
-            return res.status(400).json({ message: 'Invalid category name' });
+        let coords = { latitude: null, longitude: null };
+        if (city && state) {
+            coords = await convertCityStateToCoords(city, state);
+            if (!coords) {
+                return res.status(400).json({ message: 'Invalid city or state for coordinates' });
+            }
         }
-        const categoryId = categoryResult.rows[0].id;
 
         const insertQuery = `
             INSERT INTO services (
-                name, description, latitude, longitude, location, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified
-            ) VALUES (
-                $1, $2, $3, $4, ST_SetSRID(ST_MakePoint($4, $3), 4326), $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
-            ) RETURNING *;
+                name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, average_rating, review_count
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *;
         `;
-        const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified];
+        const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, 0, 0];
         
         const result = await db.query(insertQuery, values);
         res.status(201).json(result.rows[0]);
