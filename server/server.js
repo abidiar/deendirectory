@@ -164,44 +164,56 @@ res.status(500).json({ error: 'Internal Server Error' });
 }
 });
 
-app.get('/api/categories/nearby', async (req, res) => {
-  const { ids, lat, lng } = req.query;
-  const featuredIds = ids.split(',').map(id => parseInt(id, 10));
+app.get('/api/categories/featured', async (req, res) => {
+  const { lat, lng } = req.query;
+  const featuredCategoryIds = [1, 8, 3, 7, 5];
   const radius = 40233.6; // 25 miles in meters
 
-  let queryParams = [featuredIds];
+  let queryParams = [featuredCategoryIds];
+  let index = 2; // Start from $2 because $1 is used for featuredCategoryIds
+
   let query = `
-    SELECT
-      c.id,
-      c.name
-      -- Add additional fields as needed
-    FROM
+    SELECT 
+      c.id, 
+      c.name,
+      COALESCE(json_agg(
+        json_build_object(
+          'id', s.id, 
+          'name', s.name, 
+          // ... Add other service fields you need
+        ) 
+        ORDER BY s.date_added DESC
+      ) FILTER (WHERE s.category_id = c.id), '[]') AS services
+    FROM 
       categories c
-    WHERE
+    LEFT JOIN 
+      services s ON c.id = s.category_id
+      AND ST_DWithin(
+        ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
+        ST_SetSRID(ST_MakePoint($${index}, $${index+1}), 4326)::GEOGRAPHY,
+        $${index+2}
+      )
+    WHERE 
       c.id = ANY($1)
+    GROUP BY 
+      c.id
   `;
 
   if (lat && lng) {
-    query += ` AND EXISTS (
-        SELECT 1
-        FROM services s
-        WHERE s.category_id = c.id
-          AND ST_DWithin(
-            ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
-            ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
-            $4
-          )
-      )`;
     queryParams.push(parseFloat(lng), parseFloat(lat), radius);
+  } else {
+    // If lat and lng aren't provided, you can decide how to handle it:
+    // Option 1: Return an error indicating that location is required
+    // Option 2: Return all services without location filtering
   }
-
-  query += ' GROUP BY c.id, c.name'; // Add GROUP BY clause if needed
 
   try {
     const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+    // Filter out categories that have no nearby services
+    const filteredCategories = result.rows.filter(category => category.services.length > 0);
+    res.json(filteredCategories);
   } catch (error) {
-    console.error('Error fetching nearby categories:', error);
+    console.error('Error fetching featured categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });

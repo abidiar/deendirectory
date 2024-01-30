@@ -3,18 +3,16 @@ import { Link } from 'react-router-dom';
 
 function FeaturedCategories() {
   const [categories, setCategories] = useState([]);
-  const featuredCategoryIds = [1, 8, 3, 7, 5]; // The IDs of categories to feature
 
   useEffect(() => {
     const fetchCategories = (latitude, longitude) => {
-      const idsParam = featuredCategoryIds.join(',');
-      fetch(`https://deendirectorybackend.onrender.com/api/categories/nearby?lat=${latitude}&lng=${longitude}&ids=${idsParam}`)
+      fetch(`https://deendirectorybackend.onrender.com/api/categories/featured?lat=${latitude}&lng=${longitude}`)
       .then(response => response.json())
-        .then(data => {
-          setCategories(data);
-        })
-        .catch(error => console.error('Error fetching categories:', error));
-    };
+      .then(data => {
+        setCategories(data);
+      })
+      .catch(error => console.error('Error fetching featured categories:', error));
+  };
 
     // Get user's location
     if (navigator.geolocation) {
