@@ -170,7 +170,7 @@ app.get('/api/categories/featured', async (req, res) => {
 
   // Create query to fetch categories based on fixed IDs and optional location parameters
   let query = `
-    SELECT id, name, description, ...
+    SELECT id, name, description
     FROM categories
     WHERE id = ANY($1)
   `;
