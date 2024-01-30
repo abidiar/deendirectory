@@ -460,8 +460,7 @@ app.get('/api/category/:id/businesses', async (req, res) => {
       description,
       latitude,
       longitude,
-      location,
-      -- other columns
+      location
     FROM services
     WHERE category_id = $1
     AND ST_DWithin(
