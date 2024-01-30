@@ -168,7 +168,28 @@ res.status(500).json({ error: 'Internal Server Error' });
 app.get('/api/categories/featured', async (req, res) => {
   const { lat, lng } = req.query;
 
-  // Base query to fetch featured categories with services within the geolocation range
+  let queryParams = [featuredCategoryIds];
+  let locationFilter = '';
+
+  // Check if both latitude and longitude are provided
+  if (lat && lng) {
+    // Parse lat and lng to float to ensure proper format
+    const floatLat = parseFloat(lat);
+    const floatLng = parseFloat(lng);
+    if (!isNaN(floatLat) && !isNaN(floatLng)) {
+      // Add location-based filtering to the query
+      locationFilter = `
+        AND ST_DWithin(
+          ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
+          ST_MakePoint(${floatLng}, ${floatLat})::GEOGRAPHY,
+          40233.6
+        )
+      `;
+      queryParams.push(floatLng, floatLat);
+    }
+  }
+
+  // Construct the SQL query using location filtering
   let query = `
     SELECT c.id, c.name,
     COALESCE(json_agg(json_build_object(
@@ -176,26 +197,16 @@ app.get('/api/categories/featured', async (req, res) => {
       'name', s.name, 
       'latitude', s.latitude,
       'longitude', s.longitude
-    )) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
-      ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
-      ST_MakePoint($2, $3)::GEOGRAPHY,
-      40233.6
-    )), '[]') AS services
+    )) FILTER (WHERE s.id IS NOT NULL ${locationFilter}), '[]') AS services
     FROM categories c
     LEFT JOIN services s ON c.id = s.category_id
     WHERE c.id = ANY($1)
     GROUP BY c.id
   `;
 
-  // Set up query parameters, including a fallback for lat/lng if they're not provided
-  const queryParams = [featuredCategoryIds];
-
-  // Push lat and lng to queryParams if provided, else push null to avoid filtering by location
-  queryParams.push(lat ? parseFloat(lng) : null, lng ? parseFloat(lat) : null);
-
   try {
     const result = await pool.query(query, queryParams);
-    // Optionally filter out categories with no services within the specified range
+    // Filter out categories with no services within the specified range
     const filteredResult = result.rows.filter(category => category.services.length > 0);
     res.json(filteredResult);
   } catch (error) {
