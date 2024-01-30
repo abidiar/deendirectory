@@ -211,8 +211,9 @@ app.get('/api/categories/featured', async (req, res) => {
     ) AS services
   FROM FeaturedCategories fc
   LEFT JOIN services s ON fc.id = s.category_id
-  GROUP BY fc.id
+  GROUP BY fc.id, fc.name
   ORDER BY fc.id;
+  
   `;
 
   try {
