@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { LocationContext } from './LocationContext'; // Ensure this path matches your file structure
 
 function SearchBar() {
   const navigate = useNavigate();
+  const { location: currentLocation } = useContext(LocationContext); // Use the current location from context
   const [searchTerm, setSearchTerm] = useState('');
   const [locationInput, setLocationInput] = useState('');
   const [isHalalCertified, setIsHalalCertified] = useState(false);
@@ -16,26 +18,28 @@ function SearchBar() {
 
     if (!searchTerm.trim()) {
       setSearchError('Please enter a search term');
+      setIsLoading(false);
+      return;
+    }
+
+    const searchLocation = locationInput.trim() || currentLocation;
+    if (!searchLocation) {
+      setSearchError('Location is required. Please enable location services or enter a location.');
+      setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
     setSearchError('');
 
-    try {
-      const searchParams = new URLSearchParams({
-        searchTerm: searchTerm.trim(),
-        location: locationInput,
-        isHalalCertified: isHalalCertified
-      });
+    const searchParams = new URLSearchParams({
+      searchTerm: searchTerm.trim(),
+      location: searchLocation,
+      isHalalCertified: isHalalCertified.toString()
+    });
 
-      navigate(`/search-results?${searchParams.toString()}`);
-    } catch (error) {
-      console.error('Navigation error:', error);
-      setSearchError('Failed to navigate to search results');
-    } finally {
-      setIsLoading(false);
-    }
+    navigate(`/search-results?${searchParams.toString()}`);
+    setIsLoading(false);
   };
 
   return (
@@ -43,7 +47,6 @@ function SearchBar() {
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>
         <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl">
           <input
-            name="searchTerm"
             type="text"
             className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Service or Business"
@@ -68,7 +71,6 @@ function SearchBar() {
             <FontAwesomeIcon icon={faSearch} />
           </button>
         </div>
-        {/* Halal Certified Checkbox */}
         <div className="flex justify-center mt-4">
           <label className="flex items-center">
             <input

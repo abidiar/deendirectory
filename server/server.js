@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const pool = require('./db/db');
+const pool = require('.db/db');
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
@@ -36,66 +36,54 @@ app.get('/api/v1/example', (req, res) => {
 // API route for search
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, location, latitude, longitude, category, radius = 40233.6, sort, isHalalCertified, page = 1, pageSize = 10 } = req.query;
-    console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}, latitude: ${latitude}, longitude: ${longitude}, category: ${category}, radius: ${radius}, sort: ${sort}, halal: ${isHalalCertified}, page: ${page}`);
+    const { searchTerm, location, latitude, longitude, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
 
-    let searchQuery = `
-      SELECT
-        id, name, description, latitude, longitude, location, date_added,
-        category_id, street_address, city, state, postal_code, country,
-        phone_number, website, hours, is_halal_certified, average_rating, review_count,
-        ts_rank_cd(textsearch, query) AS rank
-      FROM services,
-        to_tsquery('english', $1) query,
-        to_tsvector('english', name || ' ' || description) textsearch
-      WHERE textsearch @@ query
+    let baseSearchQuery = `
+      FROM services s
+      LEFT JOIN categories c ON s.category_id = c.id
+      WHERE to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) @@ to_tsquery($1)
     `;
-    let values = [`${searchTerm}:*`];
+    
+    let queryParams = [`${searchTerm}:*`];
 
     if (category) {
-      searchQuery += ' AND category_id = $2';
-      values.push(category);
+      baseSearchQuery += ` AND s.category_id = $${queryParams.length + 1}`;
+      queryParams.push(category);
     }
 
     if (isHalalCertified) {
-      searchQuery += ' AND is_halal_certified = $3';
-      values.push(isHalalCertified);
+      baseSearchQuery += ` AND s.is_halal_certified = $${queryParams.length + 1}`;
+      queryParams.push(isHalalCertified === 'true');
     }
 
     if (latitude && longitude) {
-      searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($4, $5), 4326)::GEOGRAPHY, $6)';
-      values.push(longitude, latitude, radius);
+      baseSearchQuery += ` AND ST_DWithin(s.location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($${queryParams.length + 1}, $${queryParams.length + 2}), 4326)::GEOGRAPHY, $${queryParams.length + 3})`;
+      queryParams.push(longitude, latitude, radius);
     } else if (location) {
       const coords = await fetchCoordinatesFromGoogle(location);
       if (coords) {
-        searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($4, $5), 4326)::GEOGRAPHY, $6)';
-        values.push(coords.longitude, coords.latitude, radius);
+        baseSearchQuery += ` AND ST_DWithin(s.location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($${queryParams.length + 1}, $${queryParams.length + 2}), 4326)::GEOGRAPHY, $${queryParams.length + 3})`;
+        queryParams.push(coords.longitude, coords.latitude, radius);
       } else {
         console.error('[Search API] No coordinates found');
         return res.status(404).json({ message: 'Could not find coordinates for the given location' });
       }
     }
 
-    // Sorting
-    if (sort) {
-      searchQuery += ` ORDER BY ${sort === 'rating' ? 'average_rating DESC' : sort === 'newest' ? 'date_added DESC' : 'rank DESC'}`;
-    } else {
-      searchQuery += ' ORDER BY rank DESC';
-    }
+    // Pagination Query
+    let paginatedSearchQuery = `
+      SELECT s.*, c.name AS category_name
+    ` + baseSearchQuery + `
+      ORDER BY ${sort === 'rating' ? 's.average_rating DESC' : sort === 'newest' ? 's.date_added DESC' : 'rank DESC'}
+      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+    `;
+    queryParams.push(pageSize, (page - 1) * pageSize);
 
-    // Pagination
-    searchQuery += ' LIMIT $7 OFFSET $8';
-    values.push(pageSize, (page - 1) * pageSize);
+    // Execute the paginated search query
+    const paginatedResults = await pool.query(paginatedSearchQuery, queryParams);
 
-    console.log(`[Search API] SQL Query: ${searchQuery}, Values: ${values}`);
-    const result = await pool.query(searchQuery, values);
-
-    if (result.rows.length === 0) {
-      console.log('[Search API] No results found');
-      return res.status(200).json({ results: [], total: 0 });
-    }
-
-    const services = result.rows.map(service => ({
+// Map the result rows to structure the service data
+    const services = paginatedResults.rows.map(service => ({
       id: service.id,
       name: service.name,
       description: service.description,
@@ -117,11 +105,16 @@ app.get('/api/search', async (req, res) => {
       review_count: service.review_count
     }));
 
-    // Get total count for pagination
-    const countResult = await pool.query(`SELECT COUNT(*) FROM services WHERE textsearch @@ to_tsquery('english', $1)`, [`${searchTerm}:*`]);
-    const totalCount = parseInt(countResult.rows[0].count, 10);
+    // Total Count Query
+    let totalCountQuery = `SELECT COUNT(*) AS total ` + baseSearchQuery;
+    // Execute the total count query with parameters excluding the last two (for LIMIT and OFFSET)
+    const totalCountResults = await pool.query(totalCountQuery, queryParams.slice(0, -2));
 
-    res.json({ results: services, total: totalCount, page, pageSize });
+    // Extract the total count from the totalCountResults
+    const totalRows = parseInt(totalCountResults.rows[0].total, 10);
+
+    // Return the paginated results and the total count to the client
+    res.json({ results: paginatedResults.rows, total: totalRows, page, pageSize });
   } catch (error) {
     console.error('[Search API] Search error:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
