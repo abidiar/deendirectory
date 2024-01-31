@@ -25,8 +25,10 @@ function SearchBar() {
     setIsLoading(true);
     setSearchError('');
 
-    const location = locationInput.trim() || currentLocation;
-    if (!location) {
+    // Use locationInput if it's not empty, otherwise use currentLocation
+    const searchLocation = locationInput.trim() || currentLocation;
+
+    if (!searchLocation) {
       setSearchError('Location is required. Please enable location services or enter a location.');
       setIsLoading(false);
       return;
@@ -34,14 +36,13 @@ function SearchBar() {
 
     const searchParams = new URLSearchParams({
       searchTerm: searchTerm.trim(),
-      location: location,
+      location: searchLocation,
       isHalalCertified: isHalalCertified.toString()
     });
 
     navigate(`/search-results?${searchParams.toString()}`);
     setIsLoading(false);
   };
-
   return (
     <div className="mt-6">
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>

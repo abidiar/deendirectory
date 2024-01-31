@@ -39,12 +39,12 @@ app.get('/api/search', async (req, res) => {
     const { searchTerm, location, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
 
     let baseSearchQuery = `
-    FROM services s
-    LEFT JOIN categories c ON s.category_id = c.id,
-    to_tsquery('english', $1) query,
-    to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) textsearch
-    WHERE textsearch @@ query
-  `;
+      FROM services s
+      LEFT JOIN categories c ON s.category_id = c.id,
+      to_tsquery('english', $1) query,
+      to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) textsearch
+      WHERE textsearch @@ query
+    `;
     let queryParams = [`${searchTerm}:*`];
 
     if (category) {
