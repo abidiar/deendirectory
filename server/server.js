@@ -38,6 +38,10 @@ app.get('/api/search', async (req, res) => {
   try {
     const { searchTerm, location, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
 
+        // Extract latitude and longitude from query parameters if available
+        const latitude = req.query.latitude ? parseFloat(req.query.latitude) : null;
+        const longitude = req.query.longitude ? parseFloat(req.query.longitude) : null;    
+
     let baseSearchQuery = `
     FROM services s
     LEFT JOIN categories c ON s.category_id = c.id
@@ -61,7 +65,7 @@ app.get('/api/search', async (req, res) => {
     // Location filter based on coordinates
     if (latitude && longitude) {
       baseSearchQuery += ` AND ST_DWithin(s.location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($${queryParams.length + 1}, $${queryParams.length + 2}), 4326)::GEOGRAPHY, $${queryParams.length + 3})`;
-      queryParams.push(parseFloat(longitude), parseFloat(latitude), radius);
+      queryParams.push(longitude, latitude, radius);
     } else if (location) {
       // Fallback to geocoding if only location name is provided
       const coords = await fetchCoordinatesFromGoogle(location);
