@@ -36,28 +36,39 @@ app.get('/api/v1/example', (req, res) => {
 // API route for search
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, location, latitude, longitude } = req.query;
-    console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}, latitude: ${latitude}, longitude: ${longitude}`);
+    const { searchTerm, location, latitude, longitude, category, radius = 40233.6, sort, isHalalCertified, page = 1, pageSize = 10 } = req.query;
+    console.log(`[Search API] searchTerm: ${searchTerm}, location: ${location}, latitude: ${latitude}, longitude: ${longitude}, category: ${category}, radius: ${radius}, sort: ${sort}, halal: ${isHalalCertified}, page: ${page}`);
 
     let searchQuery = `
       SELECT
         id, name, description, latitude, longitude, location, date_added,
         category_id, street_address, city, state, postal_code, country,
-        phone_number, website, hours, is_halal_certified, average_rating, review_count
-      FROM services
-      WHERE name ILIKE $1
+        phone_number, website, hours, is_halal_certified, average_rating, review_count,
+        ts_rank_cd(textsearch, query) AS rank
+      FROM services,
+        to_tsquery('english', $1) query,
+        to_tsvector('english', name || ' ' || description) textsearch
+      WHERE textsearch @@ query
     `;
-    let values = [`%${searchTerm}%`];
+    let values = [`${searchTerm}:*`];
+
+    if (category) {
+      searchQuery += ' AND category_id = $2';
+      values.push(category);
+    }
+
+    if (isHalalCertified) {
+      searchQuery += ' AND is_halal_certified = $3';
+      values.push(isHalalCertified);
+    }
 
     if (latitude && longitude) {
-      const radius = 40233.6;  // 25 miles
-      searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
+      searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($4, $5), 4326)::GEOGRAPHY, $6)';
       values.push(longitude, latitude, radius);
     } else if (location) {
       const coords = await fetchCoordinatesFromGoogle(location);
       if (coords) {
-        const radius = 40233.6;  // 25 miles
-        searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY, $4)';
+        searchQuery += ' AND ST_DWithin(location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($4, $5), 4326)::GEOGRAPHY, $6)';
         values.push(coords.longitude, coords.latitude, radius);
       } else {
         console.error('[Search API] No coordinates found');
@@ -65,12 +76,23 @@ app.get('/api/search', async (req, res) => {
       }
     }
 
+    // Sorting
+    if (sort) {
+      searchQuery += ` ORDER BY ${sort === 'rating' ? 'average_rating DESC' : sort === 'newest' ? 'date_added DESC' : 'rank DESC'}`;
+    } else {
+      searchQuery += ' ORDER BY rank DESC';
+    }
+
+    // Pagination
+    searchQuery += ' LIMIT $7 OFFSET $8';
+    values.push(pageSize, (page - 1) * pageSize);
+
     console.log(`[Search API] SQL Query: ${searchQuery}, Values: ${values}`);
     const result = await pool.query(searchQuery, values);
 
     if (result.rows.length === 0) {
       console.log('[Search API] No results found');
-      return res.status(200).json([]);
+      return res.status(200).json({ results: [], total: 0 });
     }
 
     const services = result.rows.map(service => ({
@@ -95,7 +117,11 @@ app.get('/api/search', async (req, res) => {
       review_count: service.review_count
     }));
 
-    res.json(services);
+    // Get total count for pagination
+    const countResult = await pool.query(`SELECT COUNT(*) FROM services WHERE textsearch @@ to_tsquery('english', $1)`, [`${searchTerm}:*`]);
+    const totalCount = parseInt(countResult.rows[0].count, 10);
+
+    res.json({ results: services, total: totalCount, page, pageSize });
   } catch (error) {
     console.error('[Search API] Search error:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });

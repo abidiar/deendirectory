@@ -1,95 +1,83 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
-function SearchBar() {
-    const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [locationInput, setLocationInput] = useState('');
-    const [isHalalCertified, setIsHalalCertified] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [searchError, setSearchError] = useState('');
+function SearchBar({ categories }) {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [locationInput, setLocationInput] = useState('');
+  const [radius, setRadius] = useState('40233.6'); // Default radius 25 miles
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [isHalalCertified, setIsHalalCertified] = useState(false);
+  const [sort, setSort] = useState('rank'); // Default sort by relevance
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
-    const handleSearch = async (event) => {
-        event.preventDefault();
+  const handleSearch = async (event) => {
+    event.preventDefault();
+    if (!searchTerm.trim()) {
+      setSearchError('Please enter a search term');
+      return;
+    }
+    setIsLoading(true);
+    setSearchError('');
+    const searchParams = new URLSearchParams({
+      searchTerm: searchTerm.trim(),
+      location: locationInput,
+      radius,
+      category: selectedCategory,
+      isHalalCertified,
+      sort,
+      page: 1 // Start from page 1
+    });
+    navigate(`/search-results?${searchParams.toString()}`);
+    setIsLoading(false);
+  };
 
-        if (!searchTerm.trim()) {
-            setSearchError('Please enter a search term');
-            return;
-        }
-
-        setIsLoading(true);
-        setSearchError('');
-
-        try {
-            const searchParams = new URLSearchParams({
-                searchTerm: searchTerm.trim(),
-                location: locationInput,
-                isHalalCertified: isHalalCertified
-            });
-
-            navigate(`/search-results?${searchParams.toString()}`);
-        } catch (error) {
-            console.error('Navigation error:', error);
-            setSearchError('Failed to navigate to search results');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleLocationChange = (e) => {
-        setLocationInput(e.target.value);
-    };
-
-    return (
-        <div className="mt-6">
-            <form className="flex flex-col justify-center" onSubmit={handleSearch}>
-                <div className="flex items-center rounded-lg shadow-lg w-full
-max-w-2xl">
-<input
-name="searchTerm"
-type="text"
-className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
-placeholder="Service or Business"
-value={searchTerm}
-onChange={(e) => setSearchTerm(e.target.value)}
-aria-label="Search for services or businesses"
-/>
-<span className="bg-gray-300 w-px h-10 self-center"></span>
-<input
-                     type="text"
-                     className="w-1/4 p-4 focus:outline-none focus:ring-2 focus:ring-primary"
-                     placeholder="Location"
-                     value={locationInput}
-                     onChange={handleLocationChange}
-                     aria-label="Location"
-                 />
+  return (
+    <div className="mt-6">
+      <form className="flex flex-col justify-center" onSubmit={handleSearch}>
+        {/* ... existing search bar input fields ... */}
+        {/* Category Dropdown */}
+        <select 
+          className="form-select form-select-lg mb-3"
+          aria-label=".form-select-lg example"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}>
+          <option value="">All Categories</option>
+          {categories.map(category => (
+            <option key={category.id} value={category.id}>{category.name}</option>
+          ))}
+        </select>
+        {/* Radius Input */}
+        <input 
+          type="number" 
+          className="form-control" 
+          placeholder="Radius in meters" 
+          value={radius} 
+          onChange={(e) => setRadius(e.target.value)} />
+        {/* Sorting Options */}
+        <select 
+          className="form-select form-select-lg mb-3"
+          aria-label=".form-select-lg example"
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}>
+          <option value="rank">Relevance</option>
+          <option value="rating">Rating</option>
+          <option value="newest">Newest</option>
+        </select>
 <button
-                     type="submit"
-                     className="bg-accent-coral text-white rounded-r-lg p-4 hover:bg-accent-coral-dark focus:bg-accent-coral-dark focus:outline-none transition-colors duration-200"
-                     disabled={isLoading}
-                 >
-<FontAwesomeIcon icon={faSearch} />
+  type="submit"
+  className="bg-accent-coral text-white rounded-lg p-4 hover:bg-accent-coral-dark focus:bg-accent-coral-dark focus:outline-none transition-colors duration-200 disabled:opacity-50"
+  disabled={isLoading}
+>
+  <FontAwesomeIcon icon={faSearch} size="lg" />
+  <span className="ml-2">Search</span>
 </button>
-</div>
-{/* Halal Certified Checkbox */}
-<div className="flex justify-center mt-4">
-<label className="flex items-center">
-<input
-type="checkbox"
-className="form-checkbox h-5 w-5 text-gray-600 mr-2"
-checked={isHalalCertified}
-onChange={(e) => setIsHalalCertified(e.target.checked)}
-/>
-<span className="text-gray-700">Halal Certified Only</span>
-</label>
-</div>
-{isLoading && <div className="text-center">Loading...</div>}
-{searchError && <div className="text-red-500 text-center">{searchError}</div>}
-</form>
-</div>
-);
+      </form>
+    </div>
+  );
 }
 
 export default SearchBar;
