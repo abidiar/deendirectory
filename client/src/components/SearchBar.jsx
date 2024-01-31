@@ -6,7 +6,7 @@ import { LocationContext } from '../context/LocationContext';
 
 function SearchBar() {
   const navigate = useNavigate();
-  const { location: currentLocation } = useContext(LocationContext);
+  const { location: currentLocation, backendUrl } = useContext(LocationContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationInput, setLocationInput] = useState('');
   const [isHalalCertified, setIsHalalCertified] = useState(false);
@@ -14,38 +14,48 @@ function SearchBar() {
   const [searchError, setSearchError] = useState('');
 
   useEffect(() => {
-    // If currentLocation is an object and has a name, use it as the default location input
     if (currentLocation && currentLocation.name) {
       setLocationInput(currentLocation.name);
     }
   }, [currentLocation]);
 
+  const fetchCoordinates = async (location) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/geocode?location=${encodeURIComponent(location)}`);
+      const data = await response.json();
+      if (response.ok && data.latitude && data.longitude) {
+        return { latitude: data.latitude, longitude: data.longitude };
+      } else {
+        console.error('Geocoding failed:', data.error || 'No response data');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error in fetching coordinates:', error);
+      return null;
+    }
+  };
+
   const handleSearch = async (event) => {
     event.preventDefault();
-  
     if (!searchTerm.trim()) {
       setSearchError('Please enter a search term');
       setIsLoading(false);
       return;
     }
-  
+
     setIsLoading(true);
     setSearchError('');
-  
-    // If the user has entered a location, use it; otherwise, use the current location.
-    const searchLocation = locationInput.trim() ? locationInput.trim() : (currentLocation && currentLocation.name);
-  
-    // Ensure a location is available for the search.
+
+    const searchLocation = locationInput.trim() || (currentLocation && currentLocation.name);
     if (!searchLocation) {
       setSearchError('Location is required. Please enable location services or enter a location.');
       setIsLoading(false);
       return;
     }
-  
-    // Fetch coordinates for the entered location if locationInput is used.
+
     let latitude, longitude;
     if (locationInput.trim()) {
-      const coords = await fetchCoordinates(searchLocation); // Implement this function to geocode the locationInput.
+      const coords = await fetchCoordinates(searchLocation);
       if (coords) {
         latitude = coords.latitude;
         longitude = coords.longitude;
@@ -58,18 +68,18 @@ function SearchBar() {
       latitude = currentLocation.latitude;
       longitude = currentLocation.longitude;
     }
-  
+
     const searchParams = new URLSearchParams({
       searchTerm: searchTerm.trim(),
       location: searchLocation,
       isHalalCertified: isHalalCertified.toString()
     });
-  
+
     if (latitude && longitude) {
       searchParams.append('latitude', latitude);
       searchParams.append('longitude', longitude);
     }
-  
+
     navigate(`/search-results?${searchParams.toString()}`);
     setIsLoading(false);
   };
