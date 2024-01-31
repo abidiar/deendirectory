@@ -22,40 +22,54 @@ function SearchBar() {
 
   const handleSearch = async (event) => {
     event.preventDefault();
-
+  
     if (!searchTerm.trim()) {
       setSearchError('Please enter a search term');
       setIsLoading(false);
       return;
     }
-
+  
     setIsLoading(true);
     setSearchError('');
-
-    // Determine the search location
-    const searchLocation = locationInput.trim() || (currentLocation && currentLocation.name);
-
-    // Ensure a location is available for the search
+  
+    // If the user has entered a location, use it; otherwise, use the current location.
+    const searchLocation = locationInput.trim() ? locationInput.trim() : (currentLocation && currentLocation.name);
+  
+    // Ensure a location is available for the search.
     if (!searchLocation) {
       setSearchError('Location is required. Please enable location services or enter a location.');
       setIsLoading(false);
       return;
     }
-
-    // Construct the search parameters
+  
+    // Fetch coordinates for the entered location if locationInput is used.
+    let latitude, longitude;
+    if (locationInput.trim()) {
+      const coords = await fetchCoordinates(searchLocation); // Implement this function to geocode the locationInput.
+      if (coords) {
+        latitude = coords.latitude;
+        longitude = coords.longitude;
+      } else {
+        setSearchError('Unable to find location. Please check the entered location.');
+        setIsLoading(false);
+        return;
+      }
+    } else if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
+      latitude = currentLocation.latitude;
+      longitude = currentLocation.longitude;
+    }
+  
     const searchParams = new URLSearchParams({
       searchTerm: searchTerm.trim(),
       location: searchLocation,
       isHalalCertified: isHalalCertified.toString()
     });
-
-    // Add latitude and longitude if available
-    if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
-      searchParams.append('latitude', currentLocation.latitude);
-      searchParams.append('longitude', currentLocation.longitude);
+  
+    if (latitude && longitude) {
+      searchParams.append('latitude', latitude);
+      searchParams.append('longitude', longitude);
     }
-
-    // Navigate to the search results page
+  
     navigate(`/search-results?${searchParams.toString()}`);
     setIsLoading(false);
   };
