@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
@@ -6,12 +6,18 @@ import { LocationContext } from '../context/LocationContext'; // Ensure this pat
 
 function SearchBar() {
   const navigate = useNavigate();
-  const { location: currentLocation } = useContext(LocationContext); // Use the current location from context
+  const { location: currentLocation } = useContext(LocationContext);
   const [searchTerm, setSearchTerm] = useState('');
-  const [locationInput, setLocationInput] = useState('');
+  const [locationInput, setLocationInput] = useState(currentLocation || '');
   const [isHalalCertified, setIsHalalCertified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
+
+  useEffect(() => {
+    if (currentLocation) {
+      setLocationInput(currentLocation);
+    }
+  }, [currentLocation]);
 
   const handleSearch = async (event) => {
     event.preventDefault();

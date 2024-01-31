@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import Card from './Card';
 import Pagination from './Pagination';
+import { LocationContext } from '../context/LocationContext'; // Ensure this path matches your file structure
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
