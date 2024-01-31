@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { LocationContext } from './LocationContext'; // Ensure this path matches your file structure
+import { LocationContext } from '../context/LocationContext'; // Ensure this path matches your file structure
 
 function SearchBar() {
   const navigate = useNavigate();
