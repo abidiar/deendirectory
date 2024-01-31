@@ -2,22 +2,16 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { LocationContext } from '../context/LocationContext'; // Ensure this path matches your file structure
+import { LocationContext } from '../context/LocationContext';
 
 function SearchBar() {
   const navigate = useNavigate();
   const { location: currentLocation } = useContext(LocationContext);
   const [searchTerm, setSearchTerm] = useState('');
-  const [locationInput, setLocationInput] = useState(currentLocation || '');
+  const [locationInput, setLocationInput] = useState('');
   const [isHalalCertified, setIsHalalCertified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
-
-  useEffect(() => {
-    if (currentLocation) {
-      setLocationInput(currentLocation);
-    }
-  }, [currentLocation]);
 
   const handleSearch = async (event) => {
     event.preventDefault();
@@ -28,19 +22,19 @@ function SearchBar() {
       return;
     }
 
-    const searchLocation = locationInput.trim() || currentLocation;
-    if (!searchLocation) {
+    setIsLoading(true);
+    setSearchError('');
+
+    const location = locationInput.trim() || currentLocation;
+    if (!location) {
       setSearchError('Location is required. Please enable location services or enter a location.');
       setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    setSearchError('');
-
     const searchParams = new URLSearchParams({
       searchTerm: searchTerm.trim(),
-      location: searchLocation,
+      location: location,
       isHalalCertified: isHalalCertified.toString()
     });
 

@@ -36,7 +36,7 @@ app.get('/api/v1/example', (req, res) => {
 // API route for search
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, location, latitude, longitude, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
+    const { searchTerm, location, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
 
     let baseSearchQuery = `
     FROM services s
@@ -57,16 +57,13 @@ app.get('/api/search', async (req, res) => {
       queryParams.push(isHalalCertified === 'true');
     }
 
-    if (latitude && longitude) {
-      baseSearchQuery += ` AND ST_DWithin(s.location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($${queryParams.length + 1}, $${queryParams.length + 2}), 4326)::GEOGRAPHY, $${queryParams.length + 3})`;
-      queryParams.push(longitude, latitude, radius);
-    } else if (location) {
+    if (location) {
       const coords = await fetchCoordinatesFromGoogle(location);
       if (coords) {
         baseSearchQuery += ` AND ST_DWithin(s.location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($${queryParams.length + 1}, $${queryParams.length + 2}), 4326)::GEOGRAPHY, $${queryParams.length + 3})`;
         queryParams.push(coords.longitude, coords.latitude, radius);
       } else {
-        console.error('[Search API] No coordinates found');
+        console.error('[Search API] No coordinates found for location:', location);
         return res.status(404).json({ message: 'Could not find coordinates for the given location' });
       }
     }
