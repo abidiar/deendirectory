@@ -6,7 +6,7 @@ import { LocationContext } from '../context/LocationContext';
 
 function SearchBar() {
   const navigate = useNavigate();
-  const { location: currentLocation, isLoading: isLocationLoading } = useContext(LocationContext);
+  const { location: currentLocation } = useContext(LocationContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationInput, setLocationInput] = useState('');
   const [isHalalCertified, setIsHalalCertified] = useState(false);
@@ -14,38 +14,48 @@ function SearchBar() {
   const [searchError, setSearchError] = useState('');
 
   useEffect(() => {
-    // If currentLocation is available and locationInput is not set, use currentLocation
-    if (currentLocation && !locationInput) {
-      setLocationInput(currentLocation);
+    // If currentLocation is an object and has a name, use it as the default location input
+    if (currentLocation && currentLocation.name) {
+      setLocationInput(currentLocation.name);
     }
-  }, [currentLocation, locationInput]);
+  }, [currentLocation]);
 
   const handleSearch = async (event) => {
     event.preventDefault();
 
     if (!searchTerm.trim()) {
       setSearchError('Please enter a search term');
+      setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
     setSearchError('');
 
-    // Use locationInput if it's not empty, otherwise use currentLocation
-    const searchLocation = locationInput.trim() || currentLocation;
+    // Determine the search location
+    const searchLocation = locationInput.trim() || (currentLocation && currentLocation.name);
 
+    // Ensure a location is available for the search
     if (!searchLocation) {
       setSearchError('Location is required. Please enable location services or enter a location.');
       setIsLoading(false);
       return;
     }
 
+    // Construct the search parameters
     const searchParams = new URLSearchParams({
       searchTerm: searchTerm.trim(),
       location: searchLocation,
       isHalalCertified: isHalalCertified.toString()
     });
 
+    // Add latitude and longitude if available
+    if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
+      searchParams.append('latitude', currentLocation.latitude);
+      searchParams.append('longitude', currentLocation.longitude);
+    }
+
+    // Navigate to the search results page
     navigate(`/search-results?${searchParams.toString()}`);
     setIsLoading(false);
   };

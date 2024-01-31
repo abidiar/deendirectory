@@ -22,7 +22,11 @@ export const LocationProvider = ({ children }) => {
                 const response = await fetch(`${backendUrl}/api/reverse-geocode?latitude=${latitude}&longitude=${longitude}`);
                 const data = await response.json();
                 if (response.ok) {
-                    setLocation(data.location);
+                    setLocation({
+                        name: data.location, // This is the human-readable address
+                        latitude: latitude,
+                        longitude: longitude
+                      });
                 } else {
                     setError(data.error || 'Failed to fetch location name');
                 }
