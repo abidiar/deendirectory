@@ -36,17 +36,15 @@ app.get('/api/v1/example', (req, res) => {
 // API route for search
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, location, latitude, longitude, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
+    const { searchTerm, location, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
 
     let baseSearchQuery = `
     FROM services s
-    LEFT JOIN categories c ON s.category_id = c.id,
-    to_tsquery('english', $1) AS query,
-    to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) AS textsearch
-    WHERE textsearch @@ to_tsquery('english', $1)
+    LEFT JOIN categories c ON s.category_id = c.id
+    WHERE to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) @@ to_tsquery('english', $1)
   `;
 
-  let queryParams = [`${searchTerm}:*`];
+    let queryParams = [`${searchTerm}:*`];
 
     // Category filter
     if (category) {
@@ -78,13 +76,13 @@ app.get('/api/search', async (req, res) => {
 
   // Pagination Query
   let paginatedSearchQuery = `
-    SELECT s.*, c.name AS category_name,
-    ts_rank_cd(textsearch, query) AS rank
-  ` + baseSearchQuery + `
-    ORDER BY ${sort === 'rating' ? 's.average_rating DESC' : sort === 'newest' ? 's.date_added DESC' : 'textsearch <-> query'}
-    LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
-  `;
-    queryParams.push(pageSize, (page - 1) * pageSize);
+  SELECT s.*, c.name AS category_name,
+  ts_rank_cd(to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')), to_tsquery('english', $1)) AS rank
+` + baseSearchQuery + `
+  ORDER BY ${sort === 'rating' ? 's.average_rating DESC' : sort === 'newest' ? 's.date_added DESC' : 'rank DESC'}
+  LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+`;
+queryParams.push(pageSize, (page - 1) * pageSize);
 
     // Execute the paginated search query
     const paginatedResults = await pool.query(paginatedSearchQuery, queryParams);
