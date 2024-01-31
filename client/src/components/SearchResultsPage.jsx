@@ -47,8 +47,12 @@ function SearchResultsPage() {
         return response.json();
       })
       .then(data => {
-        setSearchResults(data.results);
-        setTotalPages(Math.ceil(data.total / queriedPageSize));
+        if (data.results) {
+          setSearchResults(data.results);
+          setTotalPages(Math.ceil(data.total / queriedPageSize));
+        } else {
+          setSearchError('No results found.');
+        }
         setIsLoading(false);
       })
       .catch(error => {
