@@ -38,10 +38,7 @@ async function convertCityStateToCoords(city, state) {
   }
 
   return null; // Return null in case of any error
-}
 
-module.exports = {
-  convertCityStateToCoords
 };
 
 // Function to fetch coordinates from Google using an address
