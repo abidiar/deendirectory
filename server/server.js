@@ -36,28 +36,33 @@ app.get('/api/v1/example', (req, res) => {
 // API route for search
 app.get('/api/search', async (req, res) => {
   try {
-    const { searchTerm, location, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
+    const { searchTerm, location, latitude, longitude, category, radius = 40233.6, sort = 'rank', isHalalCertified, page = 1, pageSize = 10 } = req.query;
 
     let baseSearchQuery = `
       FROM services s
-      LEFT JOIN categories c ON s.category_id = c.id,
-      to_tsquery('english', $1) query,
-      to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) textsearch
-      WHERE textsearch @@ query
+      LEFT JOIN categories c ON s.category_id = c.id
+      WHERE to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) @@ to_tsquery($1)
     `;
     let queryParams = [`${searchTerm}:*`];
 
+    // Category filter
     if (category) {
       baseSearchQuery += ` AND s.category_id = $${queryParams.length + 1}`;
       queryParams.push(category);
     }
 
+    // Halal certification filter
     if (isHalalCertified) {
       baseSearchQuery += ` AND s.is_halal_certified = $${queryParams.length + 1}`;
       queryParams.push(isHalalCertified === 'true');
     }
 
-    if (location) {
+    // Location filter based on coordinates
+    if (latitude && longitude) {
+      baseSearchQuery += ` AND ST_DWithin(s.location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($${queryParams.length + 1}, $${queryParams.length + 2}), 4326)::GEOGRAPHY, $${queryParams.length + 3})`;
+      queryParams.push(parseFloat(longitude), parseFloat(latitude), radius);
+    } else if (location) {
+      // Fallback to geocoding if only location name is provided
       const coords = await fetchCoordinatesFromGoogle(location);
       if (coords) {
         baseSearchQuery += ` AND ST_DWithin(s.location::GEOGRAPHY, ST_SetSRID(ST_MakePoint($${queryParams.length + 1}, $${queryParams.length + 2}), 4326)::GEOGRAPHY, $${queryParams.length + 3})`;
@@ -70,18 +75,17 @@ app.get('/api/search', async (req, res) => {
 
     // Pagination Query
     let paginatedSearchQuery = `
-    SELECT s.*, c.name AS category_name,
-    ts_rank_cd(textsearch, query) AS rank
-  ` + baseSearchQuery + `
-    ORDER BY ${sort === 'rating' ? 's.average_rating DESC' : sort === 'newest' ? 's.date_added DESC' : 'rank DESC'}
-    LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
-  `;
+      SELECT s.*, c.name AS category_name
+    ` + baseSearchQuery + `
+      ORDER BY ${sort === 'rating' ? 's.average_rating DESC' : sort === 'newest' ? 's.date_added DESC' : 'rank DESC'}
+      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+    `;
     queryParams.push(pageSize, (page - 1) * pageSize);
 
     // Execute the paginated search query
     const paginatedResults = await pool.query(paginatedSearchQuery, queryParams);
 
-// Map the result rows to structure the service data
+    // Map the result rows to structure the service data
     const services = paginatedResults.rows.map(service => ({
       id: service.id,
       name: service.name,
@@ -106,13 +110,13 @@ app.get('/api/search', async (req, res) => {
 
     // Total Count Query
     let totalCountQuery = `SELECT COUNT(*) AS total ` + baseSearchQuery;
-    // Execute the total count query with parameters excluding the last two (for LIMIT and OFFSET)
+    // Execute the total count query
     const totalCountResults = await pool.query(totalCountQuery, queryParams.slice(0, -2));
 
-    // Extract the total count from the totalCountResults
+    // Extract the total count
     const totalRows = parseInt(totalCountResults.rows[0].total, 10);
 
-    // Return the paginated results and the total count to the client
+    // Return the results
     res.json({ results: paginatedResults.rows, total: totalRows, page, pageSize });
   } catch (error) {
     console.error('[Search API] Search error:', error);

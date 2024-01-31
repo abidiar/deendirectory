@@ -22,27 +22,25 @@ function SearchBar() {
       return;
     }
 
-    setIsLoading(true);
-    setSearchError('');
+    // Extract both name and coordinates of the location
+    const { name: currentLocationName, latitude: currentLat, longitude: currentLong } = currentLocation;
 
-    // Use locationInput if it's not empty, otherwise use currentLocation
-    const searchLocation = locationInput.trim() || currentLocation;
-
-    if (!searchLocation) {
-      setSearchError('Location is required. Please enable location services or enter a location.');
-      setIsLoading(false);
-      return;
-    }
+    const searchLocation = locationInput.trim() || currentLocationName;
+    const searchLatitude = currentLat;
+    const searchLongitude = currentLong;
 
     const searchParams = new URLSearchParams({
       searchTerm: searchTerm.trim(),
       location: searchLocation,
+      latitude: searchLatitude,
+      longitude: searchLongitude,
       isHalalCertified: isHalalCertified.toString()
     });
 
     navigate(`/search-results?${searchParams.toString()}`);
     setIsLoading(false);
   };
+
   return (
     <div className="mt-6">
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>
