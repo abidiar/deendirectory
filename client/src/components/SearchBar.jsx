@@ -22,11 +22,19 @@ function SearchBar() {
   const fetchCoordinates = async (location) => {
     try {
       const response = await fetch(`${backendUrl}/api/geocode?location=${encodeURIComponent(location)}`);
-      const data = await response.json();
-      if (response.ok && data.latitude && data.longitude) {
-        return { latitude: data.latitude, longitude: data.longitude };
+  
+      // Check if the response is okay and is of type 'application/json'
+      if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+        const data = await response.json();
+        if (data.latitude && data.longitude) {
+          return { latitude: data.latitude, longitude: data.longitude };
+        } else {
+          console.error('Geocoding failed:', data.error || 'No response data');
+          return null;
+        }
       } else {
-        console.error('Geocoding failed:', data.error || 'No response data');
+        // Handle non-JSON responses or unsuccessful requests
+        console.error('Non-JSON response or request failed', response.status, response.statusText);
         return null;
       }
     } catch (error) {

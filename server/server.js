@@ -575,6 +575,28 @@ app.get('/api/reverse-geocode', async (req, res) => {
   }
 });
 
+// New endpoint for geocoding
+app.get('/api/geocode', async (req, res) => {
+  const { location } = req.query;
+
+  if (!location) {
+    return res.status(400).json({ error: 'Location parameter is required.' });
+  }
+
+  try {
+    const coords = await fetchCoordinatesFromGoogle(location);
+
+    if (coords) {
+      return res.json({ latitude: coords.latitude, longitude: coords.longitude });
+    } else {
+      return res.status(404).json({ error: 'Coordinates not found for the given location.' });
+    }
+  } catch (error) {
+    console.error('[Geocode API] Error:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 app.use('/api/services', servicesRouter);
 
 // Global error handler
