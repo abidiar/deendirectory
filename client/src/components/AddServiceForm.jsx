@@ -56,12 +56,33 @@ function AddServiceForm() {
     };
     
     const handleImageChange = (e) => {
-        // Assuming you want to store only one image
-        // Files[0] will contain the file chosen by the user
-        if (e.target.files && e.target.files[0]) {
-          setImage(e.target.files[0]);
+        const file = e.target.files ? e.target.files[0] : null;
+        const maxFileSize = 5 * 1024 * 1024; // 5 MB
+      
+        if (file) {
+          if (file.size > maxFileSize) {
+            alert("The file is too large. Please select a file smaller than 5MB.");
+            return;
+          }
+      
+          const img = new Image();
+          img.onload = () => {
+            const { width, height } = img;
+            if (width < 800 || height < 600) { // Require at least 800x600
+              alert("The image dimensions are too small. Minimum size is 800x600 pixels.");
+            } else {
+              setImage(file);
+            }
+            URL.revokeObjectURL(img.src); // Clean up the object URL
+          };
+          img.onerror = () => {
+            alert("There was an error loading the image.");
+            URL.revokeObjectURL(img.src); // Clean up the object URL
+          };
+          img.src = URL.createObjectURL(file);
         }
       };
+      
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -204,12 +225,19 @@ function AddServiceForm() {
             </div>
 
                 {/* Image Preview */}
-    {image && (
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-neutral-dark">Image Preview</label>
-        <img src={URL.createObjectURL(image)} alt="Preview" className="mt-1 w-full rounded-md" />
-      </div>
-    )}
+                {image && (
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-neutral-dark">Image Preview</label>
+    <img src={URL.createObjectURL(image)} alt="Preview" className="mt-1 w-full rounded-md" />
+    <button
+      type="button"
+      onClick={() => setImage(null)}
+      className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+    >
+      Remove Image
+    </button>
+  </div>
+)}
 
                   {/* Image Upload Field */}
       <div>
