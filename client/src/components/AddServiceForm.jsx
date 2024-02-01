@@ -21,6 +21,7 @@ function AddServiceForm() {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submissionError, setSubmissionError] = useState('');
     const { backendUrl } = useContext(LocationContext);
+    const [image, setImage] = useState(null);
     
     useEffect(() => {
         fetch(`${backendUrl}/api/categories`)
@@ -33,6 +34,15 @@ function AddServiceForm() {
             });
     }, [backendUrl]);
     
+    useEffect(() => {
+        // Cleanup function to revoke the object URL
+        return () => {
+          if (image) {
+            URL.revokeObjectURL(image);
+          }
+        };
+      }, [image]);
+
     const handleChange = (e) => {
         // If the postal code field is being updated, automatically uppercase the state abbreviation
         if (e.target.name === 'state') {
@@ -45,18 +55,32 @@ function AddServiceForm() {
         setFormData({ ...formData, [e.target.name]: e.target.checked });
     };
     
+    const handleImageChange = (e) => {
+        // Assuming you want to store only one image
+        // Files[0] will contain the file chosen by the user
+        if (e.target.files && e.target.files[0]) {
+          setImage(e.target.files[0]);
+        }
+      };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitted(false);
         setSubmissionError('');
 
+        const formData = new FormData(); // Use FormData to handle file uploads
+        formData.append('name', formData.name);
+        formData.append('description', formData.description);
+        formData.append('category', formData.category);
+        // ... append other form fields ...
+        if (image) {
+          formData.append('image', image); // Append the image file if one is selected
+        }
+
         try {
             const serviceResponse = await fetch(`${backendUrl}/api/services/add`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+              method: 'POST',
+              body: formData, // Send formData instead of JSON
             });
 
             if (!serviceResponse.ok) {
@@ -79,13 +103,14 @@ function AddServiceForm() {
                 country: '',
                 phone_number: '',
             });
+            setImage(null);
         } catch (error) {
             setSubmissionError(error.message);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
             {/* Business Name */}
             <div>
                 <label htmlFor="name" className="block text-sm font-medium text-neutral-dark">Business Name</label>
@@ -177,6 +202,28 @@ function AddServiceForm() {
                            value={formData.website} onChange={handleChange} />
                 </div>
             </div>
+
+                {/* Image Preview */}
+    {image && (
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-neutral-dark">Image Preview</label>
+        <img src={URL.createObjectURL(image)} alt="Preview" className="mt-1 w-full rounded-md" />
+      </div>
+    )}
+
+                  {/* Image Upload Field */}
+      <div>
+        <label htmlFor="image" className="block text-sm font-medium text-neutral-dark">Service Image</label>
+        <input 
+          id="image" 
+          name="image" 
+          type="file" 
+          onChange={handleImageChange} 
+          className="mt-1 block w-full text-sm text-neutral-dark file:mr-4 file:py-2 file:px-4 
+                     file:rounded-md file:border-0 file:text-sm file:font-semibold 
+                     file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+        />
+      </div>
 
             {/* Halal Certification Checkbox */}
             <div className="flex items-center">

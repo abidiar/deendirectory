@@ -8,7 +8,6 @@ const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils'); // Adjust the path to where your locationUtils file is located
 
-
 // Initialize Express app
 const app = express();
 
