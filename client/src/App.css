@@ -29,6 +29,40 @@
   color: #FF6B6B; /* Updated to new coral accent color */
 }
 
+/* Centered content layout */
+.container {
+  width: 100%; /* Full width */
+  padding-left: 1rem; /* Default side padding */
+  padding-right: 1rem; /* Default side padding */
+  margin-left: auto; /* Centered on the page */
+  margin-right: auto; /* Centered on the page */
+  box-sizing: border-box; /* Include padding in the width calculation */
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px; /* Maximum width on small screens */
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px; /* Maximum width on medium screens */
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px; /* Maximum width on large screens */
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px; /* Maximum width on extra large screens */
+  }
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
