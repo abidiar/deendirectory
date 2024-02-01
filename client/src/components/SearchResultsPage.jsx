@@ -13,7 +13,7 @@ function SearchResultsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [totalPages, setTotalPages] = useState(0);
-  const [pageSize, setPageSize] = useState(10); // Default pageSize
+  const pageSize = 10; // Default pageSize
   const query = useQuery();
   const searchTerm = query.get('searchTerm');
   const location = query.get('location');
