@@ -1,33 +1,28 @@
 const fetch = require('node-fetch');
 const FormData = require('form-data');
-const fs = require('fs');
 
-async function uploadToCloudflare(file) {
+async function uploadToCloudflare(fileBuffer, originalName) {
+    const formData = new FormData();
+    formData.append('file', fileBuffer, { filename: originalName });
+
     try {
-        const formData = new FormData();
-        formData.append('file', fs.createReadStream(file.path));
-
-        const response = await fetch(process.env.CLOUDFLARE_API_ENDPOINT_URL, {
+        const response = await fetch(process.env.CLOUDFLARE_IMAGES_API_ENDPOINT, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.IMAGESTREAM_CLOUDFLARE_API_TOKEN}`,
-                // Add other necessary headers required by Cloudflare
+                'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
             },
-            body: formData
+            body: formData,
         });
 
         if (!response.ok) {
-            throw new Error(`Error uploading file: ${response.statusText}`);
+            throw new Error(`Cloudflare upload failed: ${response.statusText}`);
         }
 
         const data = await response.json();
-
-        // Assuming the API returns the URL of the uploaded image in the response
-        return data.result.url; 
+        return data.result.url; // Make sure this matches the actual path in the response from Cloudflare
     } catch (error) {
-        console.error('Error in uploadToCloudflare:', error);
-        throw error; // Rethrow the error to handle it in the calling function
+        console.error('Error uploading to Cloudflare:', error);
+        throw error;
     }
 }
-
 module.exports = { uploadToCloudflare };
