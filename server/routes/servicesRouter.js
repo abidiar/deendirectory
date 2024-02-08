@@ -100,7 +100,7 @@ router.get('/:id', async (req, res) => {
             SELECT
                 id, name, description, latitude, longitude, location, date_added,
                 category_id, street_address, city, state, postal_code, country,
-                phone_number, website, hours, is_halal_certified, average_rating, review_count
+                phone_number, website, hours, is_halal_certified, average_rating, review_count, image_url 
             FROM services
             WHERE id = $1;
         `;
