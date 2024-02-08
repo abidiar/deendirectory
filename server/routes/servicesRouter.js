@@ -62,11 +62,18 @@ router.post('/add', upload.single('image'),
                 .jpeg({ quality: 80 }) // Adjust the quality to control the final file size
                 .toBuffer();
         
-            imageUrl = await uploadToCloudflare({ ...req.file, buffer });
-            fs.unlink(req.file.path, (err) => {
-                if (err) console.error('Error deleting file:', err);
-            });
-        }
+                imageUrl = await uploadToCloudflare({ ...req.file, buffer });
+
+                // Attempt to delete the file with better error handling
+                fs.unlink(req.file.path, (err) => {
+                    if (err) {
+                        console.error(`Failed to delete file at ${req.file.path}:`, err.message);
+                        // Depending on your application's needs, you might not want to send a 500 error
+                        // if everything else has succeeded. Adjust this behavior as necessary.
+                        // return res.status(500).json({ error: 'Internal server error', details: err.message });
+                    }
+                });
+            }
 
         const insertQuery = `INSERT INTO services (
             name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, average_rating, review_count, image_url, location
