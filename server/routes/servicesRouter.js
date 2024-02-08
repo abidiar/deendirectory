@@ -4,6 +4,7 @@ const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const fs = require('fs');
 const db = require('../db/db');
+const sharp = require('sharp');
 const { convertCityStateToCoords } = require('../utils/locationUtils');
 const { uploadToCloudflare } = require('../utils/cloudflareUtils');
 
@@ -50,7 +51,17 @@ router.post('/add', upload.single('image'),
 
         let imageUrl = 'defaultImageUrl';
         if (req.file) {
-            imageUrl = await uploadToCloudflare(req.file);
+            // Resize the image to 256x256 pixels, maintain aspect ratio, and center the image
+            // Compress the image to ensure the file size is under 1MB
+            const buffer = await sharp(req.file.path)
+                .resize(256, 256, {
+                    fit: sharp.fit.cover, // Cover will ensure the image covers the dimensions and will be cropped to fit
+                    position: sharp.strategy.entropy // Focuses on the region of the image with the highest entropy
+                })
+                .jpeg({ quality: 80 }) // Adjust the quality to control the final file size
+                .toBuffer();
+        
+            imageUrl = await uploadToCloudflare({ ...req.file, buffer });
             fs.unlink(req.file.path, (err) => {
                 if (err) console.error('Error deleting file:', err);
             });

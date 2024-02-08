@@ -27,6 +27,7 @@
     "node-fetch": "^2.6.7",
     "node-geocoder": "^4.2.0",
     "pg": "^8.11.3",
-    "react-text-mask": "^5.5.0"
+    "react-text-mask": "^5.5.0",
+    "sharp": "^0.33.2"
   }
 }
