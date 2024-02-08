@@ -11,6 +11,7 @@ const { uploadToCloudflare } = require('../utils/cloudflareUtils');
 const router = express.Router();
 
 function isValidUSAddress(address) {
+    console.log('Validating address:', address);
     const regex = /^[0-9]{1,6}\s[a-zA-Z0-9\s,'-]{3,40},\s[a-zA-Z\s]{2,20},\s[A-Z]{2}\s[0-9]{5}$/;
     return regex.test(address);
 }

@@ -84,24 +84,25 @@ function AddServiceForm() {
       };
       
 
-    const handleSubmit = async (e) => {
+      const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitted(false);
         setSubmissionError('');
 
-        const formData = new FormData(); // Use FormData to handle file uploads
-        formData.append('name', formData.name);
-        formData.append('description', formData.description);
-        formData.append('category', formData.category);
-        // ... append other form fields ...
+        // Create a new FormData instance for submission
+        const submissionData = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+            submissionData.append(key, value);
+        });
+
         if (image) {
-          formData.append('image', image); // Append the image file if one is selected
+            submissionData.append('image', image);
         }
 
         try {
             const serviceResponse = await fetch(`${backendUrl}/api/services/add`, {
-              method: 'POST',
-              body: formData, // Send formData instead of JSON
+                method: 'POST',
+                body: submissionData, // Send submissionData instead of JSON
             });
 
             if (!serviceResponse.ok) {
@@ -110,19 +111,20 @@ function AddServiceForm() {
             }
 
             setIsSubmitted(true);
+            // Reset form fields
             setFormData({
                 name: '',
                 description: '',
                 category: '',
+                street_address: '',
                 city: '',
                 state: '',
-                website: '',
-                hours: '',
-                is_halal_certified: false,
-                street_address: '',
                 postal_code: '',
                 country: '',
                 phone_number: '',
+                website: '',
+                hours: '',
+                is_halal_certified: false,
             });
             setImage(null);
         } catch (error) {
