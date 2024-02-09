@@ -27,21 +27,22 @@ function isValidUSAddress(address) {
     return regex.test(address);
 }
 
-router.post('/add', upload.single('image'), 
-  body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
-  body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
-  body('category').trim().isLength({ min: 1 }).withMessage('Category is required'),
-  body('is_halal_certified').optional().isBoolean(),
-  body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/),
-  body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/),
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
+router.post('/add', 
+    upload.single('image'),
+    body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
+    body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
+    body('category').trim().isLength({ min: 1 }).withMessage('Category is required'),
+    body('is_halal_certified').optional().isBoolean(),
+    body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/),
+    body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/),
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-    try {
-        const { name, description, category, city, state, street_address, postal_code, country, phone_number, website, hours, is_halal_certified } = req.body;
+        try {
+            const { name, description, category, city, state, street_address, postal_code, country, phone_number, website, hours, is_halal_certified } = req.body;
     
         if (!isValidUSAddress(`${street_address}, ${city}, ${state} ${postal_code}`)) {
             return res.status(400).json({ message: 'Invalid address format' });
