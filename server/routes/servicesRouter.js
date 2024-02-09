@@ -11,15 +11,19 @@ const router = express.Router();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, 'uploads/') // Ensure the uploads directory exists
+    destination: function (req, file, cb) {
+      const uploadsDir = path.join(__dirname, 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir);
+      }
+      cb(null, uploadsDir);
     },
-    filename: function(req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname)
-    }
-});
-
-const upload = multer({ storage: storage });
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname);
+    },
+  });
+  
+  const upload = multer({ storage: storage });
 
 function isValidUSAddress(address) {
     console.log('Validating address:', address);
