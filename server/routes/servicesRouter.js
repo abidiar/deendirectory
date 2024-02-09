@@ -1,32 +1,15 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const fs = require('fs');
-const db = require('../db/db');
 const sharp = require('sharp');
+const db = require('../db/db');
 const { convertCityStateToCoords } = require('../utils/locationUtils');
 const { uploadToCloudflare } = require('../utils/cloudflareUtils');
 
 const router = express.Router();
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      const uploadsDir = path.join(__dirname, 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir);
-      }
-      cb(null, uploadsDir);
-    },
-    filename: function (req, file, cb) {
-      cb(null, Date.now() + '-' + file.originalname);
-    },
-  });
-  
-  const upload = multer({ storage: storage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 function isValidUSAddress(address) {
-    console.log('Validating address:', address);
     const regex = /^[0-9]{1,6}\s[a-zA-Z0-9\s,'-]{3,40},\s[a-zA-Z\s]{2,20},\s[A-Z]{2}\s[0-9]{5}$/;
     return regex.test(address);
 }
@@ -48,63 +31,53 @@ router.post('/add',
         try {
             const { name, description, category, city, state, street_address, postal_code, country, phone_number, website, hours, is_halal_certified } = req.body;
     
-        if (!isValidUSAddress(`${street_address}, ${city}, ${state} ${postal_code}`)) {
-            return res.status(400).json({ message: 'Invalid address format' });
-        }
-
-        const categoryResult = await db.query('SELECT id FROM categories WHERE name = $1', [category]);
-        if (categoryResult.rows.length === 0) {
-            return res.status(400).json({ message: 'Invalid category name' });
-        }
-        const categoryId = categoryResult.rows[0].id;
-
-        let coords = { latitude: null, longitude: null };
-        if (city && state) {
-            coords = await convertCityStateToCoords(city, state);
-            if (!coords) {
-                return res.status(400).json({ message: 'Invalid city or state for coordinates' });
-            }
-        }
-
-        let imageUrl = 'defaultImageUrl';
-        if (req.file) {
-            // Resize the image to 256x256 pixels, maintain aspect ratio, and center the image
-            // Compress the image to ensure the file size is under 1MB
-            const buffer = await sharp(req.file.path)
-                .resize(256, 256, {
-                    fit: sharp.fit.cover, // Cover will ensure the image covers the dimensions and will be cropped to fit
-                    position: sharp.strategy.entropy // Focuses on the region of the image with the highest entropy
-                })
-                .jpeg({ quality: 80 }) // Adjust the quality to control the final file size
-                .toBuffer();
-        
-                imageUrl = await uploadToCloudflare({ ...req.file, buffer });
-
-                // Attempt to delete the file with better error handling
-                fs.unlink(req.file.path, (err) => {
-                    if (err) {
-                        console.error(`Failed to delete file at ${req.file.path}:`, err.message);
-                        // Depending on your application's needs, you might not want to send a 500 error
-                        // if everything else has succeeded. Adjust this behavior as necessary.
-                        // return res.status(500).json({ error: 'Internal server error', details: err.message });
-                    }
-                });
+            if (!isValidUSAddress(`${street_address}, ${city}, ${state} ${postal_code}`)) {
+                return res.status(400).json({ message: 'Invalid address format' });
             }
 
-        const insertQuery = `INSERT INTO services (
-            name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, average_rating, review_count, image_url, location
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, ST_SetSRID(ST_MakePoint($4, $3), 4326)) RETURNING *;`;
+            const categoryResult = await db.query('SELECT id FROM categories WHERE name = $1', [category]);
+            if (categoryResult.rows.length === 0) {
+                return res.status(400).json({ message: 'Invalid category name' });
+            }
+            const categoryId = categoryResult.rows[0].id;
 
-        const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, 0, 0, imageUrl];
+            let coords = { latitude: null, longitude: null };
+            if (city && state) {
+                coords = await convertCityStateToCoords(city, state);
+                if (!coords) {
+                    return res.status(400).json({ message: 'Invalid city or state for coordinates' });
+                }
+            }
 
-        const result = await db.query(insertQuery, values);
-        res.status(201).json(result.rows[0]);
+            let imageUrl = 'defaultImageUrl';
+            if (req.file) {
+                // Resize the image to 256x256 pixels, maintain aspect ratio, and center the image
+                const buffer = await sharp(req.file.buffer)
+                    .resize(256, 256, {
+                        fit: sharp.fit.cover,
+                        position: sharp.strategy.entropy
+                    })
+                    .jpeg({ quality: 80 })
+                    .toBuffer();
+            
+                imageUrl = await uploadToCloudflare(buffer, req.file.originalname);
+            }
 
-    } catch (err) {
-        console.error('Error during request processing:', err.stack);
-        res.status(500).json({ error: 'Internal server error', details: err.message });
+            const insertQuery = `INSERT INTO services (
+                name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, average_rating, review_count, image_url, location
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, ST_SetSRID(ST_MakePoint($4, $3), 4326)) RETURNING *;`;
+
+            const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, 0, 0, imageUrl];
+
+            const result = await db.query(insertQuery, values);
+            res.status(201).json(result.rows[0]);
+
+        } catch (err) {
+            console.error('Error during request processing:', err.stack);
+            res.status(500).json({ error: 'Internal server error', details: err.message });
+        }
     }
- });
+);
 
 router.get('/:id', async (req, res) => {
     const businessId = parseInt(req.params.id, 10);
