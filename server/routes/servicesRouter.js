@@ -49,7 +49,7 @@ router.post('/add',
                 }
             }
 
-            let imageUrl = 'defaultImageUrl';
+            let image_url = 'defaultImage_Url';
             if (req.file) {
                 // Resize the image to 256x256 pixels, maintain aspect ratio, and center the image
                 const buffer = await sharp(req.file.buffer)
@@ -60,14 +60,14 @@ router.post('/add',
                     .jpeg({ quality: 80 })
                     .toBuffer();
             
-                imageUrl = await uploadToCloudflare(buffer, req.file.originalname);
+                image_url = await uploadToCloudflare(buffer, req.file.originalname);
             }
 
             const insertQuery = `INSERT INTO services (
                 name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, average_rating, review_count, image_url, location
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, ST_SetSRID(ST_MakePoint($4, $3), 4326)) RETURNING *;`;
 
-            const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, 0, 0, imageUrl];
+            const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, 0, 0, image_url];
 
             const result = await db.query(insertQuery, values);
             res.status(201).json(result.rows[0]);

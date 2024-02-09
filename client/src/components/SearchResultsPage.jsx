@@ -74,7 +74,7 @@ function SearchResultsPage() {
               id={result.id}
               title={result.name}
               description={result.description}
-              imageUrl={result.image || '/placeholder-image.jpg'}
+              image_Url={result.image || '/placeholder-image.jpg'}
               averageRating={result.average_rating}
               isHalalCertified={result.is_halal_certified}
             />
