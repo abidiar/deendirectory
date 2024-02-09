@@ -25,6 +25,8 @@ async function uploadToCloudflare(fileBuffer, originalName) {
             body: formData,
         });
 
+        console.log("Cloudflare response", await response.text());  // For debugging purposes
+
         if (!response.ok) {
             throw new Error(`Cloudflare upload failed: ${response.statusText}`);
         }

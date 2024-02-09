@@ -601,7 +601,7 @@ app.use('/api/services', servicesRouter);
 // Global error handler
 app.use((error, req, res, next) => {
   console.error('Unhandled application error:', error);
-  res.status(500).send('An error occurred.');
+  res.status(500).json('An error occurred.');
 });
 
 // Serve static files from the React app build directory
