@@ -1,7 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
 const fs = require('fs');
 const db = require('../db/db');
 const sharp = require('sharp');
@@ -9,6 +8,18 @@ const { convertCityStateToCoords } = require('../utils/locationUtils');
 const { uploadToCloudflare } = require('../utils/cloudflareUtils');
 
 const router = express.Router();
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, 'uploads/') // Ensure the uploads directory exists
+    },
+    filename: function(req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname)
+    }
+});
+
+const upload = multer({ storage: storage });
 
 function isValidUSAddress(address) {
     console.log('Validating address:', address);
