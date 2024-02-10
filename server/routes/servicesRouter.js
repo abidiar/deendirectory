@@ -14,7 +14,7 @@ function isValidUSAddress(address) {
     return regex.test(address);
 }
 
-router.post('/add', 
+router.post('/add',
     upload.single('image'),
     body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
     body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
@@ -30,7 +30,6 @@ router.post('/add',
 
         try {
             const { name, description, category, city, state, street_address, postal_code, country, phone_number, website, hours, is_halal_certified } = req.body;
-    
             if (!isValidUSAddress(`${street_address}, ${city}, ${state} ${postal_code}`)) {
                 return res.status(400).json({ message: 'Invalid address format' });
             }
@@ -41,40 +40,42 @@ router.post('/add',
             }
             const categoryId = categoryResult.rows[0].id;
 
-            let coords = { latitude: null, longitude: null };
-            if (city && state) {
-                coords = await convertCityStateToCoords(city, state);
-                if (!coords) {
-                    return res.status(400).json({ message: 'Invalid city or state for coordinates' });
-                }
+            let coords = await convertCityStateToCoords(city, state);
+            if (!coords) {
+                return res.status(400).json({ message: 'Invalid city or state for coordinates' });
             }
 
-            let image_url = 'defaultImage_Url';
+            let imageUrl = 'defaultImageUrl'; // Fallback image URL
             if (req.file) {
-                // Resize the image to 256x256 pixels, maintain aspect ratio, and center the image
                 const buffer = await sharp(req.file.buffer)
-                    .resize(256, 256, {
-                        fit: sharp.fit.cover,
-                        position: sharp.strategy.entropy
-                    })
+                    .resize(256, 256, { fit: sharp.fit.cover, position: sharp.strategy.entropy })
                     .jpeg({ quality: 80 })
                     .toBuffer();
-            
-                image_url = await uploadToCloudflare(buffer, req.file.originalname);
+
+                try {
+                    imageUrl = await uploadToCloudflare(buffer, req.file.originalname);
+                } catch (uploadError) {
+                    console.error('Error uploading to Cloudflare:', uploadError);
+                    return res.status(500).json({ error: 'Error uploading image to Cloudflare', details: uploadError.message });
+                }
             }
 
             const insertQuery = `INSERT INTO services (
                 name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, average_rating, review_count, image_url, location
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, ST_SetSRID(ST_MakePoint($4, $3), 4326)) RETURNING *;`;
 
-            const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, 0, 0, image_url];
+            const values = [name, description, coords.latitude, coords.longitude, categoryId, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, 0, 0, imageUrl];
 
-            const result = await db.query(insertQuery, values);
-            res.status(201).json(result.rows[0]);
-
-        } catch (err) {
-            console.error('Error during request processing:', err.stack);
-            res.status(500).json({ error: 'Internal server error', details: err.message });
+            try {
+                const result = await db.query(insertQuery, values);
+                res.status(201).json(result.rows[0]);
+            } catch (dbError) {
+                console.error('Error inserting into database:', dbError);
+                return res.status(500).json({ error: 'Error inserting service into database', details: dbError.message });
+            }
+        } catch (error) {
+            console.error('Error during request processing:', error);
+            res.status(500).json({ error: 'Internal server error', details: error.message });
         }
     }
 );
