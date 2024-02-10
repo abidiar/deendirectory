@@ -48,13 +48,13 @@ router.post('/add',
             let imageUrl = 'defaultImageUrl'; // Fallback image URL
             if (req.file) {
                 const buffer = await sharp(req.file.buffer)
+                    .rotate() // This auto-orients the image based on its Exif data
                     .resize(256, 256, { fit: sharp.fit.cover, position: sharp.strategy.entropy })
                     .jpeg({ quality: 80 })
                     .toBuffer();
-
+            
                 try {
                     imageUrl = await uploadToCloudflare(buffer, req.file.originalname);
-                    console.log("Received imageUrl from Cloudflare:", imageUrl); // Debug log
                 } catch (uploadError) {
                     console.error('Error uploading to Cloudflare:', uploadError);
                     return res.status(500).json({ error: 'Error uploading image to Cloudflare', details: uploadError.message });
