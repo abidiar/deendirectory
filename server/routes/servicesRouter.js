@@ -54,11 +54,15 @@ router.post('/add',
 
                 try {
                     imageUrl = await uploadToCloudflare(buffer, req.file.originalname);
+                    console.log("Received imageUrl from Cloudflare:", imageUrl); // Debug log
                 } catch (uploadError) {
                     console.error('Error uploading to Cloudflare:', uploadError);
                     return res.status(500).json({ error: 'Error uploading image to Cloudflare', details: uploadError.message });
                 }
             }
+
+            // Debug log for the values being inserted into the database
+            console.log("Inserting into database with imageUrl:", imageUrl);
 
             const insertQuery = `INSERT INTO services (
                 name, description, latitude, longitude, category_id, street_address, city, state, postal_code, country, phone_number, website, hours, is_halal_certified, average_rating, review_count, image_url, location
