@@ -10,10 +10,11 @@ async function uploadToCloudflare(fileBuffer, originalName) {
     // Validate environment variables each time the function is called
     const cloudflareApiEndpointUrl = process.env.CLOUDFLARE_API_ENDPOINT_URL;
     const imageStreamCloudflareApiToken = process.env.IMAGESTREAM_CLOUDFLARE_API_TOKEN;
+    const cloudflareAccountHash = process.env.CLOUDFLARE_ACCOUNT_HASH; // Cloudflare account hash
 
-    if (!cloudflareApiEndpointUrl || !imageStreamCloudflareApiToken) {
-        console.error("Cloudflare environment variables are not set.");
-        throw new Error("Cloudflare environment variables are not set.");
+    if (!cloudflareApiEndpointUrl || !imageStreamCloudflareApiToken || !cloudflareAccountHash) {
+        console.error("Cloudflare environment variables are not set properly.");
+        throw new Error("Cloudflare environment variables are not set properly.");
     }
 
     const formData = new FormData();
@@ -32,20 +33,16 @@ async function uploadToCloudflare(fileBuffer, originalName) {
             throw new Error(`Cloudflare upload failed: ${response.statusText}`);
         }
 
-        // Error handling for JSON parsing
-        let data;
-        try {
-            data = await response.json();
-        } catch (parseError) {
-            throw new Error(`Error parsing Cloudflare response: ${parseError.message}`);
-        }
+        const data = await response.json();
+        
+        // Assuming 'id' is the property that contains the image ID in Cloudflare's response
+        // This might need adjustment based on the actual response structure from Cloudflare
+        const imageId = data.result.id;
 
-        // Check for Cloudflare's specific error messages
-        if (data.error || data.success === false) {
-            throw new Error(`Cloudflare upload error: ${data.messages || data.errors}`);
-        }
+        // Construct the URL for accessing the uploaded image
+        const imageUrl = `https://imagedelivery.net/${cloudflareAccountHash}/${imageId}/public`;
 
-        return data.result.url; // Ensure this path is correct according to Cloudflare's response structure
+        return imageUrl;
     } catch (error) {
         console.error('Error uploading to Cloudflare:', error);
         throw error;
