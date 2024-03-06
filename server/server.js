@@ -131,7 +131,7 @@ queryParams.push(pageSize, (page - 1) * pageSize);
 
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
-    const { latitude, longitude } = req.query;
+    const { latitude, longitude, limit = 5 } = req.query;  // Default limit to 5 if not provided
     const radius = 40233.6; // 25 miles in meters
 
     if (!latitude || !longitude) {
