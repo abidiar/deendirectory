@@ -130,6 +130,35 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+app.get('/api/suggestions', async (req, res) => {
+  const { term } = req.query;
+
+  if (!term) {
+    return res.status(400).json({ message: 'Search term is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT name
+    FROM services
+    WHERE name ILIKE $1
+    UNION
+    SELECT DISTINCT name
+    FROM categories
+    WHERE name ILIKE $1
+    LIMIT 10;
+  `;
+  const values = [`%${term}%`];
+
+  try {
+    const result = await pool.query(query, values);
+    const suggestions = result.rows.map(row => row.name);
+    res.json(suggestions);
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
     const { latitude, longitude, limit = 5 } = req.query;  // Default limit to 5 if not provided

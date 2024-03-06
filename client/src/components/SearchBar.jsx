@@ -11,6 +11,7 @@ function SearchBar() {
   const [locationInput, setLocationInput] = useState('');
   const [isHalalCertified, setIsHalalCertified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
   const [searchError, setSearchError] = useState('');
 
   useEffect(() => {
@@ -92,16 +93,36 @@ function SearchBar() {
     setIsLoading(false);
   };
 
+  const fetchSuggestions = async (term) => {
+    if (!term.trim()) return;
+  
+    // Assuming you have a backend endpoint for fetching suggestions
+    try {
+      const response = await fetch(`${backendUrl}/api/suggestions?term=${encodeURIComponent(term)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSuggestions(data);
+      } else {
+        console.error('Failed to fetch suggestions');
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+    }
+  };
+
   return (
     <div className="mt-6">
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>
-        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl">
+        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl relative"> {/* Make the container relative to position suggestions */}
           <input
             type="text"
             className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
             placeholder="Service or Business"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              fetchSuggestions(e.target.value);
+            }}
             aria-label="Search for services or businesses"
           />
           <span className="bg-gray-300 w-px h-10 self-center"></span>
@@ -120,6 +141,19 @@ function SearchBar() {
           >
             <FontAwesomeIcon icon={faSearch} />
           </button>
+          {/* Suggestions Dropdown */}
+          {suggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white shadow-md mt-1 max-h-60 overflow-auto">
+              {suggestions.map((suggestion, index) => (
+                <li key={index} className="p-2 hover:bg-gray-100 cursor-pointer" onClick={() => {
+                  setSearchTerm(suggestion);
+                  setSuggestions([]);
+                }}>
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="flex justify-center mt-4">
           <label className="flex items-center">
@@ -136,7 +170,7 @@ function SearchBar() {
         {searchError && <div className="text-red-500 text-center">{searchError}</div>}
       </form>
     </div>
-  );
+  );  
 }
 
 export default SearchBar;
