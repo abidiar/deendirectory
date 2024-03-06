@@ -119,9 +119,9 @@ function SearchBar() {
   };
 
   return (
-<div className="mt-6 relative" ref={ref}> {/* Container for the search bar */}
-  <form className="flex flex-col justify-center" onSubmit={handleSearch}>
-    <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl"> {/* Search bar container */}
+    <div className="mt-6 search-bar-wrapper" ref={ref}>
+      <form className="flex flex-col justify-center" onSubmit={handleSearch}>
+        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl">
           <input
   type="text"
   className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -157,21 +157,20 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-      <ul className="absolute z-10 w-full bg-white shadow-lg rounded-b-md border border-t-0 border-gray-200 overflow-auto top-[100%] mt-[-1px]">
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ease-in-out"
-                onClick={() => {
-                  setSearchTerm(suggestion);
-                  setSuggestions([]);
-                }}
-              >
-                {suggestion}
-              </li>
-            ))}
-          </ul>
-        )}
+            <ul className="suggestions-dropdown">
+              {suggestions.map((suggestion, index) => (
+                <li
+                  key={index}
+                  onClick={() => {
+                    setSearchTerm(suggestion);
+                    setSuggestions([]);
+                  }}
+                >
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="flex justify-center mt-4">
           <label className="flex items-center">
