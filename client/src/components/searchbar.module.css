@@ -1,0 +1,48 @@
+/* searchbar.module.css */
+.searchBarContainer {
+    position: relative;
+    margin-top: 6rem; /* Adjust the margin as necessary */
+  }
+  
+  .searchInputContainer {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 40rem; /* Or your desired max width */
+  }
+  
+  .searchInput {
+    flex-grow: 1;
+    padding: 1rem;
+    border-radius: 0.5rem 0 0 0.5rem;
+    border: none;
+    outline: none;
+  }
+  
+  .searchButton {
+    background-color: #FF6B6B; /* Your accent coral color */
+    padding: 1rem;
+    border-radius: 0 0.5rem 0.5rem 0;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .suggestionsDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 0; /* No gap between the input field and the dropdown */
+    border: 1px solid #ccc; /* Adjust to match your design */
+    border-top: none; /* Remove the top border */
+    z-index: 10; /* Higher than other content */
+    border-radius: 0 0 0.5rem 0.5rem; /* Rounded bottom corners */
+    overflow: hidden;
+  }
+  

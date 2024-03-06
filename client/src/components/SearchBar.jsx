@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { LocationContext } from '../context/LocationContext';
 import { useClickAway } from 'react-use';
+import styles from './searchbar.module.css';
 
 function SearchBar() {
   const navigate = useNavigate();
@@ -119,9 +120,9 @@ function SearchBar() {
   };
 
   return (
-    <div className="mt-6 search-bar-wrapper" ref={ref}>
+    <div className={styles.searchBarContainer} ref={ref}>
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>
-        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl">
+        <div className={styles.searchInputContainer}>
           <input
   type="text"
   className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -157,7 +158,7 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-            <ul className="suggestions-dropdown">
+          <ul className={styles.suggestionsDropdown}>
               {suggestions.map((suggestion, index) => (
                 <li
                   key={index}
