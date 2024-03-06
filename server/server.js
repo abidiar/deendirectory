@@ -151,7 +151,7 @@ app.get('/api/services/new-near-you', async (req, res) => {
       $3
     ) AND date_added >= current_date - interval '30 days'
     ORDER BY date_added DESC
-    LIMIT $4;  // Add the LIMIT clause at the end of the query
+    LIMIT $4;
   `;
   
   const values = [longitude, latitude, radius, limit];  // Make sure 'limit' is a number and is the fourth parameter
