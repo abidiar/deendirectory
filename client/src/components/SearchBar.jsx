@@ -143,17 +143,21 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-            <ul className="absolute z-10 w-full bg-white shadow-md mt-1 max-h-60 overflow-auto">
-              {suggestions.map((suggestion, index) => (
-                <li key={index} className="p-2 hover:bg-gray-100 cursor-pointer" onClick={() => {
-                  setSearchTerm(suggestion);
-                  setSuggestions([]);
-                }}>
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          )}
+  <ul className="absolute z-10 w-full bg-white shadow-lg mt-1 rounded-md border border-gray-200 max-h-60 overflow-auto">
+    {suggestions.map((suggestion, index) => (
+      <li
+        key={index}
+        className="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+        onClick={() => {
+          setSearchTerm(suggestion);
+          setSuggestions([]);
+        }}
+      >
+        {suggestion}
+      </li>
+    ))}
+  </ul>
+)}
         </div>
         <div className="flex justify-center mt-4">
           <label className="flex items-center">
