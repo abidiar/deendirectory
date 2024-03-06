@@ -22,6 +22,7 @@ function NewNearYou() {
   }
 
   function fetchNewNearYouServices(latitude, longitude) {
+    const limit = 5;
     const fetchUrl = `https://deendirectorybackend.onrender.com/api/services/new-near-you/?latitude=${latitude}&longitude=${longitude}`;
 
     fetch(fetchUrl)
