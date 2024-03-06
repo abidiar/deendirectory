@@ -41,13 +41,14 @@ app.get('/api/search', async (req, res) => {
         const latitude = req.query.latitude ? parseFloat(req.query.latitude) : null;
         const longitude = req.query.longitude ? parseFloat(req.query.longitude) : null;    
 
-    let baseSearchQuery = `
-    FROM services s
-    LEFT JOIN categories c ON s.category_id = c.id
-    WHERE to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')) @@ to_tsquery('english', $1)
-  `;
-
-    let queryParams = [`${searchTerm}:*`];
+        let baseSearchQuery = `
+        FROM services s
+        LEFT JOIN categories sub ON s.category_id = sub.id
+        LEFT JOIN categories main ON sub.parent_category_id = main.id
+        WHERE to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(sub.name, '') || ' ' || COALESCE(main.name, '')) @@ to_tsquery('english', $1)
+        `;
+    
+        let queryParams = [`${searchTerm}:*`];
 
     // Category filter
     if (category) {
@@ -79,13 +80,13 @@ app.get('/api/search', async (req, res) => {
 
   // Pagination Query
   let paginatedSearchQuery = `
-  SELECT s.*, c.name AS category_name,
-  ts_rank_cd(to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(c.name, '')), to_tsquery('english', $1)) AS rank
-` + baseSearchQuery + `
+  SELECT s.*, sub.name AS subcategory_name, main.name AS category_name,
+  ts_rank_cd(to_tsvector('english', s.name || ' ' || s.description || ' ' || COALESCE(sub.name, '') || ' ' || COALESCE(main.name, '')), to_tsquery('english', $1)) AS rank
+  ` + baseSearchQuery + `
   ORDER BY ${sort === 'rating' ? 's.average_rating DESC' : sort === 'newest' ? 's.date_added DESC' : 'rank DESC'}
   LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
-`;
-queryParams.push(pageSize, (page - 1) * pageSize);
+  `;
+  queryParams.push(pageSize, (page - 1) * pageSize);
 
     // Execute the paginated search query
     const paginatedResults = await pool.query(paginatedSearchQuery, queryParams);
