@@ -119,9 +119,9 @@ function SearchBar() {
   };
 
   return (
-    <div className="mt-6 relative" ref={ref}> {/* Position relative to the entire search bar component */}
-    <form className="flex flex-col justify-center" onSubmit={handleSearch}>
-      <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl"> {/* Removed relative here */}
+<div className="mt-6 relative" ref={ref}> {/* Container for the search bar */}
+  <form className="flex flex-col justify-center" onSubmit={handleSearch}>
+    <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl"> {/* Search bar container */}
           <input
             type="text"
             className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -151,7 +151,7 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-          <ul className="absolute z-10 w-full bg-white shadow-lg mt-1 rounded-md border border-gray-200 overflow-auto">
+      <ul className="absolute z-10 w-full bg-white shadow-lg rounded-md border border-gray-200 overflow-auto top-full left-0 mt-1">
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
