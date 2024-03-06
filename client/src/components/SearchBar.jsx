@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { LocationContext } from '../context/LocationContext';
+import { useClickAway } from 'react-use';
 
 function SearchBar() {
   const navigate = useNavigate();
@@ -13,6 +14,13 @@ function SearchBar() {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [searchError, setSearchError] = useState('');
+
+  const ref = useRef(null); // Ref for the search bar container
+
+  useClickAway(ref, () => {
+    // Close suggestions when clicking outside the search bar
+    setSuggestions([]);
+  });
 
   useEffect(() => {
     if (currentLocation && currentLocation.name) {
@@ -111,9 +119,9 @@ function SearchBar() {
   };
 
   return (
-    <div className="mt-6">
+    <div className="mt-6" ref={ref}>
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>
-        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl relative"> {/* Make the container relative to position suggestions */}
+        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl relative">
           <input
             type="text"
             className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -143,11 +151,11 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-  <ul className="absolute z-10 w-full bg-white shadow-lg mt-1 rounded-md border border-gray-200 max-h-60 overflow-auto">
-    {suggestions.map((suggestion, index) => (
+            <ul className="absolute z-10 w-full bg-white shadow-lg mt-1 rounded-md border border-gray-200 max-h-60 overflow-auto">
+              {suggestions.map((suggestion, index) => (
       <li
         key={index}
-        className="px-4 py-2 hover:bg-gray-50 cursor-pointer transition-colors"
+        className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ease-in-out"
         onClick={() => {
           setSearchTerm(suggestion);
           setSuggestions([]);
