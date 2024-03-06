@@ -151,9 +151,10 @@ app.get('/api/services/new-near-you', async (req, res) => {
         $3
       ) AND date_added >= current_date - interval '30 days'
       ORDER BY date_added DESC;
+      LIMIT $4; 
     `;
 
-    const values = [longitude, latitude, radius];
+    const values = [longitude, latitude, radius, limit];
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
