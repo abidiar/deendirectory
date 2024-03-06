@@ -140,21 +140,22 @@ app.get('/api/services/new-near-you', async (req, res) => {
 
     // Update the SELECT statement to include new fields
     const query = `
-      SELECT
-        id, name, description, latitude, longitude, location, date_added,
-        category_id, street_address, city, state, postal_code, country,
-        phone_number, website, hours, is_halal_certified, average_rating, review_count
-      FROM services
-      WHERE ST_DWithin(
-        location::GEOGRAPHY,
-        ST_SetSRID(ST_MakePoint($1, $2), 4326)::GEOGRAPHY,
-        $3
-      ) AND date_added >= current_date - interval '30 days'
-      ORDER BY date_added DESC;
-      LIMIT $4; 
-    `;
-
-    const values = [longitude, latitude, radius, limit];
+    SELECT
+      id, name, description, latitude, longitude, location, date_added,
+      category_id, street_address, city, state, postal_code, country,
+      phone_number, website, hours, is_halal_certified, average_rating, review_count
+    FROM services
+    WHERE ST_DWithin(
+      location::GEOGRAPHY,
+      ST_SetSRID(ST_MakePoint($1, $2), 4326)::GEOGRAPHY,
+      $3
+    ) AND date_added >= current_date - interval '30 days'
+    ORDER BY date_added DESC
+    LIMIT $4;  // Add the LIMIT clause at the end of the query
+  `;
+  
+  const values = [longitude, latitude, radius, limit];  // Make sure 'limit' is a number and is the fourth parameter
+  
     const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
