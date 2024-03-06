@@ -119,9 +119,9 @@ function SearchBar() {
   };
 
   return (
-    <div className="mt-6" ref={ref}>
-      <form className="flex flex-col justify-center" onSubmit={handleSearch}>
-        <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl relative">
+    <div className="mt-6 relative" ref={ref}> {/* Position relative to the entire search bar component */}
+    <form className="flex flex-col justify-center" onSubmit={handleSearch}>
+      <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl"> {/* Removed relative here */}
           <input
             type="text"
             className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -151,21 +151,21 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-            <ul className="absolute z-10 w-full bg-white shadow-lg mt-1 rounded-md border border-gray-200 max-h-60 overflow-auto">
-              {suggestions.map((suggestion, index) => (
-      <li
-        key={index}
-        className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ease-in-out"
-        onClick={() => {
-          setSearchTerm(suggestion);
-          setSuggestions([]);
-        }}
-      >
-        {suggestion}
-      </li>
-    ))}
-  </ul>
-)}
+          <ul className="absolute z-10 w-full bg-white shadow-lg mt-1 rounded-md border border-gray-200 overflow-auto">
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ease-in-out"
+                onClick={() => {
+                  setSearchTerm(suggestion);
+                  setSuggestions([]);
+                }}
+              >
+                {suggestion}
+              </li>
+            ))}
+          </ul>
+        )}
         </div>
         <div className="flex justify-center mt-4">
           <label className="flex items-center">
