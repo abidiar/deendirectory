@@ -16,7 +16,7 @@
   .suggestionsDropdown {
     position: absolute;
     z-index: 10;
-    width: calc(100% - 1.5rem); /* Adjust width to match the input field */
+    width: 100%; /* Ensure it's the same width as the input field */
     background-color: #ffffff;
     border: 1px solid #e5e7eb; /* Tailwind gray-200 */
     border-top-width: 0;
@@ -24,8 +24,9 @@
     overflow-y: auto;
     border-bottom-left-radius: 0.5rem;
     border-bottom-right-radius: 0.5rem;
-    top: 100%;
-    margin-top: -1px; /* To align directly under the search bar without gap */
+    top: 100%; /* Aligns directly to the bottom of the search input */
+    left: 0; /* Aligns the suggestions dropdown to the left edge of the parent container */
+    margin-top: -1px; /* Removes the gap caused by borders */
   }
   
   .suggestionItem {
