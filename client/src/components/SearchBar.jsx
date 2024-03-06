@@ -123,13 +123,19 @@ function SearchBar() {
   <form className="flex flex-col justify-center" onSubmit={handleSearch}>
     <div className="flex items-center rounded-lg shadow-lg w-full max-w-2xl"> {/* Search bar container */}
           <input
-            type="text"
-            className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Service or Business"
+  type="text"
+  className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
+  placeholder="Service or Business"
             value={searchTerm}
             onChange={(e) => {
-              setSearchTerm(e.target.value);
-              fetchSuggestions(e.target.value);
+              const newSearchTerm = e.target.value;
+              setSearchTerm(newSearchTerm);
+              if (newSearchTerm.trim()) {
+                fetchSuggestions(newSearchTerm);
+              } else {
+                // If the input is cleared, set suggestions to an empty array
+                setSuggestions([]);
+              }
             }}
             aria-label="Search for services or businesses"
           />
@@ -151,7 +157,7 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-      <ul className="absolute z-10 w-full bg-white shadow-lg rounded-md border border-gray-200 overflow-auto top-full left-0 mt-1">
+      <ul className="absolute z-10 w-full bg-white shadow-lg rounded-b-md border border-t-0 border-gray-200 overflow-auto top-[100%] mt-[-1px]">
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
