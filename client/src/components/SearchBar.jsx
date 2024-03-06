@@ -120,7 +120,7 @@ function SearchBar() {
   };
 
   return (
-    <div className={styles.searchBarContainer} ref={ref}>
+    <div className={styles.searchBarWrapper} ref={ref}>
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>
         <div className={styles.searchInputContainer}>
           <input
@@ -158,20 +158,21 @@ function SearchBar() {
           </button>
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
-          <ul className={styles.suggestionsDropdown}>
-              {suggestions.map((suggestion, index) => (
-                <li
-                  key={index}
-                  onClick={() => {
-                    setSearchTerm(suggestion);
-                    setSuggestions([]);
-                  }}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          )}
+            <ul className={styles.suggestionsDropdown}>
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                className={styles.suggestionItem}
+                onClick={() => {
+                  setSearchTerm(suggestion);
+                  setSuggestions([]);
+                }}
+              >
+                {suggestion}
+              </li>
+            ))}
+          </ul>
+        )}
         </div>
         <div className="flex justify-center mt-4">
           <label className="flex items-center">
