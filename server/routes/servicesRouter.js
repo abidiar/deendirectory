@@ -14,6 +14,85 @@ function isValidUSAddress(address) {
     return regex.test(address);
 }
 
+router.get('/api/search', async (req, res) => {
+    const {
+      searchTerm = '',
+      category,
+      isHalalCertified,
+      latitude,
+      longitude,
+      sort = 'relevance', // Default sort
+      page = 1,
+      pageSize = 10
+    } = req.query;
+  
+    const offset = (page - 1) * pageSize;
+  
+    let queryParams = [pageSize, offset];
+    let whereConditions = [];
+    let orderByClause = '';
+  
+    // Building WHERE conditions based on filters
+    if (searchTerm) {
+      whereConditions.push(`to_tsvector('english', name || ' ' || description) @@ plainto_tsquery('english', $${queryParams.unshift(searchTerm)})`);
+    }
+    if (category) {
+      whereConditions.push(`category_id = $${queryParams.unshift(category)}`);
+    }
+    if (isHalalCertified) {
+      whereConditions.push(`is_halal_certified = $${queryParams.unshift(isHalalCertified === 'true')}`);
+    }
+  
+    // Geographic distance filter
+    if (latitude && longitude) {
+      queryParams.unshift(latitude, longitude);
+      whereConditions.push(`ST_DWithin(geographic_location, ST_SetSRID(ST_MakePoint($${queryParams.length - 1}, $${queryParams.length}), 4326), 10000)`); // Example distance 10km
+    }
+  
+    // Building ORDER BY clause based on sort parameter
+    switch (sort) {
+      case 'rating':
+        orderByClause = 'ORDER BY average_rating DESC';
+        break;
+      case 'newest':
+        orderByClause = 'ORDER BY date_added DESC';
+        break;
+      case 'distance':
+        // Assuming you have a geographic_location column
+        orderByClause = `ORDER BY geographic_location <-> ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)`;
+        break;
+      default:
+        orderByClause = 'ORDER BY relevance DESC';
+    }
+  
+    const baseQuery = `
+      FROM services
+      ${whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : ''}
+    `;
+  
+    try {
+      // Fetching the paginated results
+      const resultsQuery = `
+        SELECT *, COUNT(*) OVER() AS full_count
+        ${baseQuery}
+        ${orderByClause}
+        LIMIT $1 OFFSET $2
+      `;
+      const { rows } = await pool.query(resultsQuery, queryParams);
+      const totalRows = rows[0] ? rows[0].full_count : 0;
+  
+      res.json({
+        results: rows,
+        total: parseInt(totalRows, 10),
+        page,
+        pageSize
+      });
+    } catch (error) {
+      console.error('Search API error:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
 router.post('/add',
     upload.single('image'),
     body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
