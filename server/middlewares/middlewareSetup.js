@@ -9,9 +9,9 @@ function setupMiddlewares(app) {
   // CORS configuration
   app.use(cors({
     origin: 'https://deendirectory.onrender.com',
-methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-credentials: true,
-}));
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  }));
 
   // Security-related HTTP headers
   app.use(helmet());
@@ -29,6 +29,12 @@ credentials: true,
   // Parse JSON and url-encoded bodies
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Error-handling middleware
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Internal Server Error', details: err.message });
+  });
 }
 
 module.exports = setupMiddlewares;

@@ -79,17 +79,12 @@ router.get('/api/search', async (req, res) => {
       const totalResult = await pool.query(totalResultsQuery, totalCountQueryParams);
       const totalRows = parseInt(totalResult.rows[0].count, 10);
 
-      res.json({
-        results: results.rows,
-        total: totalRows,
-        page: parseInt(page),
-        pageSize: parseInt(pageSize)
-      });
+      res.json({ message: 'Success' });
     } catch (error) {
       console.error('Search API error:', error);
-      res.status(500).send('Internal Server Error');
+      next(error); // Pass the error to the error-handling middleware
     }
-});
+  });
 
 router.post('/add',
     upload.single('image'),
