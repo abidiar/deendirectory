@@ -59,7 +59,7 @@ function SearchResultsPage() {
     fetch(searchUrl)
     .then(response => {
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.json();
     })
@@ -73,8 +73,7 @@ function SearchResultsPage() {
       setIsLoading(false);
     })
     .catch(error => {
-      setSearchError('Error fetching search results: ' + error.message);
-      setIsLoading(false);
+      console.error("Fetch error:", error);
     });
   };
 
