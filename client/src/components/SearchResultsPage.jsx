@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useLocation, useHistory } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Card from './Card';
 import Pagination from './Pagination';
 import { LocationContext } from '../context/LocationContext';
@@ -23,7 +23,7 @@ function SearchResultsPage() {
   const page = parseInt(query.get('page') || '1', 10);
   const queriedPageSize = parseInt(query.get('pageSize') || `${pageSize}`, 10);
   const { backendUrl } = useContext(LocationContext);
-  const history = useHistory();
+  const navigate = useNavigate();
 
   // State for filters
   const [category, setCategory] = useState('');
@@ -53,7 +53,7 @@ function SearchResultsPage() {
 
     if (appliedFilters) {
       // If filters are applied, update the URL to reflect changes
-      history.push(`/search?searchTerm=${encodeURIComponent(searchTerm)}&category=${category}&rating=${rating}&distance=${distance}&page=${page}&pageSize=${queriedPageSize}`);
+      navigate(`/search?searchTerm=${encodeURIComponent(searchTerm)}&category=${category}&rating=${rating}&distance=${distance}&page=${page}&pageSize=${queriedPageSize}`);
     }
 
     fetch(searchUrl)
