@@ -27,65 +27,51 @@ router.get('/api/search', async (req, res) => {
     } = req.query;
   
     const offset = (page - 1) * pageSize;
-  
-    let queryParams = [pageSize, offset];
+    let queryParams = [];
     let whereConditions = [];
     let orderByClause = '';
   
     // Building WHERE conditions based on filters
     if (searchTerm) {
-      whereConditions.push(`to_tsvector('english', name || ' ' || description) @@ plainto_tsquery('english', $${queryParams.unshift(searchTerm)})`);
+      queryParams.push(`%${searchTerm}%`);
+      whereConditions.push(`name ILIKE $${queryParams.length}`);
     }
     if (category) {
-      whereConditions.push(`category_id = $${queryParams.unshift(category)}`);
+      queryParams.push(category);
+      whereConditions.push(`category_id = $${queryParams.length}`);
     }
     if (isHalalCertified) {
-      whereConditions.push(`is_halal_certified = $${queryParams.unshift(isHalalCertified === 'true')}`);
+      queryParams.push(isHalalCertified === 'true');
+      whereConditions.push(`is_halal_certified = $${queryParams.length}`);
     }
   
     // Geographic distance filter
     if (latitude && longitude) {
-      queryParams.unshift(latitude, longitude);
-      whereConditions.push(`ST_DWithin(geographic_location, ST_SetSRID(ST_MakePoint($${queryParams.length - 1}, $${queryParams.length}), 4326), 10000)`); // Example distance 10km
+      queryParams.push(parseFloat(longitude), parseFloat(latitude));
+      // Adjust the radius as per your requirement
+      const radius = 25000;
+      whereConditions.push(`ST_DWithin(geographic_location, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
     }
   
     // Building ORDER BY clause based on sort parameter
-    switch (sort) {
-      case 'rating':
-        orderByClause = 'ORDER BY average_rating DESC';
-        break;
-      case 'newest':
-        orderByClause = 'ORDER BY date_added DESC';
-        break;
-      case 'distance':
-        // Assuming you have a geographic_location column
-        orderByClause = `ORDER BY geographic_location <-> ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)`;
-        break;
-      default:
-        orderByClause = 'ORDER BY relevance DESC';
-    }
+    orderByClause = sort === 'rating' ? 'ORDER BY average_rating DESC' : sort === 'newest' ? 'ORDER BY date_added DESC' : '';
   
-    const baseQuery = `
-      FROM services
-      ${whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : ''}
+    let searchQuery = `
+      SELECT * FROM services
+      ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
+      ${orderByClause}
+      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
     `;
   
-    try {
-      // Fetching the paginated results
-      const resultsQuery = `
-        SELECT *, COUNT(*) OVER() AS full_count
-        ${baseQuery}
-        ${orderByClause}
-        LIMIT $1 OFFSET $2
-      `;
-      const { rows } = await pool.query(resultsQuery, queryParams);
-      const totalRows = rows[0] ? rows[0].full_count : 0;
+    queryParams.push(parseInt(pageSize), parseInt(offset));
   
+    try {
+      const { rows, rowCount } = await pool.query(searchQuery, queryParams);
       res.json({
         results: rows,
-        total: parseInt(totalRows, 10),
-        page,
-        pageSize
+        total: rowCount,
+        page: parseInt(page),
+        pageSize: parseInt(pageSize)
       });
     } catch (error) {
       console.error('Search API error:', error);
