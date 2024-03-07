@@ -15,6 +15,7 @@ function isValidUSAddress(address) {
 }
 
 router.get('/api/search', async (req, res) => {
+    console.log("Received search request", req.query); // Log the incoming query parameters
     const {
       searchTerm = '',
       category,
