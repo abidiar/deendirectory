@@ -54,7 +54,10 @@ router.get('/api/search', async (req, res) => {
     }
   
     // Building ORDER BY clause based on sort parameter
-    orderByClause = sort === 'rating' ? 'ORDER BY average_rating DESC' : sort === 'newest' ? 'ORDER BY date_added DESC' : '';
+    orderByClause = sort === 'rating' ? 'ORDER BY average_rating DESC' :
+    sort === 'newest' ? 'ORDER BY date_added DESC' :
+    sort === 'relevance' && searchTerm ? `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${queryParams.length})) DESC` :
+    '';
   
     let searchQuery = `
       SELECT * FROM services
@@ -62,14 +65,23 @@ router.get('/api/search', async (req, res) => {
       ${orderByClause}
       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
     `;
-  
-    queryParams.push(parseInt(pageSize), parseInt(offset));
-  
+
+    // Adjusted queryParams for total count (excludes LIMIT and OFFSET parameters)
+    let totalCountQueryParams = queryParams.slice(0, -2); // Adjust if necessary based on your code
+
+    let totalResultsQuery = `
+      SELECT COUNT(*) FROM services
+      ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
+    `;
+
     try {
-      const { rows, rowCount } = await pool.query(searchQuery, queryParams);
+      const results = await pool.query(searchQuery, queryParams);
+      const totalResult = await pool.query(totalResultsQuery, totalCountQueryParams);
+      const totalRows = parseInt(totalResult.rows[0].count, 10);
+
       res.json({
-        results: rows,
-        total: rowCount,
+        results: results.rows,
+        total: totalRows,
         page: parseInt(page),
         pageSize: parseInt(pageSize)
       });
@@ -77,7 +89,7 @@ router.get('/api/search', async (req, res) => {
       console.error('Search API error:', error);
       res.status(500).send('Internal Server Error');
     }
-  });
+});
 
 router.post('/add',
     upload.single('image'),
