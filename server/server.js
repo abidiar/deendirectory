@@ -67,16 +67,18 @@ app.get('/api/search', async (req, res, next) => {
   // Geographic distance filter
   if (latitude && longitude) {
     queryParams.push(parseFloat(latitude), parseFloat(longitude));
-    // Assuming `location` is the correct column with geographic data
     const radius = 25000; // Adjust the radius as per your requirement
     whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length}, $${queryParams.length - 1})::geography, ${radius})`);
   }
 
+  // If searchTerm is used in whereConditions, it's already in queryParams
+  let searchTermIndex = whereConditions.length > 0 ? queryParams.length : queryParams.push(searchTerm);
+
   // Building ORDER BY clause based on sort parameter
   orderByClause = sort === 'rating' ? 'ORDER BY average_rating DESC' :
-  sort === 'newest' ? 'ORDER BY date_added DESC' :
-  sort === 'relevance' && searchTerm ? `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${queryParams.length})) DESC` :
-  '';
+    sort === 'newest' ? 'ORDER BY date_added DESC' :
+    sort === 'relevance' ? `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${searchTermIndex}::text)) DESC` :
+    '';
 
   let searchQuery = `
     SELECT * FROM services
@@ -94,11 +96,15 @@ app.get('/api/search', async (req, res, next) => {
   `;
 
   try {
-    const results = await pool.query(searchQuery, queryParams);
+    const results = await pool.query(searchQuery, [...queryParams, pageSize, offset]);
     const totalResult = await pool.query(totalResultsQuery, totalCountQueryParams);
     const totalRows = parseInt(totalResult.rows[0].count, 10);
 
-    res.json({ message: 'Success' });
+    res.json({
+      message: 'Success',
+      data: results.rows,
+      totalRows: totalRows
+    });
   } catch (error) {
     console.error('Search API error:', error);
     next(error); // Pass the error to the error-handling middleware
