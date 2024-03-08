@@ -66,24 +66,53 @@ router.get('/api/search', async (req, res) => {
       ${orderByClause}
       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
     `;
-
+  
     // Adjusted queryParams for total count (excludes LIMIT and OFFSET parameters)
     let totalCountQueryParams = queryParams.slice(0, -2); // Adjust if necessary based on your code
-
+  
     let totalResultsQuery = `
       SELECT COUNT(*) FROM services
       ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
     `;
-
+  
     try {
       const results = await pool.query(searchQuery, queryParams);
       const totalResult = await pool.query(totalResultsQuery, totalCountQueryParams);
       const totalRows = parseInt(totalResult.rows[0].count, 10);
-
+  
       res.json({ message: 'Success' });
     } catch (error) {
       console.error('Search API error:', error);
       next(error); // Pass the error to the error-handling middleware
+    }
+  });
+  
+  router.get('/api/suggestions', async (req, res) => {
+    const { term } = req.query;
+  
+    if (!term) {
+      return res.status(400).json({ message: 'Search term is required' });
+    }
+  
+    const query = `
+      SELECT DISTINCT name
+      FROM services
+      WHERE name ILIKE $1
+      UNION
+      SELECT DISTINCT name
+      FROM categories
+      WHERE name ILIKE $1
+      LIMIT 10;
+    `;
+    const values = [`%${term}%`];
+  
+    try {
+      const result = await pool.query(query, values);
+      const suggestions = result.rows.map(row => row.name);
+      res.json(suggestions);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
   });
 
