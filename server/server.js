@@ -80,7 +80,7 @@ app.get('/api/search', async (req, res, next) => {
   // Geographic distance filter
   if (latitude && longitude) {
     queryParams.push(parseFloat(latitude), parseFloat(longitude));
-    const radius = 25000; // Adjust the radius as per your requirement
+    const radius = 40233.6; // Adjust the radius as per your requirement
     whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
   }
 
