@@ -68,27 +68,34 @@ app.get('/api/search', async (req, res, next) => {
   if (latitude && longitude) {
     queryParams.push(parseFloat(latitude), parseFloat(longitude));
     const radius = 25000; // Adjust the radius as per your requirement
-    whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length}, $${queryParams.length - 1})::geography, ${radius})`);
+    whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
   }
 
   // If searchTerm is used in whereConditions, it's already in queryParams
-  let searchTermIndex = whereConditions.length > 0 ? queryParams.length : queryParams.push(searchTerm);
-
   // Building ORDER BY clause based on sort parameter
-  orderByClause = sort === 'rating' ? 'ORDER BY average_rating DESC' :
-    sort === 'newest' ? 'ORDER BY date_added DESC' :
-    sort === 'relevance' ? `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${searchTermIndex}::text)) DESC` :
-    '';
+  if (sort === 'rating') {
+    orderByClause = 'ORDER BY average_rating DESC';
+  } else if (sort === 'newest') {
+    orderByClause = 'ORDER BY date_added DESC';
+  } else if (sort === 'relevance' && searchTerm) {
+    // Push searchTerm for relevance sorting if it has not been added before
+    if (!whereConditions.some(condition => condition.includes('ILIKE'))) {
+      queryParams.push(searchTerm);
+    }
+    orderByClause = `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${queryParams.length}::text)) DESC`;
+  }
+
+  queryParams.push(parseInt(pageSize), offset); // Pagination parameters
 
   let searchQuery = `
     SELECT * FROM services
     ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
     ${orderByClause}
-    LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+    LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}
   `;
 
   // Adjusted queryParams for total count (excludes LIMIT and OFFSET parameters)
-  let totalCountQueryParams = queryParams.slice(0, -2); // Adjust if necessary based on your code
+  let totalCountQueryParams = queryParams.slice(0, -2);
 
   let totalResultsQuery = `
     SELECT COUNT(*) FROM services
@@ -96,7 +103,7 @@ app.get('/api/search', async (req, res, next) => {
   `;
 
   try {
-    const results = await pool.query(searchQuery, [...queryParams, pageSize, offset]);
+    const results = await pool.query(searchQuery, queryParams);
     const totalResult = await pool.query(totalResultsQuery, totalCountQueryParams);
     const totalRows = parseInt(totalResult.rows[0].count, 10);
 
