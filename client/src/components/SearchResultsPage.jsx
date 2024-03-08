@@ -14,14 +14,13 @@ function SearchResultsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1); // Corrected variable name
   const pageSize = 10;
   const query = useQuery();
   const searchTerm = query.get('searchTerm');
   const location = query.get('location');
   const latitude = query.get('latitude');
   const longitude = query.get('longitude');
-  const page = parseInt(query.get('page') || '1', 10);
-  const queriedPageSize = parseInt(query.get('pageSize') || `${pageSize}`, 10);
   const { backendUrl } = useContext(LocationContext);
   const navigate = useNavigate();
 
@@ -29,6 +28,18 @@ function SearchResultsPage() {
   const [category, setCategory] = useState('');
   const [rating, setRating] = useState('');
   const [distance, setDistance] = useState('');
+
+  const updateURLWithFilters = () => {
+    const filterParams = new URLSearchParams({
+      searchTerm: encodeURIComponent(searchTerm),
+      category: category,
+      rating: rating,
+      distance: distance,
+      page: currentPage.toString(),
+      pageSize: pageSize.toString(),
+    });
+    navigate(`/search?${filterParams.toString()}`);
+  };
 
   const fetchSearchResults = (appliedFilters = false) => {
     setIsLoading(true);
@@ -44,49 +55,45 @@ function SearchResultsPage() {
     if (location) {
       searchUrl += `&location=${encodeURIComponent(location)}`;
     }
-    if (page) {
-      searchUrl += `&page=${page}`;
-    }
-    if (queriedPageSize) {
-      searchUrl += `&pageSize=${queriedPageSize}`;
-    }
-
-    if (appliedFilters) {
-      // If filters are applied, update the URL to reflect changes
-      navigate(`/search?searchTerm=${encodeURIComponent(searchTerm)}&category=${category}&rating=${rating}&distance=${distance}&page=${page}&pageSize=${queriedPageSize}`);
-    }
+    searchUrl += `&page=${currentPage}&pageSize=${pageSize}`;
 
     fetch(searchUrl)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-      if (data.results) {
-        setSearchResults(data.results);
-        setTotalPages(Math.ceil(data.total / queriedPageSize));
+      if (data.data) {
+        setSearchResults(data.data);
+        setTotalPages(Math.ceil(data.totalRows / pageSize));
       } else {
         setSearchError('No results found.');
       }
       setIsLoading(false);
     })
     .catch(error => {
-      console.error("Fetch error:", error);
+      setSearchError(error.message);
+      setIsLoading(false);
     });
+
+    if (appliedFilters) {
+      updateURLWithFilters();
+    }
   };
 
   useEffect(() => {
     fetchSearchResults(); // Initial fetch without applying filters
-  }, []); // Dependency array is empty to only fetch on mount
+  }, [currentPage]); // Fetch when currentPage changes
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    fetchSearchResults();
+  };
 
   const handleDistanceChange = (event, newValue) => {
     setDistance(newValue);
   };
 
   const handleApplyFilters = () => {
-    fetchSearchResults(true); // Pass true to indicate filters are being applied
+    setCurrentPage(1); // Reset to first page upon applying new filters
+    fetchSearchResults(true); // True indicates that filters are being applied
   };
 
   return (
@@ -149,7 +156,7 @@ function SearchResultsPage() {
               id={result.id}
               title={result.name}
               description={result.description}
-              image_Url={result.image || '/placeholder-image.jpg'}
+              image_url={result.image_url || '/placeholder-image.jpg'}
               averageRating={result.average_rating}
               isHalalCertified={result.is_halal_certified}
             />
@@ -159,13 +166,14 @@ function SearchResultsPage() {
       {!isLoading && !searchError && searchResults && searchResults.length === 0 && (
         <div>No results found.</div>
       )}
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          pageSize={pageSize}
-        />
-      )}
+    {totalPages > 1 && (
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
+    )}
     </Box>
   );
 }
