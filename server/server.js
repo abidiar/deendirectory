@@ -33,24 +33,23 @@ app.get('/api/v1/example', (req, res) => {
 // ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
 
 app.get('/api/search', async (req, res, next) => {
-  console.log("Received search request", req.query); // Log the incoming query parameters
+  console.log("Received search request", req.query);
   const {
     searchTerm = '',
     category,
     isHalalCertified,
     latitude,
     longitude,
-    sort = 'relevance', // Default sort
+    sort = 'relevance',
     page = 1,
     pageSize = 10
   } = req.query;
 
-  const offset = (page - 1) * pageSize;
   let queryParams = [];
   let whereConditions = [];
   let orderByClause = '';
-
-  // Building WHERE conditions based on filters
+  
+  // Building WHERE conditions
   if (searchTerm) {
     queryParams.push(`%${searchTerm}%`);
     whereConditions.push(`name ILIKE $${queryParams.length}`);
@@ -73,14 +72,13 @@ app.get('/api/search', async (req, res, next) => {
     }
   }
   if (isHalalCertified) {
-    queryParams.push(isHalalCertified === 'true');
+    queryParams.push(isHalalCertified === 'true'); // Ensuring correct boolean usage
     whereConditions.push(`is_halal_certified = $${queryParams.length}`);
   }
 
-  // Geographic distance filter
   if (latitude && longitude) {
-    queryParams.push(parseFloat(latitude), parseFloat(longitude));
-    const radius = 40233.6; // Adjust the radius as per your requirement
+    queryParams.push(parseFloat(longitude), parseFloat(latitude));
+    const radius = 40233.6; // Example radius
     whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
   }
 
@@ -98,14 +96,17 @@ app.get('/api/search', async (req, res, next) => {
     orderByClause = `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${queryParams.length}::text)) DESC`;
   }
 
-  queryParams.push(parseInt(pageSize), offset); // Pagination parameters
+// Adjust for LIMIT and OFFSET at the end
+let limitIndex = queryParams.length + 1;
+let offsetIndex = queryParams.length + 2;
+queryParams.push(parseInt(pageSize), (page - 1) * pageSize);
 
-  let searchQuery = `
-    SELECT * FROM services
-    ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
-    ${orderByClause}
-    LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}
-  `;
+let searchQuery = `
+  SELECT * FROM services
+  ${whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : ''}
+  ${orderByClause}
+  LIMIT $${limitIndex} OFFSET $${offsetIndex}
+`;
 
   // Adjusted queryParams for total count (excludes LIMIT and OFFSET parameters)
   let totalCountQueryParams = queryParams.slice(0, -2);
