@@ -32,7 +32,107 @@ app.get('/api/v1/example', (req, res) => {
 
 // ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
 
+app.get('/api/search', async (req, res) => {
+  console.log("Received search request", req.query); // Log the incoming query parameters
+  const {
+    searchTerm = '',
+    category,
+    isHalalCertified,
+    latitude,
+    longitude,
+    sort = 'relevance', // Default sort
+    page = 1,
+    pageSize = 10
+  } = req.query;
 
+  const offset = (page - 1) * pageSize;
+  let queryParams = [];
+  let whereConditions = [];
+  let orderByClause = '';
+
+  // Building WHERE conditions based on filters
+  if (searchTerm) {
+    queryParams.push(`%${searchTerm}%`);
+    whereConditions.push(`name ILIKE $${queryParams.length}`);
+  }
+  if (category) {
+    queryParams.push(category);
+    whereConditions.push(`category_id = $${queryParams.length}`);
+  }
+  if (isHalalCertified) {
+    queryParams.push(isHalalCertified === 'true');
+    whereConditions.push(`is_halal_certified = $${queryParams.length}`);
+  }
+
+  // Geographic distance filter
+  if (latitude && longitude) {
+    queryParams.push(parseFloat(longitude), parseFloat(latitude));
+    // Adjust the radius as per your requirement
+    const radius = 25000;
+    whereConditions.push(`ST_DWithin(geographic_location, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
+  }
+
+  // Building ORDER BY clause based on sort parameter
+  orderByClause = sort === 'rating' ? 'ORDER BY average_rating DESC' :
+  sort === 'newest' ? 'ORDER BY date_added DESC' :
+  sort === 'relevance' && searchTerm ? `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${queryParams.length})) DESC` :
+  '';
+
+  let searchQuery = `
+    SELECT * FROM services
+    ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
+    ${orderByClause}
+    LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+  `;
+
+  // Adjusted queryParams for total count (excludes LIMIT and OFFSET parameters)
+  let totalCountQueryParams = queryParams.slice(0, -2); // Adjust if necessary based on your code
+
+  let totalResultsQuery = `
+    SELECT COUNT(*) FROM services
+    ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
+  `;
+
+  try {
+    const results = await pool.query(searchQuery, queryParams);
+    const totalResult = await pool.query(totalResultsQuery, totalCountQueryParams);
+    const totalRows = parseInt(totalResult.rows[0].count, 10);
+
+    res.json({ message: 'Success' });
+  } catch (error) {
+    console.error('Search API error:', error);
+    next(error); // Pass the error to the error-handling middleware
+  }
+});
+
+app.get('/api/suggestions', async (req, res) => {
+  const { term } = req.query;
+
+  if (!term) {
+    return res.status(400).json({ message: 'Search term is required' });
+  }
+
+  const query = `
+    SELECT DISTINCT name
+    FROM services
+    WHERE name ILIKE $1
+    UNION
+    SELECT DISTINCT name
+    FROM categories
+    WHERE name ILIKE $1
+    LIMIT 10;
+  `;
+  const values = [`%${term}%`];
+
+  try {
+    const result = await pool.query(query, values);
+    const suggestions = result.rows.map(row => row.name);
+    res.json(suggestions);
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
 
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
