@@ -56,8 +56,21 @@ app.get('/api/search', async (req, res, next) => {
     whereConditions.push(`name ILIKE $${queryParams.length}`);
   }
   if (category) {
-    queryParams.push(category);
-    whereConditions.push(`category_id = $${queryParams.length}`);
+    try {
+      const categoryResult = await pool.query('SELECT id FROM categories WHERE name = $1', [category]);
+      if (categoryResult.rows.length > 0) {
+        // If the category exists, replace the name with its ID in queryParams
+        const categoryId = categoryResult.rows[0].id;
+        queryParams.push(categoryId);
+        whereConditions.push(`category_id = $${queryParams.length}`);
+      } else {
+        // Handle the case where the provided category name does not exist
+        return res.status(404).json({ message: 'Category not found' });
+      }
+    } catch (error) {
+      console.error('Error fetching category ID:', error);
+      return next(error);
+    }
   }
   if (isHalalCertified) {
     queryParams.push(isHalalCertified === 'true');
