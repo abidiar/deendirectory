@@ -32,7 +32,7 @@ app.get('/api/v1/example', (req, res) => {
 
 // ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
 
-app.get('/api/search', async (req, res) => {
+app.get('/api/search', async (req, res, next) => {
   console.log("Received search request", req.query); // Log the incoming query parameters
   const {
     searchTerm = '',
@@ -66,10 +66,10 @@ app.get('/api/search', async (req, res) => {
 
   // Geographic distance filter
   if (latitude && longitude) {
-    queryParams.push(parseFloat(longitude), parseFloat(latitude));
-    // Adjust the radius as per your requirement
-    const radius = 25000;
-    whereConditions.push(`ST_DWithin(geographic_location, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
+    queryParams.push(parseFloat(latitude), parseFloat(longitude));
+    // Assuming `location` is the correct column with geographic data
+    const radius = 25000; // Adjust the radius as per your requirement
+    whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length}, $${queryParams.length - 1})::geography, ${radius})`);
   }
 
   // Building ORDER BY clause based on sort parameter
@@ -605,18 +605,18 @@ app.get('/api/geocode', async (req, res) => {
 
 app.use('/api/services', servicesRouter);
 
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error('Unhandled application error:', error);
-  res.status(500).json('An error occurred.');
-});
-
 // Serve static files from the React app build directory
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // All other GET requests not handled before will return the React app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+});
+
+// Global error handler
+app.use((error, req, res, next) => {
+  console.error('Unhandled application error:', error);
+  res.status(500).json('An error occurred.');
 });
 
 // Start the server

@@ -8,7 +8,7 @@ const express = require('express');
 function setupMiddlewares(app) {
   // CORS configuration
   app.use(cors({
-    origin: 'https://deendirectory.onrender.com',
+    origin: ['https://deendirectory.onrender.com', 'http://localhost:3000'], // Add your allowed origins here
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   }));
