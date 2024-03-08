@@ -76,11 +76,11 @@ app.get('/api/search', async (req, res, next) => {
     whereConditions.push(`is_halal_certified = $${queryParams.length}`);
   }
 
-  if (latitude && longitude) {
-    queryParams.push(parseFloat(longitude), parseFloat(latitude));
-    const radius = 40233.6; // Example radius
-    whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
-  }
+ // if (latitude && longitude) {
+  //  queryParams.push(parseFloat(longitude), parseFloat(latitude));
+  //  const radius = 40233.6; // Example radius
+  //  whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
+ // }
 
   // If searchTerm is used in whereConditions, it's already in queryParams
   // Building ORDER BY clause based on sort parameter
