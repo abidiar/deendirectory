@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Card from './Card';
-import Pagination from './Pagination';
+import Card from './Card'; // Assume this is your updated Card component
+import Pagination from './Pagination'; // Your Pagination component
 import { LocationContext } from '../context/LocationContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -11,8 +11,8 @@ function useQuery() {
 
 function SearchResultsPage() {
   const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchError, setSearchError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchError, setSearchError] = useState('');
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const { backendUrl } = useContext(LocationContext);
@@ -26,18 +26,18 @@ function SearchResultsPage() {
   const fetchSearchResults = async () => {
     setIsLoading(true);
     setSearchError(null);
-
+  
     const searchUrl = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm)}&page=${currentPage}`;
-
+   
     try {
       const response = await fetch(searchUrl);
-      if (!response.ok) throw new Error('Search request failed');
+      if (!response.ok) throw new Error('Network response was not ok.');
+
       const data = await response.json();
-      
       setSearchResults(data.data);
-      setTotalPages(Math.ceil(data.totalRows / 10)); // Assuming 10 results per page
+      setTotalPages(Math.ceil(data.totalRows / 10)); // Update the pagination total pages
     } catch (error) {
-      setSearchError(error.message);
+      setSearchError('Failed to load search results.');
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +45,7 @@ function SearchResultsPage() {
 
   useEffect(() => {
     fetchSearchResults();
-  }, [searchTerm, currentPage, backendUrl]);
+  }, [currentPage, searchTerm, backendUrl]);
 
   // Handler for page change (pagination component)
   const handlePageChange = (event, page) => {
