@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Card from './Card'; // Assume this is your updated Card component
-import Pagination from './Pagination'; // Your Pagination component
-import { LocationContext } from '../context/LocationContext'; // Import LocationContext
+import Card from './Card';
+import MyMap from './MyMap';
+import Pagination from './Pagination';
+import { LocationContext } from '../context/LocationContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
 function useQuery() {
@@ -11,17 +12,13 @@ function useQuery() {
 
 function SearchResultsPage() {
   const [searchResults, setSearchResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchError, setSearchError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchError, setSearchError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Use context to get the backendUrl (and location if needed)
   const { backendUrl } = useContext(LocationContext);
-
   const navigate = useNavigate();
   const query = useQuery();
-
   const searchTerm = query.get('searchTerm');
 
   // Function to fetch search results from the backend
@@ -49,46 +46,60 @@ function SearchResultsPage() {
     fetchSearchResults();
   }, [currentPage, searchTerm, backendUrl]);
 
-  return (
-    <Box className="bg-neutral-light min-h-screen">
-      <div className="container mx-auto p-4">
-        {/* Placeholder for filters */}
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center h-screen">
-            <CircularProgress />
-          </div>
-        ) : searchError ? (
-          <Typography color="error" className="text-center">
-            {searchError}
-          </Typography>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {searchResults.map((result, index) => (
-              <Card
-                key={index}
-                id={result.id}
-                title={result.name}
-                description={result.description}
-                imageUrl={result.image_url}
-                averageRating={result.average_rating}
-                isHalalCertified={result.is_halal_certified}
-                category={result.name} // Make sure to provide correct prop based on your data
-                location={result.location} // Make sure to provide correct prop based on your data
-                phoneNumber={result.phone_number} // Make sure to provide correct prop based on your data
-                hours={result.hours} // Make sure to provide correct prop based on your data
-              />
-            ))}
-          </div>
-        )}
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
 
-        {totalPages > 1 && (
-          <Pagination
-            count={totalPages}
-            page={currentPage}
-            onChange={handlePageChange}
-            className="my-4"
-          />
+  // Calculating the center of the map based on search results
+  const center = {
+    lat: searchResults[0]?.latitude || 0,
+    lng: searchResults[0]?.longitude || 0
+  };
+
+  // If you have default coordinates to focus on before search results come up, update the center variable accordingly
+
+  return (
+    <Box className="container mx-auto p-4 flex flex-wrap lg:flex-nowrap">
+      <div className="w-full lg:w-3/5 xl:w-2/3 p-4">
+        {/* Business List */}
+        {isLoading ? (
+          <CircularProgress />
+        ) : searchError ? (
+          <Typography color="error">{searchError}</Typography>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {searchResults.map((business, index) => (
+                <Card
+                  key={business.id}
+                  id={business.id}
+                  title={business.name}
+                  description={business.description}
+                  imageUrl={business.image_url}
+                  averageRating={business.average_rating}
+                  isHalalCertified={business.is_halal_certified}
+                  category={business.category} // Ensure you have the category property in your data
+                  location={business.location} // Ensure you have the location property in your data
+                  phoneNumber={business.phone_number}
+                  hours={business.hours}
+                />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                className="my-4"
+              />
+            )}
+          </>
+        )}
+      </div>
+      <div className="w-full lg:w-2/5 xl:w-1/3 p-4 h-96 lg:h-screen">
+        {/* Map Component */}
+        {searchResults.length > 0 && (
+          <MyMap businesses={searchResults} center={center} zoom={12} />
         )}
       </div>
     </Box>
