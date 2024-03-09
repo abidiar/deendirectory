@@ -3,14 +3,18 @@ import { Link } from 'react-router-dom';
 import StarRating from './StarRating';
 
 function Card({ id, title, description, imageUrl, averageRating, isHalalCertified, category, location, phoneNumber, hours }) {
-  const placeholderImage = '/path/to/placeholder-image.jpg';
+  // Replace with a valid placeholder image URL
+  const placeholderImage = 'https://your-domain.com/path/to/placeholder-image.jpg';
 
   const truncateText = (text, maxLength) => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
   const handleImageError = (e) => {
-    e.target.src = placeholderImage;
+    // Set the placeholder image only if it's different from the current source
+    if (e.target.src !== placeholderImage) {
+      e.target.src = placeholderImage;
+    }
   };
 
   return (
