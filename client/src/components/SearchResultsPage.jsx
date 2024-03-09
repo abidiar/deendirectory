@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Card from './Card'; // Assume this is your updated Card component
 import Pagination from './Pagination'; // Your Pagination component
-import { LocationContext } from '../context/LocationContext';
+import { LocationContext } from '../context/LocationContext'; // Import LocationContext
 import { Box, CircularProgress, Typography } from '@mui/material';
 
 function useQuery() {
@@ -15,27 +15,29 @@ function SearchResultsPage() {
   const [searchError, setSearchError] = useState('');
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Use context to get the backendUrl (and location if needed)
   const { backendUrl } = useContext(LocationContext);
+
   const navigate = useNavigate();
   const query = useQuery();
-  
-  // This is your search term coming from query params (modify as needed)
+
   const searchTerm = query.get('searchTerm');
 
   // Function to fetch search results from the backend
   const fetchSearchResults = async () => {
     setIsLoading(true);
     setSearchError(null);
-  
+
     const searchUrl = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm)}&page=${currentPage}`;
-   
+
     try {
       const response = await fetch(searchUrl);
       if (!response.ok) throw new Error('Network response was not ok.');
 
       const data = await response.json();
       setSearchResults(data.data);
-      setTotalPages(Math.ceil(data.totalRows / 10)); // Update the pagination total pages
+      setTotalPages(Math.ceil(data.totalRows / 10)); // Assuming 10 results per page
     } catch (error) {
       setSearchError('Failed to load search results.');
     } finally {
@@ -47,12 +49,6 @@ function SearchResultsPage() {
     fetchSearchResults();
   }, [currentPage, searchTerm, backendUrl]);
 
-  // Handler for page change (pagination component)
-  const handlePageChange = (event, page) => {
-    setCurrentPage(page);
-  };
-
-  // Main JSX of the component
   return (
     <Box className="bg-neutral-light min-h-screen">
       <div className="container mx-auto p-4">
