@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LocationContext } from '../context/LocationContext';
-import Filters from './Filters';
-import BusinessCard from './BusinessCard';
+import Card from './Card';
 import Pagination from './Pagination';
-import { CircularProgress, Box } from '@mui/material';
+import { LocationContext } from '../context/LocationContext';
+import { Box, CircularProgress, Typography } from '@mui/material';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -13,35 +12,30 @@ function useQuery() {
 function SearchResultsPage() {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchError, setSearchError] = useState('');
+  const [searchError, setSearchError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const { backendUrl } = useContext(LocationContext);
   const navigate = useNavigate();
   const query = useQuery();
+  
+  // This is your search term coming from query params (modify as needed)
   const searchTerm = query.get('searchTerm');
 
+  // Function to fetch search results from the backend
   const fetchSearchResults = async () => {
     setIsLoading(true);
+    setSearchError(null);
 
-    const searchUrl = new URL(`${backendUrl}/api/search`);
-    const params = {
-      searchTerm: searchTerm,
-      // Add other query parameters here as needed
-      page: currentPage,
-      pageSize: 10, // Set the page size or use a state variable if you need it dynamic
-    };
-    searchUrl.search = new URLSearchParams(params).toString();
+    const searchUrl = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm)}&page=${currentPage}`;
 
     try {
       const response = await fetch(searchUrl);
+      if (!response.ok) throw new Error('Search request failed');
       const data = await response.json();
-      if (data.data) {
-        setSearchResults(data.data);
-        setTotalPages(Math.ceil(data.totalRows / 10)); // Adjust pageSize accordingly if needed
-      } else {
-        setSearchError('No results found.');
-      }
+      
+      setSearchResults(data.data);
+      setTotalPages(Math.ceil(data.totalRows / 10)); // Assuming 10 results per page
     } catch (error) {
       setSearchError(error.message);
     } finally {
@@ -50,43 +44,57 @@ function SearchResultsPage() {
   };
 
   useEffect(() => {
-    fetchSearchResults(); // Fetch results when the page is first loaded or when currentPage changes
-  }, [currentPage]);
+    fetchSearchResults();
+  }, [searchTerm, currentPage, backendUrl]);
 
-  const handlePageChange = (event, value) => {
-    setCurrentPage(value);
+  // Handler for page change (pagination component)
+  const handlePageChange = (event, page) => {
+    setCurrentPage(page);
   };
 
+  // Main JSX of the component
   return (
-    <Box className="bg-neutral-light min-h-screen p-4">
-      <Filters searchTerm={searchTerm} />
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-full">
-          <CircularProgress />
-        </div>
-      ) : searchError ? (
-        <div className="text-center text-red-500">{searchError}</div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <Box className="bg-neutral-light min-h-screen">
+      <div className="container mx-auto p-4">
+        {/* Placeholder for filters */}
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center h-screen">
+            <CircularProgress />
+          </div>
+        ) : searchError ? (
+          <Typography color="error" className="text-center">
+            {searchError}
+          </Typography>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {searchResults.map((result, index) => (
-              <BusinessCard
-                key={result.id}
-                {...result}
+              <Card
+                key={index}
+                id={result.id}
+                title={result.name}
+                description={result.description}
+                imageUrl={result.image_url}
+                averageRating={result.average_rating}
+                isHalalCertified={result.is_halal_certified}
+                category={result.name} // Make sure to provide correct prop based on your data
+                location={result.location} // Make sure to provide correct prop based on your data
+                phoneNumber={result.phone_number} // Make sure to provide correct prop based on your data
+                hours={result.hours} // Make sure to provide correct prop based on your data
               />
             ))}
           </div>
-          {totalPages > 1 && (
-            <Pagination
-              count={totalPages}
-              page={currentPage}
-              onChange={handlePageChange}
-              className="mt-4"
-            />
-          )}
-        </>
-      )}
+        )}
+
+        {totalPages > 1 && (
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            className="my-4"
+          />
+        )}
+      </div>
     </Box>
   );
 }
