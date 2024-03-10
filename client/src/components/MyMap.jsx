@@ -8,7 +8,8 @@ const mapContainerStyle = {
 
 const Map = ({ businesses, center }) => {
   return (
-    <LoadScript googleMapsApiKey={process.env.REACT_APP_GOOGLE_GEO_API_KEY}>
+    <LoadScript googleMapsApiKey={process.env.GOOGLE_GEO_API_KEY
+    }>
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={center}
