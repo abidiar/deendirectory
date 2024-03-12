@@ -138,7 +138,7 @@ app.get('/api/suggestions', async (req, res) => {
       attributes: ['name'],
       where: {
         name: {
-          [sequelize.Op.iLike]: `%${term}%`
+          [Op.iLike]: `%${term}%`
         }
       },
       limit: 5 // Adjust limit as needed
