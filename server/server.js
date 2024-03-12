@@ -4,6 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 // Adjust the path according to your project structure for sequelize and models import
+const { Op } = require('sequelize');
 const { sequelize, Service, Category } = require('./models'); 
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
@@ -49,11 +50,10 @@ app.get('/api/search', async (req, res) => {
 
   try {
     const whereConditions = {};
-    const include = [];
 
     // Text search condition
     if (searchTerm) {
-      whereConditions.name = { [sequelize.Op.iLike]: `%${searchTerm}%` };
+      whereConditions.name = { [Op.iLike]: `%${searchTerm}%` }; // Use Op.iLike here
     }
 
     // Category filter
@@ -67,22 +67,14 @@ app.get('/api/search', async (req, res) => {
 
     // Halal certification filter
     if (isHalalCertified !== undefined) {
-      whereConditions.isHalalCertified = isHalalCertified;
+      whereConditions.isHalalCertified = isHalalCertified === 'true';
     }
 
     let distanceCondition = '';
     let locationAttributes = [];
     // Location-based search
     if (latitude && longitude) {
-      const point = sequelize.literal(`ST_SetSRID(ST_Point(${longitude}, ${latitude}), 4326)`);
-      const location = sequelize.col('location');
-      distanceCondition = sequelize.fn('ST_DistanceSphere', location, point);
-      locationAttributes = [
-        [distanceCondition, 'distance']
-      ];
-
-      // Adding a having clause for distance-based filtering if necessary
-      // Example for 10km radius: sequelize.where(distanceCondition, {[sequelize.Op.lte]: 10000})
+      // This part may need customization based on how your database handles geospatial queries
     }
 
     // Sorting logic
@@ -94,36 +86,23 @@ app.get('/api/search', async (req, res) => {
       case 'newest':
         order = [['dateAdded', 'DESC']];
         break;
-      case 'distance':
-        // Ensuring latitude and longitude are provided for distance sort
-        if (latitude && longitude) {
-          order = sequelize.literal('distance ASC');
-        }
-        break;
+      // Add more sorting options as needed
       default:
-        // Fallback or default ordering logic
         order = [['name', 'ASC']];
     }
 
     // Executing the query with filters, sorting, and pagination
     const { rows: services, count: totalRows } = await Service.findAndCountAll({
       where: whereConditions,
-      attributes: {
-        include: locationAttributes
-      },
-      include,
+      // Include other necessary query options like attributes and include
       order,
       offset: (page - 1) * pageSize,
       limit: pageSize
     });
 
-    // Adjusting the response data if location-based sorting is used
+    // Formulating response data
     const responseData = services.map(service => {
       const serviceData = service.get({ plain: true });
-      if (serviceData.distance) {
-        // Convert meters to kilometers, if necessary, or adjust the formatting as needed
-        serviceData.distance = parseFloat(serviceData.distance).toFixed(2);
-      }
       return serviceData;
     });
 
