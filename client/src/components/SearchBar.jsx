@@ -11,7 +11,6 @@ function SearchBar() {
   const { location: currentLocation, backendUrl } = useContext(LocationContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationInput, setLocationInput] = useState('');
-  const [isHalalCertified, setIsHalalCertified] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [searchError, setSearchError] = useState('');
@@ -124,9 +123,9 @@ function SearchBar() {
       <form className="flex flex-col justify-center" onSubmit={handleSearch}>
         <div className={styles.searchInputContainer}>
           <input
-  type="text"
-  className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
-  placeholder="Service or Business"
+            type="text"
+            className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="Find cleaner, web developer, seo, babysitter, etc."
             value={searchTerm}
             onChange={(e) => {
               const newSearchTerm = e.target.value;
@@ -134,7 +133,6 @@ function SearchBar() {
               if (newSearchTerm.trim()) {
                 fetchSuggestions(newSearchTerm);
               } else {
-                // If the input is cleared, set suggestions to an empty array
                 setSuggestions([]);
               }
             }}
@@ -159,31 +157,20 @@ function SearchBar() {
           {/* Suggestions Dropdown */}
           {suggestions.length > 0 && (
             <ul className={styles.suggestionsDropdown}>
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                className={styles.suggestionItem}
-                onClick={() => {
-                  setSearchTerm(suggestion);
-                  setSuggestions([]);
-                }}
-              >
-                {suggestion}
-              </li>
-            ))}
-          </ul>
-        )}
-        </div>
-        <div className="flex justify-center mt-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              className="form-checkbox h-5 w-5 text-gray-600 mr-2"
-              checked={isHalalCertified}
-              onChange={(e) => setIsHalalCertified(e.target.checked)}
-            />
-            <span className="text-gray-700">Halal Certified Only</span>
-          </label>
+              {suggestions.map((suggestion, index) => (
+                <li
+                  key={index}
+                  className={styles.suggestionItem}
+                  onClick={() => {
+                    setSearchTerm(suggestion);
+                    setSuggestions([]);
+                  }}
+                >
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         {isLoading && <div className="text-center">Loading...</div>}
         {searchError && <div className="text-red-500 text-center">{searchError}</div>}
