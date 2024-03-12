@@ -1,7 +1,5 @@
 const { Model, DataTypes } = require('sequelize');
 
-// The require for Service is removed since cyclic dependencies should be handled in the index.js file.
-
 module.exports = (sequelize) => {
   class Category extends Model {}
 
@@ -19,7 +17,7 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'categories', // This is correctly pointing to the table name, not the model
+        model: 'categories',
         key: 'id'
       }
     }
@@ -29,8 +27,6 @@ module.exports = (sequelize) => {
     tableName: 'categories',
     timestamps: false
   });
-
-  // Associations should be defined in index.js to avoid cyclic dependency issues.
 
   return Category;
 };

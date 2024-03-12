@@ -31,14 +31,12 @@ module.exports = (sequelize) => {
     },
     date_added: {
       type: DataTypes.DATE,
-      allowNull: false,
       defaultValue: DataTypes.NOW
     },
     category_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       references: {
-        model: 'categories', // Note: This should reference the table name
+        model: 'categories',
         key: 'id'
       }
     },
@@ -69,9 +67,6 @@ module.exports = (sequelize) => {
     tableName: 'services',
     timestamps: false
   });
-
-  // Define associations within the same file can lead to circular dependency issues.
-  // Usually, associations are defined in a separate step, after all models have been imported.
 
   return Service;
 };
