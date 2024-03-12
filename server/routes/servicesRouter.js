@@ -5,8 +5,7 @@ const sharp = require('sharp');
 const sequelize = require('../db/sequelize'); // Ensure sequelize is properly configured
 const { convertCityStateToCoords } = require('../utils/locationUtils');
 const { uploadToCloudflare } = require('../utils/cloudflareUtils');
-const Service = require('../models/Service'); // Adjust path as necessary
-const Category = require('../models/Category'); // Adjust path as necessary
+const { Service, Category } = require('../models');
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });

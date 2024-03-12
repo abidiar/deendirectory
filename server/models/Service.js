@@ -4,6 +4,7 @@ module.exports = (sequelize) => {
   class Service extends Model {}
 
   Service.init({
+    // Model attributes are defined here
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -36,7 +37,7 @@ module.exports = (sequelize) => {
     category_id: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'categories',
+        model: 'categories', // This references the table name of `Category`
         key: 'id'
       }
     },

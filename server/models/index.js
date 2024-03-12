@@ -1,18 +1,14 @@
 'use strict';
 
+// Replace './path/to/your/sequelize/config' with the actual path to your sequelize configuration file
 const { Sequelize } = require('sequelize');
-const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
-  host: process.env.DB_HOST,
-  dialect: 'postgres',
-  logging: false,
-  define: {
-    timestamps: false
-  }
-});
+const sequelize = require('./db/sequelize'); // Adjust the path to where your configured sequelize instance is located
 
-const Service = require('./Service')(sequelize, Sequelize.DataTypes);
-const Category = require('./Category')(sequelize, Sequelize.DataTypes);
+// Import models
+const Service = require('./models/Service')(sequelize, Sequelize.DataTypes);
+const Category = require('./models/Category')(sequelize, Sequelize.DataTypes);
 
+// Define associations
 Service.belongsTo(Category, {
   foreignKey: 'category_id',
   as: 'category'
@@ -23,8 +19,10 @@ Category.hasMany(Service, {
   as: 'services'
 });
 
+// Export the sequelize instance and models
 module.exports = {
-  sequelize,
+  sequelize, // the configured sequelize instance
+  Sequelize, // the Sequelize class
   Service,
   Category
 };
