@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const pool = require('./db/db');
+const sequelize = require('./db/sequelize');
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
@@ -644,6 +644,13 @@ app.get('*', (req, res) => {
 app.use((error, req, res, next) => {
   console.error('Unhandled application error:', error);
   res.status(500).json('An error occurred.');
+});
+
+// Sync Sequelize models
+sequelize.sync().then(() => {
+  console.log('Database synced successfully.');
+}).catch((error) => {
+  console.error('Failed to sync database:', error);
 });
 
 // Start the server
