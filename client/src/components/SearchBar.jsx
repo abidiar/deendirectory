@@ -89,7 +89,6 @@ function SearchBar() {
     const searchParams = new URLSearchParams({
       searchTerm: searchTerm.trim(),
       location: searchLocation,
-      isHalalCertified: isHalalCertified.toString()
     });
 
     if (latitude && longitude) {
