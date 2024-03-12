@@ -5,8 +5,8 @@ const { Sequelize } = require('sequelize');
 const sequelize = require('../db/sequelize'); // Adjust the path to where your configured sequelize instance is located
 
 // Import models
-const Service = require('./models/Service')(sequelize, Sequelize.DataTypes);
-const Category = require('./models/Category')(sequelize, Sequelize.DataTypes);
+const Service = require('../models/Service')(sequelize, Sequelize.DataTypes);
+const Category = require('../models/Category')(sequelize, Sequelize.DataTypes);
 
 // Define associations
 Service.belongsTo(Category, {
