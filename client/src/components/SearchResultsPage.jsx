@@ -51,47 +51,45 @@ function SearchResultsPage() {
   };
 
   return (
-    <Box className="container mx-auto p-4 flex flex-wrap lg:flex-nowrap">
-      <div className="w-full lg:w-3/5 xl:w-2/3 p-4">
-        {isLoading ? (
-          <CircularProgress />
-        ) : searchError ? (
-          <Typography color="error">{searchError}</Typography>
-        ) : (
-          <>
-            <div className="space-y-4">
-            {searchResults.map((business, index) => (
-  <Card
-    key={business.id}
-    id={business.id}
-    title={business.name}
-    description={business.description}
-    imageUrl={business.image_url}
-    averageRating={business.average_rating}
-    isHalalCertified={business.category && business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
-    category={business.category}
-    phoneNumber={business.phone_number}
-    hours={business.hours}
-  />
-))}
-            </div>
-            {totalPages > 1 && (
-              <Pagination
-                count={totalPages}
-                page={currentPage}
-                onChange={handlePageChange}
-                className="my-4"
-              />
-            )}
-          </>
-        )}
+<Box className="container mx-auto p-4 lg:flex">
+  <div className="lg:flex-grow lg:pr-4">
+    {isLoading ? (
+      <CircularProgress />
+    ) : searchError ? (
+      <Typography color="error">{searchError}</Typography>
+    ) : (
+      <div className="space-y-4">
+        {searchResults.map((business, index) => (
+          <Card
+            key={business.id}
+            id={business.id}
+            title={business.name}
+            description={business.description}
+            imageUrl={business.image_url}
+            averageRating={business.average_rating}
+            isHalalCertified={business.category && business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
+            category={business.category}
+            phoneNumber={business.phone_number}
+            hours={business.hours}
+          />
+        ))}
       </div>
-      <div className="w-full lg:w-2/5 xl:w-1/3 p-4 h-96 lg:h-screen">
-        {searchResults.length > 0 && (
-          <MyMap businesses={searchResults} center={{lat: searchResults[0]?.latitude || 0, lng: searchResults[0]?.longitude || 0}} zoom={12} />
-        )}
-      </div>
-    </Box>
+    )}
+    {totalPages > 1 && (
+      <Pagination
+        count={totalPages}
+        page={currentPage}
+        onChange={handlePageChange}
+        className="my-4"
+      />
+    )}
+  </div>
+  <div className="lg:w-2/5 xl:w-1/3 h-96 lg:h-auto">
+    {searchResults.length > 0 && (
+      <MyMap businesses={searchResults} center={{lat: searchResults[0]?.latitude || 0, lng: searchResults[0]?.longitude || 0}} zoom={12} />
+    )}
+  </div>
+</Box>
   );
 }
 
