@@ -2,7 +2,7 @@
 
 // Replace './path/to/your/sequelize/config' with the actual path to your sequelize configuration file
 const { Sequelize } = require('sequelize');
-const sequelize = require('./db/sequelize'); // Adjust the path to where your configured sequelize instance is located
+const sequelize = require('../db/sequelize'); // Adjust the path to where your configured sequelize instance is located
 
 // Import models
 const Service = require('./models/Service')(sequelize, Sequelize.DataTypes);
