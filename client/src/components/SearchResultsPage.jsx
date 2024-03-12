@@ -50,18 +50,9 @@ function SearchResultsPage() {
     setCurrentPage(value);
   };
 
-  // Calculating the center of the map based on search results
-  const center = {
-    lat: searchResults[0]?.latitude || 0,
-    lng: searchResults[0]?.longitude || 0
-  };
-
-  // If you have default coordinates to focus on before search results come up, update the center variable accordingly
-
   return (
     <Box className="container mx-auto p-4 flex flex-wrap lg:flex-nowrap">
       <div className="w-full lg:w-3/5 xl:w-2/3 p-4">
-        {/* Business List */}
         {isLoading ? (
           <CircularProgress />
         ) : searchError ? (
@@ -77,9 +68,8 @@ function SearchResultsPage() {
                   description={business.description}
                   imageUrl={business.image_url}
                   averageRating={business.average_rating}
-                  isHalalCertified={business.is_halal_certified}
-                  category={business.category} // Ensure you have the category property in your data
-                  location={business.location} // Ensure you have the location property in your data
+                  isHalalCertified={business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
+                  category={business.category}
                   phoneNumber={business.phone_number}
                   hours={business.hours}
                 />
@@ -97,9 +87,8 @@ function SearchResultsPage() {
         )}
       </div>
       <div className="w-full lg:w-2/5 xl:w-1/3 p-4 h-96 lg:h-screen">
-        {/* Map Component */}
         {searchResults.length > 0 && (
-          <MyMap businesses={searchResults} center={center} zoom={12} />
+          <MyMap businesses={searchResults} center={{lat: searchResults[0]?.latitude || 0, lng: searchResults[0]?.longitude || 0}} zoom={12} />
         )}
       </div>
     </Box>
