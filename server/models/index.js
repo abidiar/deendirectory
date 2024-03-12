@@ -1,43 +1,49 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
-const db = {};
+const { Sequelize } = require('sequelize');
+const Service = require('./Service');
+const Category = require('./Category');
 
-// Define Sequelize connection directly using environment variables
+// Sequelize instance
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
   dialect: 'postgres',
   logging: console.log, // Toggle logging with console.log
   define: {
-    timestamps: false // By default, Sequelize will add the fields `createdAt` and `updatedAt` to your tables
+    timestamps: false // Assuming you don't want default timestamps
   }
 });
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1 // Assuming you want to exclude test files
-    );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
-
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
+// Test the connection
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Connection has been established successfully.');
+    // Sync all models
+    await sequelize.sync();
+    console.log('All models were synchronized successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
   }
+})();
+
+// Import models
+const Service = require('./Service')(sequelize, Sequelize.DataTypes);
+const Category = require('./Category')(sequelize, Sequelize.DataTypes);
+
+// Define associations
+Service.belongsTo(Category, {
+  foreignKey: 'category_id',
+  as: 'category'
+});
+Category.hasMany(Service, {
+  foreignKey: 'category_id',
+  as: 'services'
 });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
-
-module.exports = db;
+module.exports = {
+  sequelize, // the Sequelize instance
+  Sequelize, // the Sequelize library
+  Service,
+  Category
+};

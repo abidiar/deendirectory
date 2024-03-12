@@ -4,6 +4,7 @@ if (process.env.NODE_ENV !== 'production') {
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const sequelize = require('./db/sequelize'); // Make sure this path is correct
+const { Service, Category } = require('./db'); 
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
