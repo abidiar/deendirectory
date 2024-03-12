@@ -55,10 +55,10 @@ function BusinessPage() {
         </div>
         <p className="text-neutral-dark mb-4">{business.description}</p>
         <div className="text-neutral-dark mb-4">
-          <strong>Category:</strong> {business.category}
+          <strong>Category:</strong> {business.category ? business.category.name : 'N/A'}
         </div>
         <div className="text-neutral-dark mb-4">
-          <strong>Address:</strong> {business.street_address}, {business.city}, {business.state} {business.postal_code}, {business.country}
+          <strong>Address:</strong> {`${business.street_address}, ${business.city}, ${business.state} ${business.postal_code}, ${business.country}`}
         </div>
         <div className="text-neutral-dark mb-4">
           <strong>Phone Number:</strong> {business.phone_number}
