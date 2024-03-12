@@ -1,12 +1,14 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const sequelize = require('./db/sequelize');
+const sequelize = require('./db/sequelize'); // Make sure this path is correct
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils'); // Adjust the path to where your locationUtils file is located
+const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils'); 
 
 // Initialize Express app
 const app = express();
@@ -32,8 +34,7 @@ app.get('/api/v1/example', (req, res) => {
 
 // ... (Other API routes like /api/search, /api/services/new-near-you, /api/business/:id)
 
-app.get('/api/search', async (req, res, next) => {
-  console.log("Received search request", req.query);
+app.get('/api/search', async (req, res) => {
   const {
     searchTerm = '',
     category,
@@ -45,92 +46,93 @@ app.get('/api/search', async (req, res, next) => {
     pageSize = 10
   } = req.query;
 
-  let queryParams = [];
-  let whereConditions = [];
-  let orderByClause = '';
-  
-  // Building WHERE conditions
-  if (searchTerm) {
-    queryParams.push(`%${searchTerm}%`);
-    whereConditions.push(`name ILIKE $${queryParams.length}`);
-  }
-  if (category) {
-    try {
-      const categoryResult = await pool.query('SELECT id FROM categories WHERE name = $1', [category]);
-      if (categoryResult.rows.length > 0) {
-        // If the category exists, replace the name with its ID in queryParams
-        const categoryId = categoryResult.rows[0].id;
-        queryParams.push(categoryId);
-        whereConditions.push(`category_id = $${queryParams.length}`);
-      } else {
-        // Handle the case where the provided category name does not exist
+  try {
+    const whereConditions = {};
+    const include = [];
+
+    // Text search condition
+    if (searchTerm) {
+      whereConditions.name = { [sequelize.Op.iLike]: `%${searchTerm}%` };
+    }
+
+    // Category filter
+    if (category) {
+      const categoryInstance = await Category.findOne({ where: { name: category } });
+      if (!categoryInstance) {
         return res.status(404).json({ message: 'Category not found' });
       }
-    } catch (error) {
-      console.error('Error fetching category ID:', error);
-      return next(error);
+      whereConditions.categoryId = categoryInstance.id;
     }
-  }
-  if (isHalalCertified) {
-    queryParams.push(isHalalCertified === 'true'); // Ensuring correct boolean usage
-    whereConditions.push(`is_halal_certified = $${queryParams.length}`);
-  }
 
-  if (latitude && longitude) {
-    queryParams.push(parseFloat(longitude), parseFloat(latitude));
-    const radius = 40233.6; // Example radius
-    whereConditions.push(`ST_DWithin(location::geography, ST_MakePoint($${queryParams.length - 1}, $${queryParams.length})::geography, ${radius})`);
-  }
-
-  // If searchTerm is used in whereConditions, it's already in queryParams
-  // Building ORDER BY clause based on sort parameter
-  if (sort === 'rating') {
-    orderByClause = 'ORDER BY average_rating DESC';
-  } else if (sort === 'newest') {
-    orderByClause = 'ORDER BY date_added DESC';
-  } else if (sort === 'relevance' && searchTerm) {
-    // Push searchTerm for relevance sorting if it has not been added before
-    if (!whereConditions.some(condition => condition.includes('ILIKE'))) {
-      queryParams.push(searchTerm);
+    // Halal certification filter
+    if (isHalalCertified !== undefined) {
+      whereConditions.isHalalCertified = isHalalCertified;
     }
-    orderByClause = `ORDER BY ts_rank_cd(to_tsvector('english', name || ' ' || description), plainto_tsquery('english', $${queryParams.length}::text)) DESC`;
-  }
 
-// Adjust for LIMIT and OFFSET at the end
-let limitIndex = queryParams.length + 1;
-let offsetIndex = queryParams.length + 2;
-queryParams.push(parseInt(pageSize), (page - 1) * pageSize);
+    let distanceCondition = '';
+    let locationAttributes = [];
+    // Location-based search
+    if (latitude && longitude) {
+      const point = sequelize.literal(`ST_SetSRID(ST_Point(${longitude}, ${latitude}), 4326)`);
+      const location = sequelize.col('location');
+      distanceCondition = sequelize.fn('ST_DistanceSphere', location, point);
+      locationAttributes = [
+        [distanceCondition, 'distance']
+      ];
 
-let searchQuery = `
-  SELECT * FROM services
-  ${whereConditions.length ? `WHERE ${whereConditions.join(' AND ')}` : ''}
-  ${orderByClause}
-  LIMIT $${limitIndex} OFFSET $${offsetIndex}
-`;
+      // Adding a having clause for distance-based filtering if necessary
+      // Example for 10km radius: sequelize.where(distanceCondition, {[sequelize.Op.lte]: 10000})
+    }
 
-  // Adjusted queryParams for total count (excludes LIMIT and OFFSET parameters)
-  let totalCountQueryParams = queryParams.slice(0, -2);
+    // Sorting logic
+    let order = [];
+    switch (sort) {
+      case 'rating':
+        order = [['averageRating', 'DESC']];
+        break;
+      case 'newest':
+        order = [['dateAdded', 'DESC']];
+        break;
+      case 'distance':
+        // Ensuring latitude and longitude are provided for distance sort
+        if (latitude && longitude) {
+          order = sequelize.literal('distance ASC');
+        }
+        break;
+      default:
+        // Fallback or default ordering logic
+        order = [['name', 'ASC']];
+    }
 
-  let totalResultsQuery = `
-    SELECT COUNT(*) FROM services
-    ${whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''}
-  `;
-
-  try {
-    const results = await pool.query(searchQuery, queryParams);
-    const totalResult = await pool.query(totalResultsQuery, totalCountQueryParams);
-    const totalRows = parseInt(totalResult.rows[0].count, 10);
-
-    res.json({
-      message: 'Success',
-      data: results.rows,
-      totalRows: totalRows
+    // Executing the query with filters, sorting, and pagination
+    const { rows: services, count: totalRows } = await Service.findAndCountAll({
+      where: whereConditions,
+      attributes: {
+        include: locationAttributes
+      },
+      include,
+      order,
+      offset: (page - 1) * pageSize,
+      limit: pageSize
     });
+
+    // Adjusting the response data if location-based sorting is used
+    const responseData = services.map(service => {
+      const serviceData = service.get({ plain: true });
+      if (serviceData.distance) {
+        // Convert meters to kilometers, if necessary, or adjust the formatting as needed
+        serviceData.distance = parseFloat(serviceData.distance).toFixed(2);
+      }
+      return serviceData;
+    });
+
+    res.json({ data: responseData, totalRows });
   } catch (error) {
     console.error('Search API error:', error);
-    next(error); // Pass the error to the error-handling middleware
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
 
 app.get('/api/suggestions', async (req, res) => {
   const { term } = req.query;
@@ -139,22 +141,39 @@ app.get('/api/suggestions', async (req, res) => {
     return res.status(400).json({ message: 'Search term is required' });
   }
 
-  const query = `
-    SELECT DISTINCT name
-    FROM services
-    WHERE name ILIKE $1
-    UNION
-    SELECT DISTINCT name
-    FROM categories
-    WHERE name ILIKE $1
-    LIMIT 10;
-  `;
-  const values = [`%${term}%`];
-
   try {
-    const result = await pool.query(query, values);
-    const suggestions = result.rows.map(row => row.name);
-    res.json(suggestions);
+    // Search in the Services table
+    const servicesSuggestions = await Service.findAll({
+      attributes: ['name'],
+      where: {
+        name: {
+          [sequelize.Op.iLike]: `%${term}%`
+        }
+      },
+      limit: 5 // Adjust limit as needed
+    });
+
+    // Search in the Categories table
+    const categoriesSuggestions = await Category.findAll({
+      attributes: ['name'],
+      where: {
+        name: {
+          [sequelize.Op.iLike]: `%${term}%`
+        }
+      },
+      limit: 5 // Adjust limit as needed
+    });
+
+    // Combine and deduplicate suggestions
+    const combinedSuggestions = [
+      ...servicesSuggestions.map(suggestion => suggestion.name),
+      ...categoriesSuggestions.map(suggestion => suggestion.name)
+    ];
+
+    // Deduplicate names
+    const uniqueSuggestions = [...new Set(combinedSuggestions)].slice(0, 10); // Ensuring up to 10 unique suggestions
+
+    res.json(uniqueSuggestions);
   } catch (error) {
     console.error('Error fetching suggestions:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
@@ -163,123 +182,105 @@ app.get('/api/suggestions', async (req, res) => {
 
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
-    const { latitude, longitude, limit = 5 } = req.query;  // Default limit to 5 if not provided
+    const { latitude, longitude, limit = 5 } = req.query; // Default limit to 5 if not provided
     const radius = 40233.6; // 25 miles in meters
 
     if (!latitude || !longitude) {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
     }
 
-    // Update the SELECT statement to include new fields
     const query = `
-    SELECT
-      id, name, description, latitude, longitude, location, date_added,
-      category_id, street_address, city, state, postal_code, country,
-      phone_number, website, hours, is_halal_certified, average_rating, review_count
-    FROM services
-    WHERE ST_DWithin(
-      location::GEOGRAPHY,
-      ST_SetSRID(ST_MakePoint($1, $2), 4326)::GEOGRAPHY,
-      $3
-    ) AND date_added >= current_date - interval '30 days'
-    ORDER BY date_added DESC
-    LIMIT $4;
-  `;
-  
-  const values = [longitude, latitude, radius, limit];  // Make sure 'limit' is a number and is the fourth parameter
-  
-    const result = await pool.query(query, values);
+      SELECT
+        id, name, description, latitude, longitude, location, date_added,
+        category_id, street_address, city, state, postal_code, country,
+        phone_number, website, hours, is_halal_certified, average_rating, review_count
+      FROM services
+      WHERE ST_DWithin(
+        location::GEOGRAPHY,
+        ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::GEOGRAPHY,
+        :radius
+      ) AND date_added >= current_date - interval '30 days'
+      ORDER BY date_added DESC
+      LIMIT :limit;
+    `;
 
-    if (result.rows.length === 0) {
+    // Sequelize query to execute raw SQL, with replacements to prevent SQL injection
+    const services = await sequelize.query(query, {
+      replacements: { latitude, longitude, radius, limit: parseInt(limit, 10) },
+      type: sequelize.QueryTypes.SELECT,
+      model: Service, // This is optional, allows mapping the raw query results to the model
+      mapToModel: true // This is optional as well
+    });
+
+    if (services.length === 0) {
       return res.status(404).json({ message: 'No new services found near you' });
     }
 
-    // Map the result to include only the necessary fields
-    const newServices = result.rows.map(service => ({
-      id: service.id,
-      name: service.name,
-      description: service.description,
-      latitude: service.latitude,
-      longitude
-: service.longitude,
-location: service.location,
-date_added: service.date_added,
-category_id: service.category_id,
-street_address: service.street_address,
-city: service.city,
-state: service.state,
-postal_code: service.postal_code,
-country: service.country,
-phone_number: service.phone_number,
-website: service.website,
-hours: service.hours,
-is_halal_certified: service.is_halal_certified === 't', // Assuming the database stores this as a boolean
-average_rating: service.average_rating,
-review_count: service.review_count
-}));
-
-res.json(newServices);
-} catch (error) {
-console.error('Error fetching new services:', error);
-res.status(500).json({ error: 'Internal Server Error' });
-}
+    res.json(services);
+  } catch (error) {
+    console.error('Error fetching new services:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
 });
+
 
 app.get('/api/categories/featured', async (req, res) => {
   const featuredCategoryIds = [1, 8, 3, 7, 5];
   const { lat, lng } = req.query;
-  let queryParams = [featuredCategoryIds];
-
-  let locationCondition = '';
-  if (lat && lng) {
-    const floatLat = parseFloat(lat);
-    const floatLng = parseFloat(lng);
-    if (!isNaN(floatLat) && !isNaN(floatLng)) {
-      queryParams.push(floatLng, floatLat);
-      locationCondition = `
-        AND ST_DWithin(
-          ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
-          ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
-          40233.6
-        )
-      `;
-    }
-  }
-
-  // Construct the SQL query using a CTE for featured categories
-  let query = `
-  WITH FeaturedCategories AS (
-    SELECT id, name
-    FROM categories
-    WHERE id = ANY($1)
-  )
-  SELECT 
-    fc.id, 
-    fc.name,
-    COALESCE(
-      json_agg(
-        json_build_object(
-          'id', s.id, 
-          'name', s.name, 
-          'latitude', s.latitude,
-          'longitude', s.longitude
-        )
-      ) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
-        ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
-        ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
-        40233.6
-      )), '[]'
-    ) AS services
-  FROM FeaturedCategories fc
-  LEFT JOIN services s ON fc.id = s.category_id
-  GROUP BY fc.id, fc.name
-  ORDER BY fc.id;
-  
-  `;
 
   try {
-    const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+    // Initial query to get featured categories without considering location
+    const featuredCategories = await Category.findAll({
+      where: { id: featuredCategoryIds },
+      attributes: ['id', 'name']
+    });
+
+    // If latitude and longitude are provided, perform a spatial query
+    if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
+      const locationQuery = `
+        SELECT
+          c.id,
+          json_agg(
+            json_build_object(
+              'id', s.id,
+              'name', s.name,
+              'latitude', s.latitude,
+              'longitude', s.longitude
+            )
+          ) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
+            ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
+            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::GEOGRAPHY,
+            40233.6
+          )) AS services
+        FROM categories c
+        LEFT JOIN services s ON c.id = s.category_id
+        WHERE c.id IN (:categoryIds)
+        GROUP BY c.id;
+      `;
+
+      const featuredServices = await sequelize.query(locationQuery, {
+        replacements: { lat, lng, categoryIds: featuredCategoryIds },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      // Map the featuredServices to include in the featuredCategories response
+      const enrichedCategories = featuredCategories.map(category => {
+        const matchingService = featuredServices.find(service => service.id === category.id);
+        return {
+          ...category.get({ plain: true }),
+          services: matchingService ? matchingService.services : []
+        };
+      });
+
+      res.json(enrichedCategories);
+    } else {
+      // Respond with categories without location-based services if no lat/lng provided
+      const categoriesWithoutServices = featuredCategories.map(category => ({
+        ...category.get({ plain: true }),
+        services: []
+      }));
+      res.json(categoriesWithoutServices);
+    }
   } catch (error) {
     console.error('Error fetching featured categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
@@ -317,76 +318,53 @@ app.put('/api/services/:id', async (req, res) => {
     website,
     hours,
     is_halal_certified
-    // Add other fields you want to update here
   } = req.body;
 
   try {
-    // Construct the update query dynamically to include only the fields provided in the request
-    const fields = [
-      { key: 'name', value: name },
-      { key: 'description', value: description },
-      { key: 'category_id', value: category_id },
-      { key: 'street_address', value: street_address },
-      { key: 'city', value: city },
-      { key: 'state', value: state },
-      { key: 'postal_code', value: postal_code },
-      { key: 'country', value: country },
-      { key: 'phone_number', value: phone_number },
-      { key: 'website', value: website },
-      { key: 'hours', value: hours },
-      { key: 'is_halal_certified', value: is_halal_certified }
-      // Add other fields you want to update here
-    ].filter(field => field.value !== undefined);
+    // Use Sequelize's update method
+    const [updateCount, updatedRows] = await Service.update({
+      name,
+      description,
+      category_id,
+      street_address,
+      city,
+      state,
+      postal_code,
+      country,
+      phone_number,
+      website,
+      hours,
+      is_halal_certified
+    }, {
+      where: { id: businessId },
+      returning: true // This option is needed to get the updated rows back
+    });
 
-    const updates = fields.map(field => `${field.key} = $${fields.indexOf(field) + 2}`).join(', ');
-    const values = fields.map(field => field.value);
-    values.unshift(businessId); // Add businessId as the first parameter for the WHERE clause
+    if (updateCount === 0) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
 
-    if(fields
-.length === 0) {
-return res.status(400).json({ message: 'No fields to update' });
-}
-
-const updateQuery = `
-  UPDATE services
-  SET ${updates}
-  WHERE id = $1
-  RETURNING *;
-`;
-
-const result = await pool.query(updateQuery, values);
-
-if(result.rowCount === 0) {
-  return res.status(404).json({ message: 'Business not found' });
-}
-
-res.json(result.rows[0]);
-} catch (error) {
-console.error('Error updating business details:', error);
-res.status(500).json({ error: 'Internal Server Error', details: error.message });
-}
+    // Since `returning: true` returns an array of updated rows, take the first.
+    const updatedService = updatedRows[0];
+    res.json(updatedService); // Send back the updated service data
+  } catch (error) {
+    console.error('Error updating business details:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
 });
 
 app.get('/api/categories', async (req, res) => {
-  try {
-    const { ids, lat, lng } = req.query;
-    const radius = 40233.6; // Define the radius for proximity search (in meters)
+  const { ids, lat, lng } = req.query;
+  const radius = 40233.6; // Define the radius for proximity search (in meters)
 
-    let queryParams = [];
-    let whereClauses = [];
-    let index = 1; // Used for parameter placeholders ($1, $2, etc.)
+  let locationCondition = '';
+  let idsCondition = '';
+  let queryParams = [];
 
-    let query = `
-      SELECT 
-        c.id, 
-        c.name, 
-        c.parent_category_id
-    `;
-
-    if (lat && lng) {
-      // Add services and location-based filtering only if lat and lng are provided
-      query += `,
-        COALESCE(json_agg(json_build_object(
+  if (lat && lng) {
+      const floatLat = parseFloat(lat);
+      const floatLng = parseFloat(lng);
+      locationCondition = `, COALESCE(json_agg(json_build_object(
           'id', s.id, 
           'name', s.name, 
           'description', s.description,
@@ -408,78 +386,61 @@ app.get('/api/categories', async (req, res) => {
           'review_count', s.review_count
         )) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
           ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
-          ST_MakePoint($${index + 1}, $${index})::GEOGRAPHY,
-          $${index + 2}
-        )), '[]') AS services
-      `;
+          ST_MakePoint(${floatLng}, ${floatLat})::GEOGRAPHY,
+          ${radius}
+        )), '[]') AS services `;
+  }
 
-      queryParams.push(parseFloat(lat), parseFloat(lng), radius);
-      index += 3; // Increase the index to account for the added parameters
-    } else {
-      // If no location is provided, return an empty array for services
-      query += `,
-        '[]'::json AS services
-      `;
-    }
+  if (ids) {
+      const idArray = ids.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
+      if (idArray.length > 0) {
+          idsCondition = `WHERE c.id = ANY(ARRAY[${idArray.join(',')}])`;
+      }
+  }
 
-    // Continue with the rest of the query
-    query += `
+  const query = `
+      SELECT 
+          c.id, 
+          c.name, 
+          c.parent_category_id
+          ${locationCondition}
       FROM 
-        categories c
-    `;
-
-    if (lat && lng) {
-      // Join with services only if lat and lng are provided
-      query += `
+          categories c
       LEFT JOIN 
-        services s ON c.id = s.category_id
-      `;
-    }
-
-    if (ids) {
-      // Filtering by category IDs
-      const idArray = ids.split(',').map(Number); // Convert to array of numbers
-      queryParams.push(idArray);
-      whereClauses.push(`c.id = ANY($${index}::int[])`);
-      index++;
-    }
-
-    if (whereClauses.length > 0) {
-      query += ' WHERE ' + whereClauses.join(' AND ');
-    }
-
-    query += `
+          services s ON c.id = s.category_id
+      ${idsCondition}
       GROUP BY c.id
-    `;
+  `;
 
-    const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+  try {
+      const [results, metadata] = await sequelize.query(query, {
+          type: sequelize.QueryTypes.SELECT
+      });
+      res.json(results);
   } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+      console.error('Error fetching categories with Sequelize:', error);
+      res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
 // Endpoint to get services by subcategory ID
 app.get('/api/services/subcategory/:id', async (req, res) => {
   const subcategoryId = parseInt(req.params.id);
-  try {
-    // Update the SELECT statement to include new fields
-    const servicesQuery = `
-      SELECT
-        id, name, description, latitude, longitude, location, date_added,
-        category_id, street_address, city, state, postal_code, country,
-        phone_number, website, hours, is_halal_certified, average_rating, review_count
-      FROM services
-      WHERE category_id = $1;
-    `;
-    const servicesResult = await pool.query(servicesQuery, [subcategoryId]);
+  if (isNaN(subcategoryId)) {
+    return res.status(400).json({ error: 'Subcategory ID must be a valid number' });
+  }
 
-    if (servicesResult.rows.length === 0) {
+  try {
+    const services = await Service.findAll({
+      where: { categoryId: subcategoryId },
+      attributes: ['id', 'name', 'description', 'latitude', 'longitude', 'location', 'dateAdded', 'categoryId', 'streetAddress', 'city', 'state', 'postalCode', 'country', 'phoneNumber', 'website', 'hours', 'isHalalCertified', 'averageRating', 'reviewCount']
+    });
+
+    if (services.length === 0) {
       return res.status(404).json({ message: 'No services found for this subcategory' });
     }
 
-    res.json(servicesResult.rows);
+    res.json(services);
   } catch (error) {
     console.error('Error fetching services for subcategory:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
@@ -488,23 +449,30 @@ app.get('/api/services/subcategory/:id', async (req, res) => {
 
 app.get('/api/category/:id/services', async (req, res) => {
   const categoryId = parseInt(req.params.id);
-  try {
-    // Update the SELECT statement to include new fields
-    const servicesQuery = `
-      WITH RECURSIVE subcategories AS (
-        SELECT id FROM categories WHERE id = $1
-        UNION ALL
-        SELECT c.id FROM categories c INNER JOIN subcategories s ON c.parent_category_id = s.id
-      )
-      SELECT
-        s.id, s.name, s.description, s.latitude, s.longitude, s.location, s.date_added,
-        s.category_id, s.street_address, s.city, s.state, s.postal_code, s.country,
-        s.phone_number, s.website, s.hours, s.is_halal_certified, s.average_rating, s.review_count
-      FROM services s INNER JOIN subcategories sc ON s.category_id = sc.id;
-    `;
+  if (isNaN(categoryId)) {
+    return res.status(400).json({ error: 'Invalid category ID' });
+  }
 
-    const servicesResult = await pool.query(servicesQuery, [categoryId]);
-    res.json(servicesResult.rows);
+  const query = `
+    WITH RECURSIVE subcategories AS (
+      SELECT id FROM categories WHERE id = :categoryId
+      UNION
+      SELECT c.id FROM categories c JOIN subcategories s ON c.parent_category_id = s.id
+    )
+    SELECT
+      s.id, s.name, s.description, s.latitude, s.longitude, s.location, s.date_added,
+      s.category_id, s.street_address, s.city, s.state, s.postal_code, s.country,
+      s.phone_number, s.website, s.hours, s.is_halal_certified, s.average_rating, s.review_count
+    FROM services s
+    JOIN subcategories sc ON s.category_id = sc.id;
+  `;
+
+  try {
+    const servicesResult = await sequelize.query(query, { 
+      replacements: { categoryId: categoryId },
+      type: sequelize.QueryTypes.SELECT
+    });
+    res.json(servicesResult);
   } catch (error) {
     console.error(`Error fetching services for category ${categoryId}:`, error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
@@ -515,12 +483,13 @@ app.get('/api/category/:id/businesses', async (req, res) => {
   const categoryId = req.params.id;
   const { lat, lng } = req.query;
 
-  // Convert lat and lng to float
   const floatLat = parseFloat(lat);
   const floatLng = parseFloat(lng);
+  if (isNaN(floatLat) || isNaN(floatLng)) {
+    return res.status(400).json({ error: 'Invalid latitude or longitude' });
+  }
 
-  // Construct the SQL query using location filtering
-  let query = `
+  const query = `
     SELECT
       id,
       name,
@@ -529,56 +498,23 @@ app.get('/api/category/:id/businesses', async (req, res) => {
       longitude,
       location
     FROM services
-    WHERE category_id = $1
+    WHERE category_id = :categoryId
     AND ST_DWithin(
       ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::GEOGRAPHY,
-      ST_SetSRID(ST_MakePoint($2, $3), 4326)::GEOGRAPHY,
+      ST_SetSRID(ST_MakePoint(:floatLng, :floatLat), 4326)::GEOGRAPHY,
       40233.6
     )
   `;
 
   try {
-    const queryParams = [categoryId, floatLng, floatLat];
-    const result = await pool.query(query, queryParams);
-    res.json(result.rows);
+    const result = await sequelize.query(query, {
+      replacements: { categoryId: categoryId, floatLat: floatLat, floatLng: floatLng },
+      type: sequelize.QueryTypes.SELECT
+    });
+    res.json(result);
   } catch (error) {
     console.error('Error fetching businesses for category:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
-  }
-});
-
-
-// ... (Other API routes like /api/services/cleaners, /api/services/babysitters)
-
-app.get('/api/services/cleaners', async (req, res) => {
-  try {
-    const cleanersQuery = 'SELECT * FROM services WHERE category_id = (SELECT id FROM categories WHERE name = \'Cleaners\');';
-    const cleaners = await pool.query(cleanersQuery);
-
-    if (cleaners.rows.length === 0) {
-      return res.status(404).json({ message: 'No cleaners found' });
-    }
-
-    res.json(cleaners.rows);
-  } catch (error) {
-    console.error('Error fetching cleaners:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/api/services/babysitters', async (req, res) => {
-  try {
-    const babysittersQuery = 'SELECT * FROM services WHERE category_id = (SELECT id FROM categories WHERE name = \'Babysitters\');';
-    const babysitters = await pool.query(babysittersQuery);
-
-    if (babysitters.rows.length === 0) {
-      return res.status(404).json({ message: 'No babysitters found' });
-    }
-
-    res.json(babysitters.rows);
-  } catch (error) {
-    console.error('Error fetching babysitters:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
