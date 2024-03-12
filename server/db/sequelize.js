@@ -1,6 +1,9 @@
-// sequelize.js
 const Sequelize = require('sequelize');
-require('dotenv').config(); // Make sure to require dotenv if you haven't done so already in your entry file
+
+// Only require dotenv if DB_HOST is not set (indicating local development)
+if (!process.env.DB_HOST) {
+  require('dotenv').config();
+}
 
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
