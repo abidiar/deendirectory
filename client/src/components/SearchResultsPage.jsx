@@ -60,20 +60,20 @@ function SearchResultsPage() {
         ) : (
           <>
             <div className="space-y-4">
-              {searchResults.map((business, index) => (
-                <Card
-                  key={business.id}
-                  id={business.id}
-                  title={business.name}
-                  description={business.description}
-                  imageUrl={business.image_url}
-                  averageRating={business.average_rating}
-                  isHalalCertified={business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
-                  category={business.category}
-                  phoneNumber={business.phone_number}
-                  hours={business.hours}
-                />
-              ))}
+            {searchResults.map((business, index) => (
+  <Card
+    key={business.id}
+    id={business.id}
+    title={business.name}
+    description={business.description}
+    imageUrl={business.image_url}
+    averageRating={business.average_rating}
+    isHalalCertified={business.category && business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
+    category={business.category}
+    phoneNumber={business.phone_number}
+    hours={business.hours}
+  />
+))}
             </div>
             {totalPages > 1 && (
               <Pagination
