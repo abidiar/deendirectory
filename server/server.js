@@ -3,13 +3,13 @@ if (process.env.NODE_ENV !== 'production') {
 }
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const sequelize = require('./db/sequelize'); // Make sure this path is correct
-const { Service, Category } = require('./db'); 
+// Adjust the path according to your project structure for sequelize and models import
+const { sequelize, Service, Category } = require('./models'); 
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils'); 
+const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils');
 
 // Initialize Express app
 const app = express();
