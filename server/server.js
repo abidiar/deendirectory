@@ -6,7 +6,7 @@ const logger = require('./utils/logger');
 const cache = require('./utils/cache');
 const { body, validationResult } = require('express-validator');
 // Adjust the path according to your project structure for sequelize and models import
-const { Op } = require('sequelize');
+const { Sequelize, Op } = require('sequelize');
 const { sequelize, Service, Category } = require('./models'); 
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
@@ -220,6 +220,7 @@ app.get('/api/services/new-near-you', async (req, res) => {
       order: [['id', 'DESC']],
       limit: parseInt(limit, 10),
     });
+    
     if (services.length === 0) {
       return res.status(404).json({ message: 'No new services found near you' });
     }
