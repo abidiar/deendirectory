@@ -2,6 +2,8 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 const express = require('express');
+const logger = require('./utils/logger');
+const cache = require('./utils/cache');
 const { body, validationResult } = require('express-validator');
 // Adjust the path according to your project structure for sequelize and models import
 const { Op } = require('sequelize');
@@ -49,11 +51,18 @@ app.get('/api/search', async (req, res) => {
   } = req.query;
 
   try {
+    const cacheKey = `search:${JSON.stringify(req.query)}`;
+    const cachedResults = await cache.get(cacheKey);
+
+    if (cachedResults) {
+      return res.json(cachedResults);
+    }
+
     const whereConditions = {};
 
     // Text search condition
     if (searchTerm) {
-      whereConditions.name = { [Op.iLike]: `%${searchTerm}%` }; // Use Op.iLike here
+      whereConditions.name = { [Op.iLike]: `%${searchTerm}%` };
     }
 
     // Category filter
@@ -70,11 +79,14 @@ app.get('/api/search', async (req, res) => {
       whereConditions.isHalalCertified = isHalalCertified === 'true';
     }
 
-    let distanceCondition = '';
-    let locationAttributes = [];
     // Location-based search
     if (latitude && longitude) {
-      // This part may need customization based on how your database handles geospatial queries
+      whereConditions.location = {
+        [Op.near]: {
+          type: 'Point',
+          coordinates: [parseFloat(longitude), parseFloat(latitude)],
+        },
+      };
     }
 
     // Sorting logic
@@ -94,21 +106,44 @@ app.get('/api/search', async (req, res) => {
     // Executing the query with filters, sorting, and pagination
     const { rows: services, count: totalRows } = await Service.findAndCountAll({
       where: whereConditions,
-      // Include other necessary query options like attributes and include
       order,
       offset: (page - 1) * pageSize,
-      limit: pageSize
+      limit: pageSize,
+      attributes: {
+        include: [
+          [
+            sequelize.literal(`
+              (SELECT COUNT(*) FROM reviews WHERE reviews.business_id = Service.id)
+            `),
+            'reviewCount',
+          ],
+          [
+            sequelize.literal(`
+              (SELECT AVG(rating) FROM reviews WHERE reviews.business_id = Service.id)
+            `),
+            'averageRating',
+          ],
+        ],
+      },
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['name'],
+        },
+      ],
     });
 
-    // Formulating response data
     const responseData = services.map(service => {
       const serviceData = service.get({ plain: true });
       return serviceData;
     });
 
+    await cache.set(cacheKey, { data: responseData, totalRows }, 60 * 5); // Cache for 5 minutes
+
     res.json({ data: responseData, totalRows });
   } catch (error) {
-    console.error('Search API error:', error);
+    logger.error('Search API error:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
@@ -169,27 +204,20 @@ app.get('/api/services/new-near-you', async (req, res) => {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
     }
 
-    const query = `
-      SELECT
-        id, name, description, latitude, longitude, location, date_added,
-        category_id, street_address, city, state, postal_code, country,
-        phone_number, website, hours, is_halal_certified, average_rating, review_count
-      FROM services
-      WHERE ST_DWithin(
-        location::GEOGRAPHY,
-        ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326)::GEOGRAPHY,
-        :radius
-      ) AND date_added >= current_date - interval '30 days'
-      ORDER BY date_added DESC
-      LIMIT :limit;
-    `;
-
-    // Sequelize query to execute raw SQL, with replacements to prevent SQL injection
-    const services = await sequelize.query(query, {
-      replacements: { latitude, longitude, radius, limit: parseInt(limit, 10) },
-      type: sequelize.QueryTypes.SELECT,
-      model: Service, // This is optional, allows mapping the raw query results to the model
-      mapToModel: true // This is optional as well
+    const services = await Service.findAll({
+      where: {
+        location: {
+          [Op.near]: {
+            type: 'Point',
+            coordinates: [parseFloat(longitude), parseFloat(latitude)],
+          },
+        },
+        dateAdded: {
+          [Op.gte]: sequelize.literal("current_date - interval '30 days'"),
+        },
+      },
+      order: [['dateAdded', 'DESC']],
+      limit: parseInt(limit, 10),
     });
 
     if (services.length === 0) {
@@ -198,71 +226,75 @@ app.get('/api/services/new-near-you', async (req, res) => {
 
     res.json(services);
   } catch (error) {
-    console.error('Error fetching new services:', error);
+    logger.error('Error fetching new services:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
-
 
 app.get('/api/categories/featured', async (req, res) => {
   const featuredCategoryIds = [1, 8, 3, 7, 5];
   const { lat, lng } = req.query;
 
   try {
-    // Initial query to get featured categories without considering location
+    const cacheKey = `featured-categories:${lat}:${lng}`;
+    const cachedResults = await cache.get(cacheKey);
+
+    if (cachedResults) {
+      return res.json(cachedResults);
+    }
+
     const featuredCategories = await Category.findAll({
       where: { id: featuredCategoryIds },
-      attributes: ['id', 'name']
+      attributes: ['id', 'name'],
     });
 
-    // If latitude and longitude are provided, perform a spatial query
     if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
-      const locationQuery = `
-        SELECT
-          c.id,
-          json_agg(
-            json_build_object(
-              'id', s.id,
-              'name', s.name,
-              'latitude', s.latitude,
-              'longitude', s.longitude
-            )
-          ) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
-            ST_SetSRID(ST_MakePoint(s.longitude, s.latitude), 4326)::GEOGRAPHY,
-            ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::GEOGRAPHY,
-            40233.6
-          )) AS services
-        FROM categories c
-        LEFT JOIN services s ON c.id = s.category_id
-        WHERE c.id IN (:categoryIds)
-        GROUP BY c.id;
-      `;
-
-      const featuredServices = await sequelize.query(locationQuery, {
-        replacements: { lat, lng, categoryIds: featuredCategoryIds },
-        type: sequelize.QueryTypes.SELECT
+      const featuredServices = await Service.findAll({
+        attributes: ['id', 'name', 'latitude', 'longitude'],
+        include: [
+          {
+            model: Category,
+            where: { id: featuredCategoryIds },
+          },
+        ],
+        where: {
+          location: {
+            [Op.near]: {
+              type: 'Point',
+              coordinates: [parseFloat(lng), parseFloat(lat)],
+            },
+          },
+        },
       });
 
-      // Map the featuredServices to include in the featuredCategories response
       const enrichedCategories = featuredCategories.map(category => {
-        const matchingService = featuredServices.find(service => service.id === category.id);
+        const services = featuredServices.filter(service => service.Category.id === category.id);
         return {
           ...category.get({ plain: true }),
-          services: matchingService ? matchingService.services : []
+          services: services.map(service => ({
+            id: service.id,
+            name: service.name,
+            latitude: service.latitude,
+            longitude: service.longitude,
+          })),
         };
       });
 
+      await cache.set(cacheKey, enrichedCategories, 60 * 10); // Cache for 10 minutes
+
       res.json(enrichedCategories);
     } else {
-      // Respond with categories without location-based services if no lat/lng provided
       const categoriesWithoutServices = featuredCategories.map(category => ({
         ...category.get({ plain: true }),
-        services: []
+        services: [],
       }));
+
+      await cache.set(cacheKey, categoriesWithoutServices, 60 * 10); // Cache for 10 minutes
+
       res.json(categoriesWithoutServices);
     }
   } catch (error) {
-    console.error('Error fetching featured categories:', error);
+    logger.error('Error fetching featured categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
@@ -433,28 +465,63 @@ app.get('/api/category/:id/services', async (req, res) => {
     return res.status(400).json({ error: 'Invalid category ID' });
   }
 
-  const query = `
-    WITH RECURSIVE subcategories AS (
-      SELECT id FROM categories WHERE id = :categoryId
-      UNION
-      SELECT c.id FROM categories c JOIN subcategories s ON c.parent_category_id = s.id
-    )
-    SELECT
-      s.id, s.name, s.description, s.latitude, s.longitude, s.location, s.date_added,
-      s.category_id, s.street_address, s.city, s.state, s.postal_code, s.country,
-      s.phone_number, s.website, s.hours, s.is_halal_certified, s.average_rating, s.review_count
-    FROM services s
-    JOIN subcategories sc ON s.category_id = sc.id;
-  `;
-
   try {
-    const servicesResult = await sequelize.query(query, { 
-      replacements: { categoryId: categoryId },
-      type: sequelize.QueryTypes.SELECT
+    const cacheKey = `category-services:${categoryId}`;
+    const cachedResults = await cache.get(cacheKey);
+
+    if (cachedResults) {
+      return res.json(cachedResults);
+    }
+
+    const services = await Service.findAll({
+      where: {
+        categoryId: categoryId,
+      },
+      attributes: [
+        'id',
+        'name',
+        'description',
+        'latitude',
+        'longitude',
+        'location',
+        'dateAdded',
+        'categoryId',
+        'streetAddress',
+        'city',
+        'state',
+        'postalCode',
+        'country',
+        'phoneNumber',
+        'website',
+        'hours',
+        'isHalalCertified',
+        [
+          sequelize.literal(`
+            (SELECT COUNT(*) FROM reviews WHERE reviews.business_id = Service.id)
+          `),
+          'reviewCount',
+        ],
+        [
+          sequelize.literal(`
+            (SELECT AVG(rating) FROM reviews WHERE reviews.business_id = Service.id)
+          `),
+          'averageRating',
+        ],
+      ],
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: ['id', 'name'],
+        },
+      ],
     });
-    res.json(servicesResult);
+
+    await cache.set(cacheKey, services, 60 * 10); // Cache for 10 minutes
+
+    res.json(services);
   } catch (error) {
-    console.error(`Error fetching services for category ${categoryId}:`, error);
+    logger.error(`Error fetching services for category ${categoryId}:`, error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });

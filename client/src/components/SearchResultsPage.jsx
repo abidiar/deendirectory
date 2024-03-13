@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Card from './Card';
 import MyMap from './MyMap';
 import Pagination from './Pagination';
 import { LocationContext } from '../context/LocationContext';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { fetchSearchResults } from '../services/searchService';
+import Skeleton from './Skeleton';
+import ErrorBoundary from './ErrorBoundary';
+import { Box, Typography } from '@mui/material';
+import { debounce } from 'lodash';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -21,20 +25,14 @@ function SearchResultsPage() {
   const query = useQuery();
   const searchTerm = query.get('searchTerm');
 
-  // Function to fetch search results from the backend
-  const fetchSearchResults = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
     setSearchError(null);
 
-    const searchUrl = `${backendUrl}/api/search?searchTerm=${encodeURIComponent(searchTerm)}&page=${currentPage}`;
-
     try {
-      const response = await fetch(searchUrl);
-      if (!response.ok) throw new Error('Network response was not ok.');
-
-      const data = await response.json();
+      const data = await fetchSearchResults(searchTerm, currentPage);
       setSearchResults(data.data);
-      setTotalPages(Math.ceil(data.totalRows / 10)); // Assuming 10 results per page
+      setTotalPages(Math.ceil(data.totalRows / 10));
     } catch (error) {
       setSearchError('Failed to load search results.');
     } finally {
@@ -42,54 +40,63 @@ function SearchResultsPage() {
     }
   };
 
+  const debouncedFetchData = useCallback(debounce(fetchData, 300), [searchTerm, currentPage]);
+
   useEffect(() => {
-    fetchSearchResults();
-  }, [currentPage, searchTerm, backendUrl]);
+    debouncedFetchData();
+  }, [debouncedFetchData]);
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
   return (
-<Box className="container mx-auto p-4 lg:flex">
-  <div className="lg:flex-grow lg:pr-4">
-    {isLoading ? (
-      <CircularProgress />
-    ) : searchError ? (
-      <Typography color="error">{searchError}</Typography>
-    ) : (
-      <div className="space-y-4">
-        {searchResults.map((business, index) => (
-          <Card
-            key={business.id}
-            id={business.id}
-            title={business.name}
-            description={business.description}
-            imageUrl={business.image_url}
-            averageRating={business.average_rating}
-            isHalalCertified={business.category && business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
-            category={business.category}
-            phoneNumber={business.phone_number}
-            hours={business.hours}
-          />
-        ))}
-      </div>
-    )}
-    {totalPages > 1 && (
-      <Pagination
-        count={totalPages}
-        page={currentPage}
-        onChange={handlePageChange}
-        className="my-4"
-      />
-    )}
-  </div>
-  <div className="lg:w-2/5 xl:w-1/3 h-96 lg:h-auto">
-    {searchResults.length > 0 && (
-      <MyMap businesses={searchResults} center={{lat: searchResults[0]?.latitude || 0, lng: searchResults[0]?.longitude || 0}} zoom={12} />
-    )}
-  </div>
-</Box>
+    <ErrorBoundary>
+      <Box className="container mx-auto p-4 lg:flex">
+        <div className="lg:flex-grow lg:pr-4">
+          {isLoading ? (
+            <Skeleton count={5} />
+          ) : searchError ? (
+            <Typography color="error">{searchError}</Typography>
+          ) : (
+            <div className="space-y-4">
+              {searchResults.map((business) => (
+                <Card
+                  key={business.id}
+                  id={business.id}
+                  title={business.name}
+                  description={business.description}
+                  imageUrl={business.image_url}
+                  averageRating={business.average_rating}
+                  isHalalCertified={business.category && business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
+                  category={business.category}
+                  phoneNumber={business.phone_number}
+                  hours={business.hours}
+                />
+              ))}
+            </div>
+          )}
+          {totalPages > 1 && (
+            <div className="my-4">
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+              />
+            </div>
+          )}
+        </div>
+        <div className="lg:w-2/5 xl:w-1/3 h-96 lg:h-auto">
+          {searchResults.length > 0 && (
+            <MyMap
+              businesses={searchResults}
+              center={{ lat: searchResults[0]?.latitude || 0, lng: searchResults[0]?.longitude || 0 }}
+              zoom={12}
+            />
+          )}
+        </div>
+      </Box>
+    </ErrorBoundary>
   );
 }
 

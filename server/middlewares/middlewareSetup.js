@@ -1,4 +1,3 @@
-// middlewareSetup.js
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
@@ -22,7 +21,7 @@ function setupMiddlewares(app) {
   // Apply rate limiting to all requests
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+    max: 100, // limit each IP to 100 requests per windowMs
   });
   app.use(limiter);
 
