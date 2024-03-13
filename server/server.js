@@ -93,12 +93,11 @@ app.get('/api/search', async (req, res) => {
     let order = [];
     switch (sort) {
       case 'rating':
-        order = [['averageRating', 'DESC']];
+        order = [[sequelize.literal('"averageRating"'), 'DESC']];
         break;
       case 'newest':
         order = [['dateAdded', 'DESC']];
         break;
-      // Add more sorting options as needed
       default:
         order = [['name', 'ASC']];
     }
@@ -111,27 +110,16 @@ app.get('/api/search', async (req, res) => {
       limit: pageSize,
       attributes: {
         include: [
-          [
-            sequelize.literal(`
-              (SELECT COUNT(*) FROM reviews WHERE reviews.business_id = Service.id)
-            `),
-            'reviewCount',
-          ],
-          [
-            sequelize.literal(`
-              (SELECT AVG(rating) FROM reviews WHERE reviews.business_id = Service.id)
-            `),
-            'averageRating',
-          ],
+          [sequelize.literal('(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = services.id)'), 'reviewCount'],
+          [sequelize.literal('(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = services.id)'), 'averageRating'],
         ],
+        exclude: ['location'] // Exclude 'location' if you are not using it in the response
       },
-      include: [
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['name'],
-        },
-      ],
+      include: [{
+        model: Category,
+        as: 'category',
+        attributes: ['name'],
+      }],
     });
 
     const responseData = services.map(service => {
