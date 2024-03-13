@@ -502,16 +502,17 @@ app.get('/api/category/:id/services', async (req, res) => {
         'isHalalCertified',
         [
           sequelize.literal(`
-            (SELECT COUNT(*) FROM reviews WHERE reviews.business_id = Service.id)
+            (SELECT COUNT(*) FROM reviews WHERE reviews.business_id = service.id)
           `),
           'reviewCount',
         ],
         [
           sequelize.literal(`
-            (SELECT AVG(rating) FROM reviews WHERE reviews.business_id = Service.id)
+            (SELECT AVG(rating) FROM reviews WHERE reviews.business_id = service.id)
           `),
           'averageRating',
         ],
+        
       ],
       include: [
         {
