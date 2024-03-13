@@ -479,9 +479,7 @@ app.get('/api/category/:id/services', async (req, res) => {
     }
 
     const services = await Service.findAll({
-      where: {
-        categoryId: categoryId,
-      },
+      where: { categoryId: categoryId },
       attributes: [
         'id',
         'name',
@@ -502,13 +500,13 @@ app.get('/api/category/:id/services', async (req, res) => {
         'isHalalCertified',
         [
           sequelize.literal(`
-            (SELECT COUNT(*) FROM reviews WHERE reviews.business_id = service.id)
+            (SELECT COUNT(*) FROM reviews WHERE reviews.business_id = services.id)
           `),
           'reviewCount',
         ],
         [
           sequelize.literal(`
-            (SELECT AVG(rating) FROM reviews WHERE reviews.business_id = service.id)
+            (SELECT AVG(rating) FROM reviews WHERE reviews.business_id = services.id)
           `),
           'averageRating',
         ],
