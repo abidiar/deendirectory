@@ -206,14 +206,18 @@ app.get('/api/services/new-near-you', async (req, res) => {
 
     const services = await Service.findAll({
       where: {
-        location: {
-          [Op.near]: {
-            type: 'Point',
-            coordinates: [parseFloat(longitude), parseFloat(latitude)],
-          },
-        },
+        location: Sequelize.fn(
+          'ST_DWithin',
+          Sequelize.col('location'),
+          Sequelize.fn(
+            'ST_SetSRID',
+            Sequelize.fn('ST_MakePoint', parseFloat(longitude), parseFloat(latitude)),
+            4326
+          ),
+          radius
+        ),
       },
-      order: [['id', 'DESC']], // Order by a different column if needed
+      order: [['id', 'DESC']],
       limit: parseInt(limit, 10),
     });
     if (services.length === 0) {
@@ -250,7 +254,7 @@ app.get('/api/categories/featured', async (req, res) => {
         include: [
           {
             model: Category,
-            as: 'category', // Use the 'as' keyword to specify the alias
+            as: 'category',
             where: { id: featuredCategoryIds },
           },
         ],
