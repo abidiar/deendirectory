@@ -205,18 +205,22 @@ app.get('/api/services/new-near-you', async (req, res) => {
     }
 
     const services = await Service.findAll({
-      where: {
-        location: Sequelize.fn(
+      where: sequelize.where(
+        sequelize.fn(
           'ST_DWithin',
-          Sequelize.col('location'),
-          Sequelize.fn(
-            'ST_SetSRID',
-            Sequelize.fn('ST_MakePoint', parseFloat(longitude), parseFloat(latitude)),
-            4326
+          sequelize.cast(sequelize.col('location'), 'geography'),
+          sequelize.cast(
+            sequelize.fn(
+              'ST_SetSRID',
+              sequelize.fn('ST_MakePoint', parseFloat(longitude), parseFloat(latitude)),
+              4326
+            ),
+            'geography'
           ),
           radius
         ),
-      },
+        true
+      ),
       order: [['id', 'DESC']],
       limit: parseInt(limit, 10),
     });
@@ -232,9 +236,11 @@ app.get('/api/services/new-near-you', async (req, res) => {
   }
 });
 
+
 app.get('/api/categories/featured', async (req, res) => {
   const featuredCategoryIds = [1, 8, 3, 7, 5];
   const { lat, lng } = req.query;
+  const radius = 40233.6; // 25 miles in meters
 
   try {
     const cacheKey = `featured-categories:${lat}:${lng}`;
@@ -259,14 +265,22 @@ app.get('/api/categories/featured', async (req, res) => {
             where: { id: featuredCategoryIds },
           },
         ],
-        where: {
-          location: {
-            [Op.near]: {
-              type: 'Point',
-              coordinates: [parseFloat(lng), parseFloat(lat)],
-            },
-          },
-        },
+        where: sequelize.where(
+          sequelize.fn(
+            'ST_DWithin',
+            sequelize.cast(sequelize.col('location'), 'geography'),
+            sequelize.cast(
+              sequelize.fn(
+                'ST_SetSRID',
+                sequelize.fn('ST_MakePoint', parseFloat(lng), parseFloat(lat)),
+                4326
+              ),
+              'geography'
+            ),
+            radius
+          ),
+          true
+        ),
       });
 
       const enrichedCategories = featuredCategories.map(category => {
