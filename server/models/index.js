@@ -1,28 +1,31 @@
 'use strict';
 
-// Replace './path/to/your/sequelize/config' with the actual path to your sequelize configuration file
 const { Sequelize } = require('sequelize');
 const sequelize = require('../db/sequelize'); // Adjust the path to where your configured sequelize instance is located
 
-// Import models
-const Service = require('../models/Service')(sequelize, Sequelize.DataTypes);
-const Category = require('../models/Category')(sequelize, Sequelize.DataTypes);
+// Import model definitions as functions
+const defineService = require('../models/Service');
+const defineCategory = require('../models/Category');
 
-// Define associations
-Service.belongsTo(Category, {
-  foreignKey: 'category_id',
-  as: 'category'
-});
+// Initialize models by invoking the imported functions
+const Service = defineService(sequelize, Sequelize.DataTypes);
+const Category = defineCategory(sequelize, Sequelize.DataTypes);
 
-Category.hasMany(Service, {
-  foreignKey: 'category_id',
-  as: 'services'
+// Setup associations
+const models = {
+  Service,
+  Category
+};
+
+Object.keys(models).forEach(modelName => {
+  if (models[modelName].associate) {
+    models[modelName].associate(models);
+  }
 });
 
 // Export the sequelize instance and models
 module.exports = {
   sequelize, // the configured sequelize instance
   Sequelize, // the Sequelize class
-  Service,
-  Category
+  ...models
 };
