@@ -258,13 +258,12 @@ app.get('/api/categories/featured', async (req, res) => {
     if (lat && lng && !isNaN(parseFloat(lat)) && !isNaN(parseFloat(lng))) {
       const featuredServices = await Service.findAll({
         attributes: ['id', 'name', 'latitude', 'longitude'],
-        include: [
-          {
-            model: Category,
-            as: 'category',
-            where: { id: featuredCategoryIds },
-          },
-        ],
+        include: [{
+          model: Category,
+          as: 'category',
+          attributes: [],
+          where: { id: featuredCategoryIds },
+        }],
         where: sequelize.where(
           sequelize.fn(
             'ST_DWithin',
@@ -284,7 +283,7 @@ app.get('/api/categories/featured', async (req, res) => {
       });
 
       const enrichedCategories = featuredCategories.map(category => {
-        const services = featuredServices.filter(service => service.Category.id === category.id);
+        const services = featuredServices.filter(service => service.categoryId === category.id);
         return {
           ...category.get({ plain: true }),
           services: services.map(service => ({
@@ -314,6 +313,7 @@ app.get('/api/categories/featured', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
 
 app.post('/api/users/register', async (req, res) => {
   // Implement user registration logic

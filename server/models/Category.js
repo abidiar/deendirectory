@@ -1,7 +1,15 @@
 const { Model, DataTypes } = require('sequelize');
 
-module.exports = (sequelize) => {
-  class Category extends Model {}
+module.exports = (sequelize, models) => {
+  class Category extends Model {
+    static associate(models) {
+      // Define association here
+      Category.hasMany(models.Service, {
+        foreignKey: 'categoryId',
+        as: 'services'
+      });
+    }
+  }
 
   Category.init({
     id: {
