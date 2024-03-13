@@ -197,7 +197,7 @@ app.get('/api/suggestions', async (req, res) => {
 
 app.get('/api/services/new-near-you', async (req, res) => {
   try {
-    const { latitude, longitude, limit = 5 } = req.query; // Default limit to 5 if not provided
+    const { latitude, longitude, limit = 5 } = req.query;
     const radius = 40233.6; // 25 miles in meters
 
     if (!latitude || !longitude) {
@@ -212,14 +212,10 @@ app.get('/api/services/new-near-you', async (req, res) => {
             coordinates: [parseFloat(longitude), parseFloat(latitude)],
           },
         },
-        dateAdded: {
-          [Op.gte]: sequelize.literal("current_date - interval '30 days'"),
-        },
       },
-      order: [['dateAdded', 'DESC']],
+      order: [['id', 'DESC']], // Order by a different column if needed
       limit: parseInt(limit, 10),
     });
-
     if (services.length === 0) {
       return res.status(404).json({ message: 'No new services found near you' });
     }
@@ -254,6 +250,7 @@ app.get('/api/categories/featured', async (req, res) => {
         include: [
           {
             model: Category,
+            as: 'category', // Use the 'as' keyword to specify the alias
             where: { id: featuredCategoryIds },
           },
         ],
