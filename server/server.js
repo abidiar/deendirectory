@@ -10,7 +10,7 @@ const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const { fetchCoordinatesFromGoogle } = require('./utils/locationUtils');
+const { fetchCoordinates } = require('./utils/locationUtils');
 
 // Initialize Express app
 const app = express();
@@ -505,15 +505,16 @@ app.get('/api/reverse-geocode', async (req, res) => {
       return res.status(400).json({ error: 'Latitude and longitude are required' });
   }
 
-  const apiKey = process.env.GOOGLE_GEO_API_KEY;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
+  // Note: you need to have LOCATIONIQ_API_KEY set in your environment
+  const apiKey = process.env.LOCATIONIQ_API_KEY;
+  const url = `https://us1.locationiq.com/v1/reverse.php?key=${apiKey}&lat=${latitude}&lon=${longitude}&format=json`;
 
   try {
       const response = await fetch(url);
       const data = await response.json();
 
-      if (data.status === 'OK' && data.results.length > 0) {
-          const location = data.results[0].formatted_address;
+      if (data && data.address) {
+          const location = `${data.address.road}, ${data.address.city}, ${data.address.state}, ${data.address.postcode}`;
           res.json({ location });
       } else {
           res.status(404).json({ error: 'Location not found' });
@@ -533,7 +534,7 @@ app.get('/api/geocode', async (req, res) => {
   }
 
   try {
-    const coords = await fetchCoordinatesFromGoogle(location);
+    const coords = await fetchCoordinates(location);
 
     if (coords) {
       return res.json({ latitude: coords.latitude, longitude: coords.longitude });

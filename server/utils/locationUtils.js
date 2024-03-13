@@ -1,12 +1,15 @@
 const NodeCache = require('node-cache');
-const { fetchWithRetry } = require('./fetchUtils'); // Make sure this path is correct for your project structure
+const axios = require('axios');
 const NodeGeocoder = require('node-geocoder');
 
 // Initialize a cache with a default TTL of 1 hour (3600 seconds)
 const geocodeCache = new NodeCache({ stdTTL: 3600 });
 
 const options = {
-  provider: 'google', apiKey: process.env.GOOGLE_GEO_API_KEY
+  provider: 'locationiq',
+  apiKey: process.env.LOCATIONIQ_API_KEY,
+  httpAdapter: 'https',
+  formatter: null
 };
 
 const geocoder = NodeGeocoder(options);
@@ -38,11 +41,9 @@ async function convertCityStateToCoords(city, state) {
   }
 
   return null; // Return null in case of any error
-
 };
 
-// Function to fetch coordinates from Google using an address
-async function fetchCoordinatesFromGoogle(location) {
+async function fetchCoordinates(location) {
   const cacheKey = `geocode:${location}`;
   const cachedCoords = geocodeCache.get(cacheKey);
 
@@ -66,13 +67,13 @@ async function fetchCoordinatesFromGoogle(location) {
       return null;
     }
   } catch (error) {
-    console.error('Error in fetchCoordinatesFromGoogle:', error);
+    console.error('Error in fetchCoordinates:', error);
     return null;
   }
 }
 
+
 module.exports = {
   convertCityStateToCoords,
-  fetchCoordinatesFromGoogle
+  fetchCoordinates
 };
-
