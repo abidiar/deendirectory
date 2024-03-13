@@ -28,30 +28,28 @@ function Card({
   };
 
   return (
-    <Link to={`/business/${id}`} className="no-underline hover:underline">
-      <div className="max-w-sm rounded overflow-hidden shadow-lg bg-neutral-light transition ease-in-out duration-300 hover:-translate-y-1 hover:shadow-xl">
-        <img className="w-full object-cover h-48" src={imageUrl || placeholderImage} alt={`Image for ${title}`} onError={handleImageError} />
-        <div className="px-6 py-4">
-          <div className="font-bold text-xl mb-2 text-primary-dark">{truncateText(title, 50)}</div>
-          <p className="text-neutral-dark text-base">{truncateText(description, 100)}</p>
-          {category && <span className="text-accent-sky text-sm mr-2">#{category}</span>}
-          {location && <span className="text-accent-coral text-sm mr-2">{location}</span>}
-          {phoneNumber && <div className="text-neutral-dark text-sm">📞 {phoneNumber}</div>}
-          {hours && <div className="text-neutral-dark text-sm">⏰ {hours}</div>}
-          {averageRating !== undefined && (
-            <div className="mt-2">
-              <StarRating rating={averageRating} />
-            </div>
-          )}
-          {isHalalCertified && (
-            <span className="mt-2 inline-block bg-accent-coral text-white text-xs font-bold rounded-full px-3 py-1">
-              Halal Certified
-            </span>
-          )}
-        </div>
+    <Link to={`/business/${id}`} className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+      <img 
+        className="w-full h-48 object-cover" 
+        src={imageUrl || placeholderImage} 
+        alt={`Image for ${title}`}
+        onError={(e) => e.target.src !== placeholderImage && (e.target.src = placeholderImage)}
+      />
+      <div className="p-4">
+        <h3 className="text-lg font-bold mb-2 text-gray-800">{truncateText(title, 50)}</h3>
+        <p className="text-gray-600 text-sm mb-2">{truncateText(description, 100)}</p>
+        {category && <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">#{category}</span>}
+        {phoneNumber && <div className="text-gray-800 text-sm mt-1">📞 {phoneNumber}</div>}
+        {hours && <div className="text-gray-800 text-sm mt-1">⏰ {hours}</div>}
+        {averageRating !== undefined && <div className="mt-2"><StarRating rating={averageRating} /></div>}
+        {isHalalCertified && (
+          <span className="inline-block bg-green-100 text-green-800 text-xs font-semibold mt-2 px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-900">
+            Halal Certified
+          </span>
+        )}
       </div>
     </Link>
   );
-}
+};
 
 export default Card;
