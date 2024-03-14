@@ -29,16 +29,16 @@ function SearchResultsPage() {
     setSearchError(null);
 
     try {
-      const { data, totalRows } = await fetchSearchResults(backendUrl, searchTerm, currentPage); // Assuming fetchSearchResults accepts these parameters
-      setSearchResults(data);
-      setTotalPages(Math.ceil(totalRows / 10));
+        // Ensure fetchSearchResults is implemented to handle these params correctly
+        const { data, totalRows } = await fetchSearchResults(searchTerm, currentPage);
+        setSearchResults(data);
+        setTotalPages(Math.ceil(totalRows / 10));
     } catch (error) {
-      setSearchError('Failed to load search results.');
+        setSearchError('Failed to load search results.');
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
-
+};
   const debouncedFetchData = useCallback(debounce(fetchData, 300), [searchTerm, currentPage]);
 
   useEffect(() => {

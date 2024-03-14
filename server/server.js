@@ -75,8 +75,9 @@ app.get('/api/search', async (req, res) => {
     }
 
     // Halal certification filter
-    whereConditions.isHalalCertified = isHalalCertified === 'true';
-
+    if (isHalalCertified !== undefined) {
+      whereConditions.isHalalCertified = isHalalCertified === 'true';
+  }
     // Location-based search
     if (latitude && longitude) {
       const lat = parseFloat(latitude);
@@ -86,12 +87,14 @@ app.get('/api/search', async (req, res) => {
       }
     }
 
-    // Sorting logic
-    let order = [['name', 'ASC']]; // Default sort
+    // Sorting logic adjustment
+    let order = [];
     if (sort === 'rating') {
-      order = sequelize.literal('"averageRating" DESC');
+        order = [sequelize.literal('"averageRating" DESC')]; // Fixed to use an array
     } else if (sort === 'newest') {
-      order = [['dateAdded', 'DESC']];
+        order = [['dateAdded', 'DESC']];
+    } else {
+        order = [['name', 'ASC']];
     }
 
     const { rows: services, count: totalRows } = await Service.findAndCountAll({
