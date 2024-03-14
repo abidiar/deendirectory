@@ -51,13 +51,6 @@ app.get('/api/search', async (req, res) => {
   } = req.query;
 
   try {
-    // Validate latitude and longitude
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-    if (latitude && longitude && (isNaN(lat) || isNaN(lng))) {
-      return res.status(400).json({ error: 'Invalid latitude or longitude' });
-    }
-
     const cacheKey = `search:${JSON.stringify(req.query)}`;
     const cachedResults = await cache.get(cacheKey);
 
@@ -67,10 +60,12 @@ app.get('/api/search', async (req, res) => {
 
     const whereConditions = {};
 
+    // Text search condition
     if (searchTerm) {
       whereConditions.name = { [Op.iLike]: `%${searchTerm}%` };
     }
 
+    // Category filter
     if (category) {
       const categoryInstance = await Category.findOne({ where: { name: category } });
       if (!categoryInstance) {
@@ -79,29 +74,24 @@ app.get('/api/search', async (req, res) => {
       whereConditions.categoryId = categoryInstance.id;
     }
 
-    if (isHalalCertified !== undefined) {
-      whereConditions.isHalalCertified = isHalalCertified === 'true';
-    }
+    // Halal certification filter
+    whereConditions.isHalalCertified = isHalalCertified === 'true';
 
+    // Location-based search
     if (latitude && longitude) {
-      whereConditions.location = {
-        [Op.near]: {
-          type: 'Point',
-          coordinates: [lng, lat],
-        },
-      };
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        whereConditions.location = sequelize.literal(`ST_DWithin(location::geography, ST_MakePoint(${lng}, ${lat})::geography, 5000)`); // Adjust the radius as needed
+      }
     }
 
-    let order = [];
-    switch (sort) {
-      case 'rating':
-        order = [[sequelize.literal('"averageRating"'), 'DESC']];
-        break;
-      case 'newest':
-        order = [['dateAdded', 'DESC']];
-        break;
-      default:
-        order = [['name', 'ASC']];
+    // Sorting logic
+    let order = [['name', 'ASC']]; // Default sort
+    if (sort === 'rating') {
+      order = sequelize.literal('"averageRating" DESC');
+    } else if (sort === 'newest') {
+      order = [['dateAdded', 'DESC']];
     }
 
     const { rows: services, count: totalRows } = await Service.findAndCountAll({
@@ -111,8 +101,8 @@ app.get('/api/search', async (req, res) => {
       limit: pageSize,
       attributes: {
         include: [
-          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = "Service".id)`), 'reviewCount'],
-          [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = "Service".id)`), 'averageRating'],
+          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = Service.id)`), 'reviewCount'],
+          [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = Service.id)`), 'averageRating'],
         ],
         exclude: ['location']
       },
@@ -124,7 +114,9 @@ app.get('/api/search', async (req, res) => {
     });
 
     const responseData = services.map(service => service.get({ plain: true }));
-    await cache.set(cacheKey, { data: responseData, totalRows }, 60 * 5);
+
+    await cache.set(cacheKey, { data: responseData, totalRows }, 60 * 5); // Cache for 5 minutes
+
     res.json({ data: responseData, totalRows });
   } catch (error) {
     logger.error('Search API error:', error);
