@@ -115,6 +115,7 @@ app.get('/api/search', async (req, res) => {
         attributes: ['name'],
       }],
     });
+    
 
     const responseData = services.map(service => service.get({ plain: true }));
 
