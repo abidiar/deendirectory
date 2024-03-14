@@ -104,8 +104,8 @@ app.get('/api/search', async (req, res) => {
       limit: pageSize,
       attributes: {
         include: [
-          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = Service.id)`), 'reviewCount'],
-          [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = Service.id)`), 'averageRating'],
+          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = services.id)`), 'reviewCount'],
+          [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = services.id)`), 'averageRating'],
         ],
         exclude: ['location']
       },
