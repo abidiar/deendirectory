@@ -51,6 +51,13 @@ app.get('/api/search', async (req, res) => {
   } = req.query;
 
   try {
+    // Validate latitude and longitude
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    if (latitude && longitude && (isNaN(lat) || isNaN(lng))) {
+      return res.status(400).json({ error: 'Invalid latitude or longitude' });
+    }
+
     const cacheKey = `search:${JSON.stringify(req.query)}`;
     const cachedResults = await cache.get(cacheKey);
 
@@ -60,12 +67,10 @@ app.get('/api/search', async (req, res) => {
 
     const whereConditions = {};
 
-    // Text search condition
     if (searchTerm) {
       whereConditions.name = { [Op.iLike]: `%${searchTerm}%` };
     }
 
-    // Category filter
     if (category) {
       const categoryInstance = await Category.findOne({ where: { name: category } });
       if (!categoryInstance) {
@@ -74,22 +79,19 @@ app.get('/api/search', async (req, res) => {
       whereConditions.categoryId = categoryInstance.id;
     }
 
-    // Halal certification filter
     if (isHalalCertified !== undefined) {
       whereConditions.isHalalCertified = isHalalCertified === 'true';
     }
 
-    // Location-based search
     if (latitude && longitude) {
       whereConditions.location = {
         [Op.near]: {
           type: 'Point',
-          coordinates: [parseFloat(longitude), parseFloat(latitude)],
+          coordinates: [lng, lat],
         },
       };
     }
 
-    // Sorting logic
     let order = [];
     switch (sort) {
       case 'rating':
@@ -102,35 +104,27 @@ app.get('/api/search', async (req, res) => {
         order = [['name', 'ASC']];
     }
 
-// Executing the query with filters, sorting, and pagination
-const { rows: services, count: totalRows } = await Service.findAndCountAll({
-  where: whereConditions,
-  order,
-  offset: (page - 1) * pageSize,
-  limit: pageSize,
-  attributes: {
-    include: [
-      // Update the subqueries to match the actual case of the columns in the database.
-      // If "business_id" and "id" are in lowercase in the database, make sure to use lowercase in the subqueries.
-      [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = "Service".id)`), 'reviewCount'],
-      [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = "Service".id)`), 'averageRating'],
-    ],
-    exclude: ['location'] // Exclude 'location' if you are not using it in the response
-  },
-  include: [{
-    model: Category,
-    as: 'category',
-    attributes: ['name'],
-  }],
-});
-
-    const responseData = services.map(service => {
-      const serviceData = service.get({ plain: true });
-      return serviceData;
+    const { rows: services, count: totalRows } = await Service.findAndCountAll({
+      where: whereConditions,
+      order,
+      offset: (page - 1) * pageSize,
+      limit: pageSize,
+      attributes: {
+        include: [
+          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = "Service".id)`), 'reviewCount'],
+          [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = "Service".id)`), 'averageRating'],
+        ],
+        exclude: ['location']
+      },
+      include: [{
+        model: Category,
+        as: 'category',
+        attributes: ['name'],
+      }],
     });
 
-    await cache.set(cacheKey, { data: responseData, totalRows }, 60 * 5); // Cache for 5 minutes
-
+    const responseData = services.map(service => service.get({ plain: true }));
+    await cache.set(cacheKey, { data: responseData, totalRows }, 60 * 5);
     res.json({ data: responseData, totalRows });
   } catch (error) {
     logger.error('Search API error:', error);
