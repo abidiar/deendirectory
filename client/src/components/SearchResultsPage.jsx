@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import Card from './Card';
 import MyMap from './MyMap';
 import Pagination from './Pagination';
@@ -20,8 +20,7 @@ function SearchResultsPage() {
   const [searchError, setSearchError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const { backendUrl } = useContext(LocationContext); // Ensure this context provides the necessary value
-  const navigate = useNavigate();
+  const { backendUrl } = useContext(LocationContext); // Check if you need to use backendUrl somewhere or remove it if unused
   const query = useQuery();
   const searchTerm = query.get('searchTerm');
 
@@ -30,9 +29,9 @@ function SearchResultsPage() {
     setSearchError(null);
 
     try {
-      const data = await fetchSearchResults(searchTerm, currentPage);
-      setSearchResults(data.data);
-      setTotalPages(Math.ceil(data.totalRows / 10));
+      const { data, totalRows } = await fetchSearchResults(backendUrl, searchTerm, currentPage); // Assuming fetchSearchResults accepts these parameters
+      setSearchResults(data);
+      setTotalPages(Math.ceil(totalRows / 10));
     } catch (error) {
       setSearchError('Failed to load search results.');
     } finally {
@@ -48,6 +47,10 @@ function SearchResultsPage() {
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
+  };
+
+  const renderCategory = (category) => {
+    return typeof category === 'string' ? category : category?.name || 'N/A';
   };
 
   return (
@@ -68,12 +71,8 @@ function SearchResultsPage() {
                   description={business.description}
                   imageUrl={business.image_url}
                   averageRating={business.average_rating}
-                  isHalalCertified={
-                    typeof business.category === 'string' && business.category.toLowerCase() === 'food'
-                      ? business.is_halal_certified
-                      : undefined
-                  }
-                  category={business.category}
+                  isHalalCertified={renderCategory(business.category).toLowerCase() === 'food' && business.is_halal_certified}
+                  category={renderCategory(business.category)}
                   phoneNumber={business.phone_number}
                   hours={business.hours}
                 />
@@ -81,13 +80,7 @@ function SearchResultsPage() {
             </div>
           )}
           {totalPages > 1 && (
-            <div className="my-4">
-              <Pagination
-                count={totalPages}
-                page={currentPage}
-                onChange={handlePageChange}
-              />
-            </div>
+            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} />
           )}
         </div>
         <div className="lg:w-2/5 xl:w-1/3 h-96 lg:h-auto">
