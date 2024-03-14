@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { LocationContext } from '../context/LocationContext';
+import { useNavigate } from 'react-router-dom';
 import MaskedInput from 'react-text-mask';
 
 function AddServiceForm() {
+    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [formData, setFormData] = useState({
         name: '',
@@ -104,7 +106,7 @@ function AddServiceForm() {
                 method: 'POST',
                 body: submissionData, // Send submissionData instead of JSON
             });
-
+    
             if (!serviceResponse.ok) {
                 const errorData = await serviceResponse.json();
                 throw new Error(errorData.message || 'Error occurred while adding the service.');
@@ -127,8 +129,11 @@ function AddServiceForm() {
                 is_halal_certified: false,
             });
             setImage(null);
+            navigate('/');
         } catch (error) {
             setSubmissionError(error.message);
+            // Optionally navigate away if the error is unrecoverable
+            navigate('/error', { replace: true });
         }
     };
 
