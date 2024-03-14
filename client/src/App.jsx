@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LocationProvider } from './context/LocationContext'; // Import LocationProvider
+import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 import './App.css';
 import Navbar from './components/Navbar';
 import MainLayout from './components/MainLayout';
@@ -17,6 +18,7 @@ import AddServicePage from './pages/AddServicePage';
 function App() {
   return (
     <Router>
+    <AuthProvider> {/* Wrap your components with AuthProvider */}
       <LocationProvider> {/* Wrap your components with LocationProvider */}
         <div className="flex flex-col min-h-screen bg-neutral-light">
           <Navbar />
@@ -37,6 +39,7 @@ function App() {
           <Footer />
         </div>
       </LocationProvider>
+      </AuthProvider>
     </Router>
   );
 }
