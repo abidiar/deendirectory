@@ -5,16 +5,22 @@ function FeaturedCategories() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    const fetchCategories = (latitude, longitude) => {
-      fetch(`https://deendirectorybackend.onrender.com/api/categories/featured?lat=${latitude}&lng=${longitude}`)
-      .then(response => response.json())
-      .then(data => {
-        setCategories(data);
-      })
-      .catch(error => console.error('Error fetching featured categories:', error));
-  };
+    const fetchCategories = (latitude = '', longitude = '') => {
+      // Construct URL based on whether latitude and longitude are provided
+      const url = `https://deendirectorybackend.onrender.com/api/categories/featured${latitude && longitude ? `?lat=${latitude}&lng=${longitude}` : ''}`;
+      
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          setCategories(data);
+        })
+        .catch(error => console.error('Error fetching featured categories:', error));
+    };
 
-    // Get user's location
+    // Initially fetch categories without location
+    fetchCategories();
+
+    // Get user's location and fetch categories again if successful
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         position => {
@@ -23,14 +29,10 @@ function FeaturedCategories() {
         },
         error => {
           console.error('Error getting location:', error);
-          // Optional: Fetch categories without location if error
-          fetchCategories();
         }
       );
     } else {
       console.error('Geolocation is not supported by this browser.');
-      // Optional: Fetch categories without location if not supported
-      fetchCategories();
     }
   }, []);
 
@@ -38,11 +40,11 @@ function FeaturedCategories() {
     <div className="container mx-auto px-4 py-6">
       <h2 className="text-2xl font-heading font-bold mb-6 text-primary-dark">Featured Categories</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-      {categories.map((category) => (
-  <div key={category.id} className="group relative">
+        {categories.map((category) => (
+          <div key={category.id} className="group relative">
             <Link to={`/category/${category.id}`} className="block overflow-hidden rounded-lg shadow-lg">
               <img
-                src={category.imageUrl || 'default-category-image.jpg'} // Replace with your default image if no imageUrl is present
+                src={category.imageUrl || 'default-category-image.jpg'}
                 alt={category.name}
                 className="w-full h-48 object-cover transition-opacity duration-300 group-hover:opacity-75"
               />
