@@ -1,65 +1,79 @@
-// Navbar.js
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars } from '@fortawesome/free-solid-svg-icons';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import { supabase } from '../services/supabaseClient';
 
-function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  let navigate = useNavigate();
-  const linkStyle = "text-primary-dark hover:text-primary-light px-3 py-2 rounded-md text-sm font-medium";
+const Navbar = () => {
+  const { user, signOut } = useContext(AuthContext);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Toggle the mobile menu open/closed
-  const toggleMobileMenu = () => {
-    setIsOpen(!isOpen);
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    signOut(); // Update the context to reflect the user has signed out
+    setIsMenuOpen(false); // Close mobile menu
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
-    <nav className="bg-white shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center">
-          <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold text-primary-dark hover:text-primary-light cursor-pointer">
-              DeenDirectory
-            </Link>
-          </div>
-          <div className="hidden sm:block">
-            {/* Desktop Menu Items */}
-            <button onClick={() => navigate('/add-service')} className={linkStyle}>
-              Add Businesses/Services
-            </button>
-            {/* ... other desktop links ... */}
-          </div>
-          <div className="sm:hidden">
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={toggleMobileMenu}
-              type="button" 
-              className="inline-flex items-center justify-center p-2 rounded-md text-primary-dark hover:text-primary-light hover:bg-neutral-light focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-light" 
-              aria-controls="mobile-menu" 
-              aria-expanded={isOpen}
-            >
-              <span className="sr-only">Open main menu</span>
-              <FontAwesomeIcon icon={faBars} />
-            </button>
-          </div>
+    <nav className="bg-white px-2 sm:px-4 py-2.5 shadow-md">
+      <div className="container flex flex-wrap justify-between items-center mx-auto">
+        <Link to="/" className="flex items-center">
+            {/* Logo or Brand name */}
+            <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
+        </Link>
+        <button
+          onClick={toggleMenu}
+          data-collapse-toggle="mobile-menu"
+          type="button"
+          className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+        >
+          <span className="sr-only">Open main menu</span>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16m-7 6h7"
+            ></path>
+          </svg>
+        </button>
+        <div className={`${isMenuOpen ? '' : 'hidden'} w-full md:block md:w-auto`} id="mobile-menu">
+          <ul className="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">
+            {user ? (
+              <>
+                <li>
+                  <Link to="/add-service" className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0" aria-current="page" onClick={() => setIsMenuOpen(false)}>Add Business/Service</Link>
+                </li>
+                <li>
+                  <button onClick={handleSignOut} className="py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0">Sign Out</button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link to="/sign-in" className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0" onClick={() => setIsMenuOpen(false)}>Sign In (Users)</Link>
+                </li>
+                <li>
+                  <Link to="/business-sign-in" className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0" onClick={() => setIsMenuOpen(false)}>Sign In (Businesses)</Link>
+                </li>
+              </>
+            )}
+          </ul>
         </div>
       </div>
-
-      {/* Mobile menu, shown when isOpen is true */}
-      {isOpen && (
-        <div className="sm:hidden" id="mobile-menu">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {/* Mobile Menu Items */}
-            <button onClick={() => navigate('/add-service')} className={`${linkStyle} text-base`}>
-              Add Businesses/Services
-            </button>
-            {/* ... other mobile links ... */}
-          </div>
-        </div>
-      )}
     </nav>
   );
-}
+};
 
 export default Navbar;
