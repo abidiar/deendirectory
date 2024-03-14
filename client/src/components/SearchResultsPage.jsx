@@ -20,7 +20,7 @@ function SearchResultsPage() {
   const [searchError, setSearchError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const { backendUrl } = useContext(LocationContext);
+  const { backendUrl } = useContext(LocationContext); // Ensure this context provides the necessary value
   const navigate = useNavigate();
   const query = useQuery();
   const searchTerm = query.get('searchTerm');
@@ -68,7 +68,11 @@ function SearchResultsPage() {
                   description={business.description}
                   imageUrl={business.image_url}
                   averageRating={business.average_rating}
-                  isHalalCertified={business.category && business.category.toLowerCase() === 'food' ? business.is_halal_certified : undefined}
+                  isHalalCertified={
+                    typeof business.category === 'string' && business.category.toLowerCase() === 'food'
+                      ? business.is_halal_certified
+                      : undefined
+                  }
                   category={business.category}
                   phoneNumber={business.phone_number}
                   hours={business.hours}
