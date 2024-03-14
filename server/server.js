@@ -112,8 +112,8 @@ const { rows: services, count: totalRows } = await Service.findAndCountAll({
     include: [
       // Update the subqueries to match the actual case of the columns in the database.
       // If "business_id" and "id" are in lowercase in the database, make sure to use lowercase in the subqueries.
-      [sequelize.literal('(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = services.id)'), 'reviewCount'],
-      [sequelize.literal('(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = services.id)'), 'averageRating'],
+      [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.business_id = services.id)`), 'reviewCount'],
+      [sequelize.literal(`(SELECT AVG(rating) FROM reviews WHERE reviews.business_id = services.id)`), 'averageRating'],      
     ],
     exclude: ['location'] // Exclude 'location' if you are not using it in the response
   },
