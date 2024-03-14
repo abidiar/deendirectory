@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 
 function FeaturedCategories() {
   const [categories, setCategories] = useState([]);
+  const [location, setLocation] = useState(null);
 
   useEffect(() => {
-    const fetchCategories = (latitude = '', longitude = '') => {
-      // Construct URL based on whether latitude and longitude are provided
-      const url = `https://deendirectorybackend.onrender.com/api/categories/featured${latitude && longitude ? `?lat=${latitude}&lng=${longitude}` : ''}`;
-      
+    // Fetch categories with optional location parameters
+    const fetchCategories = (lat, lng) => {
+      let url = 'https://deendirectorybackend.onrender.com/api/categories/featured';
+      if (lat && lng) {
+        url += `?lat=${lat}&lng=${lng}`;
+      }
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -20,11 +23,12 @@ function FeaturedCategories() {
     // Initially fetch categories without location
     fetchCategories();
 
-    // Get user's location and fetch categories again if successful
+    // Get user's location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         position => {
           const { latitude, longitude } = position.coords;
+          setLocation({ latitude, longitude });
           fetchCategories(latitude, longitude);
         },
         error => {
@@ -36,6 +40,13 @@ function FeaturedCategories() {
     }
   }, []);
 
+  // If location is updated, refetch categories with location
+  useEffect(() => {
+    if (location) {
+      fetchCategories(location.latitude, location.longitude);
+    }
+  }, [location]);
+
   return (
     <div className="container mx-auto px-4 py-6">
       <h2 className="text-2xl font-heading font-bold mb-6 text-primary-dark">Featured Categories</h2>
@@ -44,7 +55,7 @@ function FeaturedCategories() {
           <div key={category.id} className="group relative">
             <Link to={`/category/${category.id}`} className="block overflow-hidden rounded-lg shadow-lg">
               <img
-                src={category.imageUrl || 'default-category-image.jpg'}
+                src={category.imageUrl || 'default-category-image.jpg'} // Replace with your default image if no imageUrl is present
                 alt={category.name}
                 className="w-full h-48 object-cover transition-opacity duration-300 group-hover:opacity-75"
               />
