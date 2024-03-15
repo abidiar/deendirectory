@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { supabase } from '../services/supabaseClient';
+import { supabase } from './services/supabaseClient';
 import { Auth, ThemeSupa } from '@supabase/auth-ui-react';
 
 // Import your other components
