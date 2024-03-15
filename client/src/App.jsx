@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { supabase } from './services/supabaseClient';
 import { Auth } from '@supabase/auth-ui-react'
@@ -8,6 +8,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import Navbar from './components/Navbar';
 import MainLayout from './components/MainLayout';
 import Footer from './components/Footer';
+import DashboardComponent from './components/DashboardComponent';
 import HomeServices from './components/HomeServices';
 import SearchResultsPage from './components/SearchResultsPage';
 import BusinessPage from './components/BusinessPage';
@@ -19,7 +20,21 @@ import AddServicePage from './pages/AddServicePage';
 // You can remove UserSignIn and BusinessSignIn imports if you are using Supabase Auth UI instead.
 
 function App() {
-  const session = supabase.auth.session();
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(supabase.auth.session());
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
 
   return (
     <Router>
@@ -32,6 +47,7 @@ function App() {
               <Route path="/" element={<MainLayout />} />
               <Route path="/home-services" element={<HomeServices />} />
               <Route path="/home-services/babysitters" element={<Babysitters />} />
+              <Route path="/dashboard" element={<DashboardComponent />} />
               <Route path="/home-services/cleaners" element={<Cleaners />} />
               <Route path="/search-results" element={<SearchResultsPage />} />
               <Route path="/business/:id" element={<BusinessPage />} />
