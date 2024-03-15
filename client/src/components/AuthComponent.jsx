@@ -17,7 +17,15 @@ function AuthComponent() {
 
     try {
       const result = isSignUp ? await signUp(email, password) : await signIn(email, password);
-      if (result.error) throw result.error;
+      if (result.error) {
+        throw result.error;
+      }
+
+      // Check if session is available before navigating
+      if (!result.session) {
+        throw new Error('Session is not available.');
+      }
+      
       console.log('Authentication success:', result.user);
       navigate('/dashboard'); // Adjust as needed
     } catch (error) {
@@ -59,7 +67,7 @@ function AuthComponent() {
         </form>
         <div className="flex items-center justify-center">
           <div className="text-sm">
-            <a href="#" onClick={() => setIsSignUp(!isSignUp)} className="font-medium text-indigo-600 hover:text-indigo-500">
+            <a href="#" onClick={(e) => { e.preventDefault(); setIsSignUp(!isSignUp); }} className="font-medium text-indigo-600 hover:text-indigo-500">
               {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </a>
           </div>
