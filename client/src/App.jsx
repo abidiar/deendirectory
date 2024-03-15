@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom'; // Corrected import
 import { supabase } from './services/supabaseClient';
-import { Auth } from '@supabase/auth-ui-react'
+import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 
 // Import your other components
@@ -36,32 +37,30 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen bg-neutral-light">
-        <Navbar />
-        <main className="flex-grow">
-          {session ? (
-            <Routes>
-              {/* Your routes for authenticated users */}
-              <Route path="/" element={<MainLayout />} />
-              <Route path="/home-services" element={<HomeServices />} />
-              <Route path="/home-services/babysitters" element={<Babysitters />} />
-              <Route path="/dashboard" element={<DashboardComponent />} />
-              <Route path="/home-services/cleaners" element={<Cleaners />} />
-              <Route path="/search-results" element={<SearchResultsPage />} />
-              <Route path="/business/:id" element={<BusinessPage />} />
-              <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
-              <Route path="/category/:categoryId" element={<CategoryPage />} />
-              <Route path="/add-service" element={<AddServicePage />} />
-              {/* Add other authenticated routes as needed */}
-            </Routes>
-          ) : (
-            <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
-          )}
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <div className="flex flex-col min-h-screen bg-neutral-light">
+      <Navbar />
+      <main className="flex-grow">
+        {session ? (
+          <Routes>
+            {/* Your routes for authenticated users */}
+            <Route path="/" element={<MainLayout />} />
+            <Route path="/home-services" element={<HomeServices />} />
+            <Route path="/home-services/babysitters" element={<Babysitters />} />
+            <Route path="/dashboard" element={<DashboardComponent />} />
+            <Route path="/home-services/cleaners" element={<Cleaners />} />
+            <Route path="/search-results" element={<SearchResultsPage />} />
+            <Route path="/business/:id" element={<BusinessPage />} />
+            <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
+            <Route path="/category/:categoryId" element={<CategoryPage />} />
+            <Route path="/add-service" element={<AddServicePage />} />
+            {/* Add other authenticated routes as needed */}
+          </Routes>
+        ) : (
+          <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
+        )}
+      </main>
+      <Footer />
+    </div>
   );
 }
 
