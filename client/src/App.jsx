@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom'; // Corrected import
+import { BrowserRouter, Routes, Route } from 'react-router-dom'; // Make sure BrowserRouter is imported
 import { supabase } from './services/supabaseClient';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 
 // Import your other components
 import Navbar from './components/Navbar';
@@ -37,10 +38,12 @@ function App() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-light">
-      <Navbar />
-      <main className="flex-grow">
-        {session ? (
+    <AuthProvider> {/* Move AuthProvider here */}
+      <BrowserRouter>
+        <div className="flex flex-col min-h-screen bg-neutral-light">
+          <Navbar />
+          <main className="flex-grow">
+            {session ? (
           <Routes>
             {/* Your routes for authenticated users */}
             <Route path="/" element={<MainLayout />} />
@@ -55,13 +58,15 @@ function App() {
             <Route path="/add-service" element={<AddServicePage />} />
             {/* Add other authenticated routes as needed */}
           </Routes>
-        ) : (
-          <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
-        )}
-      </main>
-      <Footer />
-    </div>
-  );
+) : (
+  <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
+)}
+</main>
+<Footer />
+</div>
+</BrowserRouter>
+</AuthProvider>
+);
 }
 
 export default App;
