@@ -6,7 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
 ReactDOM.render(
-  <React.StrictMode>
+  <React.StrictMode>  
     <BrowserRouter>
     <AuthProvider> {/* Wrap App inside AuthProvider */}
       <App />
