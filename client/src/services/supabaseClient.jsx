@@ -1,13 +1,15 @@
 // supabaseClient.js
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; // Supabase project URL from Vite environment variable
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_KEY; // Supabase anon key from Vite environment variable
+// Make sure these are the correct environment variable keys
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_KEY;
+
+// Check if the environment variables are not undefined
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Supabase environment variables are not set or undefined.');
+} else {
+  console.log('Supabase URL:', supabaseUrl); // For debugging purposes only; remove in production
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Logging for debugging
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Key:', supabaseAnonKey);
-console.log('Supabase Client Initialized:', supabase);
-console.log('Supabase Client:', supabase);
