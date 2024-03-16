@@ -1,23 +1,21 @@
-// UserSignIn.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { supabase } from '../services/supabaseClient';
 
 const UserSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signIn, authError } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await signIn(email, password)
-      .then(() => {
-        navigate('/'); // Adjust to navigate to the user's landing page or profile page after successful login
-      })
-      .catch((error) => {
-        console.error('Sign in error:', error);
-      });
+    const { error } = await supabase.auth.signIn({ email, password });
+    if (error) {
+      console.error('Error signing in:', error.message);
+      // Optionally set error state here to show error messages
+    } else {
+      navigate('/'); // Navigate to the landing or profile page upon successful sign-in
+    }
   };
 
   return (

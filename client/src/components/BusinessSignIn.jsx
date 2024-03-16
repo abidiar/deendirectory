@@ -1,18 +1,21 @@
-// BusinessSignIn.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { supabase } from '../services/supabaseClient';
 
 const BusinessSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { signIn, authError } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await signIn(email, password);
-    navigate('/business-dashboard'); // Adjust this to your business dashboard route
+    const { error } = await supabase.auth.signIn({ email, password });
+    if (error) {
+      console.error('Error signing in:', error.message);
+      // Optionally set error state here to show error messages
+    } else {
+      navigate('/business-dashboard'); // Navigate upon successful sign-in
+    }
   };
 
   return (
