@@ -1,15 +1,13 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
 
 const Navbar = () => {
-  const { user, signOut } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const user = supabase.auth.user(); // Directly check if user is logged in
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    signOut(); // Update the context to reflect the user has signed out
     setIsMenuOpen(false); // Close mobile menu
   };
 
@@ -21,8 +19,8 @@ const Navbar = () => {
     <nav className="bg-white px-2 sm:px-4 py-2.5 shadow-md">
       <div className="container flex flex-wrap justify-between items-center mx-auto">
         <Link to="/" className="flex items-center">
-            {/* Logo or Brand name */}
-            <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
+          {/* Logo or Brand name */}
+          <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
         </Link>
         <button
           onClick={toggleMenu}
