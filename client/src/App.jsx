@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './services/supabaseClient';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { AuthProvider } from './context/AuthContext';
 
 // Import your other components
 import Navbar from './components/Navbar';
@@ -20,16 +19,25 @@ import CategoryPage from './components/CategoryPage';
 import AddServicePage from './pages/AddServicePage';
 
 function App() {
-  // No need for useState here as session is managed in AuthContext
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(supabase.auth.session());
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="flex flex-col min-h-screen bg-neutral-light">
-          <Navbar />
-          <main className="flex-grow">
-            {/* Access session from AuthContext within components */}
+    <BrowserRouter>
+      <div className="flex flex-col min-h-screen bg-neutral-light">
+        <Navbar />
+        <main className="flex-grow">
+          {session ? (
             <Routes>
-              {/* Your routes for authenticated users */}
               <Route path="/" element={<MainLayout />} />
               <Route path="/home-services" element={<HomeServices />} />
               <Route path="/home-services/babysitters" element={<Babysitters />} />
@@ -42,12 +50,13 @@ function App() {
               <Route path="/add-service" element={<AddServicePage />} />
               {/* Add other authenticated routes as needed */}
             </Routes>
+          ) : (
             <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
-          </main>
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+          )}
+        </main>
+        <Footer />
+      </div>
+    </BrowserRouter>
   );
 }
 

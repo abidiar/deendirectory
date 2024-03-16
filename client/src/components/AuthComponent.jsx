@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signUp, signIn } from '../services/auth';
+import { supabase } from '../services/supabaseClient';
 
 function AuthComponent() {
   const [email, setEmail] = useState('');
@@ -16,16 +16,13 @@ function AuthComponent() {
     setError('');
 
     try {
-      const result = isSignUp ? await signUp(email, password) : await signIn(email, password);
-      if (result.error) {
-        throw result.error;
-      }
+      const result = isSignUp 
+        ? await supabase.auth.signUp({ email, password }) 
+        : await supabase.auth.signIn({ email, password });
 
-      // Check if session is available before navigating
-      if (!result.session) {
-        throw new Error('Session is not available.');
-      }
-      
+      if (result.error) throw result.error;
+
+      // Supabase handles session management, no need to manually check session availability here
       console.log('Authentication success:', result.user);
       navigate('/dashboard'); // Adjust as needed
     } catch (error) {
