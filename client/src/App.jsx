@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './services/supabaseClient';
+import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 
 // Import your other components
 import Navbar from './components/Navbar';
@@ -30,34 +31,35 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <div className="flex flex-col min-h-screen bg-neutral-light">
-        <Navbar />
-        <main className="flex-grow">
-          {session ? (
-            <Routes>
-              <Route path="/" element={<MainLayout />} />
-              <Route path="/home-services" element={<HomeServices />} />
-              <Route path="/home-services/babysitters" element={<Babysitters />} />
-              <Route path="/dashboard" element={<DashboardComponent />} />
-              <Route path="/home-services/cleaners" element={<Cleaners />} />
-              <Route path="/search-results" element={<SearchResultsPage />} />
-              <Route path="/business/:id" element={<BusinessPage />} />
-              <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
-              <Route path="/category/:categoryId" element={<CategoryPage />} />
-              <Route path="/add-service" element={<AddServicePage />} />
-              {/* Add other authenticated routes as needed */}
-            </Routes>
-          ) : (
-            // Replace this Auth component with a custom message
-            <div className="flex justify-center items-center h-full">
-              <h2>Please login to access the application.</h2>
-            </div>
-          )}
-        </main>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <AuthProvider> {/* Wrap your app with AuthProvider */}
+      <BrowserRouter>
+        <div className="flex flex-col min-h-screen bg-neutral-light">
+          <Navbar />
+          <main className="flex-grow">
+            {session ? (
+              <Routes>
+                <Route path="/" element={<MainLayout />} />
+                <Route path="/home-services" element={<HomeServices />} />
+                <Route path="/home-services/babysitters" element={<Babysitters />} />
+                <Route path="/dashboard" element={<DashboardComponent />} />
+                <Route path="/home-services/cleaners" element={<Cleaners />} />
+                <Route path="/search-results" element={<SearchResultsPage />} />
+                <Route path="/business/:id" element={<BusinessPage />} />
+                <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
+                <Route path="/category/:categoryId" element={<CategoryPage />} />
+                <Route path="/add-service" element={<AddServicePage />} />
+                {/* Add other authenticated routes as needed */}
+              </Routes>
+            ) : (
+              <div className="flex justify-center items-center h-full">
+                <h2>Please login to access the application.</h2>
+              </div>
+            )}
+          </main>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
