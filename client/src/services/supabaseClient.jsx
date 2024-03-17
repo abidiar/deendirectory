@@ -10,7 +10,8 @@ if (!supabaseUrl || !supabaseKey) {
   console.error('Supabase environment variables are not set or undefined.');
   // You might want to handle this error more gracefully in a production environment
 } else {
-  console.log('Supabase URL:', supabaseUrl); // For debugging purposes only; remove in production
+  console.log('Supabase URL:', supabaseUrl);  // For debugging purposes only; remove in production
+  console.log('Supabase KEY:', supabaseKey); 
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
