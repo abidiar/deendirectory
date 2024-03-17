@@ -8,7 +8,7 @@ function DashboardComponent() {
 
   useEffect(() => {
     // Fetch the current user's details from Supabase
-    const user = supabase.auth.user();
+    const user = supabase.auth.getUser();
     if (user) {
       setEmail(user.email);
     } else {
