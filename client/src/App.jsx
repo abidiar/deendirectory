@@ -19,9 +19,22 @@ import AddServicePage from './pages/AddServicePage';
 
 function App() {
   const [session, setSession] = useState(null);
+  const [loadingSession, setLoadingSession] = useState(true);
 
   useEffect(() => {
-    setSession(supabase.auth.session());
+    const getSessionData = async () => {
+       const { data, error } = await supabase.auth.getSession();
+
+       if (error) {
+         // Handle error
+         console.error('Error getting session:', error);
+       } else {
+         setSession(data.session);
+       }   
+       setLoadingSession(false); 
+    };
+
+    getSessionData();
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -36,7 +49,11 @@ function App() {
         <div className="flex flex-col min-h-screen bg-neutral-light">
           <Navbar />
           <main className="flex-grow">
-            {session ? (
+            {loadingSession ? (
+              <div className="flex justify-center items-center h-full">
+                <h2>Loading session...</h2>
+              </div>
+            ) : session ? (
               <Routes>
                 <Route path="/" element={<MainLayout />} />
                 <Route path="/home-services" element={<HomeServices />} />
@@ -48,7 +65,6 @@ function App() {
                 <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
                 <Route path="/category/:categoryId" element={<CategoryPage />} />
                 <Route path="/add-service" element={<AddServicePage />} />
-                {/* Add other authenticated routes as needed */}
               </Routes>
             ) : (
               <div className="flex justify-center items-center h-full">
