@@ -12,7 +12,7 @@ const UserSignIn = () => {
     const { error } = await supabase.auth.signIn({ email, password });
     if (error) {
       console.error('Error signing in:', error.message);
-      // Optionally set error state here to show error messages
+      setAuthError(error.message);
     } else {
       navigate('/'); // Navigate to the landing or profile page upon successful sign-in
     }

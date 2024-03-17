@@ -12,7 +12,7 @@ const BusinessSignIn = () => {
     const { error } = await supabase.auth.signIn({ email, password });
     if (error) {
       console.error('Error signing in:', error.message);
-      // Optionally set error state here to show error messages
+      setAuthError(error.message);
     } else {
       navigate('/business-dashboard'); // Navigate upon successful sign-in
     }
