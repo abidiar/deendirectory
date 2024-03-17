@@ -1,17 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 
 function DashboardComponent() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
 
-  // This function handles the sign-out process directly with Supabase
+  useEffect(() => {
+    // Fetch the current user's details from Supabase
+    const user = supabase.auth.user();
+    if (user) {
+      setEmail(user.email);
+    } else {
+      // If no user is found, redirect to the sign-in page
+      navigate('/sign-in');
+    }
+  }, [navigate]);
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error.message);
     } else {
-      // Redirect the user to the homepage after sign out
       navigate('/');
     }
   };
@@ -19,8 +29,7 @@ function DashboardComponent() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Dashboard</h1>
-      {/* Here we display a generic welcome message as we're not fetching the user info from the context */}
-      <p>Welcome to the Dashboard!</p>
+      <p>Welcome to the Dashboard, {email || "user"}!</p>
       {/* Other dashboard content goes here */}
       <button
         onClick={handleSignOut}

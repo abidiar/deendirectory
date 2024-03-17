@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
 
 const Navbar = () => {
+  const { user, signOut: contextSignOut } = useContext(AuthContext);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const user = supabase.auth.user(); // Directly check if user is logged in
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    if (contextSignOut) contextSignOut(); // Ensure context's signOut is called if it exists
     setIsMenuOpen(false); // Close mobile menu
   };
 
@@ -19,8 +21,8 @@ const Navbar = () => {
     <nav className="bg-white px-2 sm:px-4 py-2.5 shadow-md">
       <div className="container flex flex-wrap justify-between items-center mx-auto">
         <Link to="/" className="flex items-center">
-          {/* Logo or Brand name */}
-          <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
+            {/* Logo or Brand name */}
+            <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
         </Link>
         <button
           onClick={toggleMenu}
@@ -30,21 +32,7 @@ const Navbar = () => {
           aria-controls="mobile-menu"
           aria-expanded="false"
         >
-          <span className="sr-only">Open main menu</span>
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            ></path>
-          </svg>
+          {/* Icon for menu */}
         </button>
         <div className={`${isMenuOpen ? '' : 'hidden'} w-full md:block md:w-auto`} id="mobile-menu">
           <ul className="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">

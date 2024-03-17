@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './services/supabaseClient';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from "@supabase/auth-ui-shared";
 
 // Import your other components
 import Navbar from './components/Navbar';
@@ -51,7 +49,10 @@ function App() {
               {/* Add other authenticated routes as needed */}
             </Routes>
           ) : (
-            <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />
+            // Replace this Auth component with a custom message
+            <div className="flex justify-center items-center h-full">
+              <h2>Please login to access the application.</h2>
+            </div>
           )}
         </main>
         <Footer />
