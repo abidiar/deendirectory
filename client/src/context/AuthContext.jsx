@@ -15,16 +15,15 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const session = supabase.auth.session();
-
     setUser(session?.user ?? null);
     setLoading(false);
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const subscription = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
     });
 
     return () => {
-      listener.unsubscribe();
+      subscription.data.unsubscribe(); // Correct unsubscribe method!
     };
   }, []);
 
