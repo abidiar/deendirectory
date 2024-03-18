@@ -1,15 +1,29 @@
-import React, { useContext, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
 import { supabase } from '../services/supabaseClient';
 
 const Navbar = () => {
-  const { user, signOut: contextSignOut } = useContext(AuthContext);
+  const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Check current session and set user
+    const session = supabase.auth.session();
+    setUser(session?.user);
+
+    // Listen for changes on authentication state (login, logout)
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user);
+    });
+
+    // Cleanup subscription on component unmount
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    if (contextSignOut) contextSignOut(); // Ensure context's signOut is called if it exists
     setIsMenuOpen(false); // Close mobile menu
   };
 
@@ -21,17 +35,10 @@ const Navbar = () => {
     <nav className="bg-white px-2 sm:px-4 py-2.5 shadow-md">
       <div className="container flex flex-wrap justify-between items-center mx-auto">
         <Link to="/" className="flex items-center">
-            {/* Logo or Brand name */}
-            <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
+          {/* Logo or Brand name */}
+          <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
         </Link>
-        <button
-          onClick={toggleMenu}
-          data-collapse-toggle="mobile-menu"
-          type="button"
-          className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
-          aria-controls="mobile-menu"
-          aria-expanded="false"
-        >
+        <button onClick={toggleMenu} data-collapse-toggle="mobile-menu" type="button" className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="mobile-menu" aria-expanded="false">
           {/* Icon for menu */}
         </button>
         <div className={`${isMenuOpen ? '' : 'hidden'} w-full md:block md:w-auto`} id="mobile-menu">
