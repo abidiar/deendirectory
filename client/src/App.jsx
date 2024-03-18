@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './services/supabaseClient';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 import ErrorBoundary from './components/ErrorBoundary'; // Import ErrorBoundary
 
 // Import your other components
@@ -54,20 +54,28 @@ function App() {
               ) : session ? (
                 <Routes>
                   <Route path="/" element={<MainLayout />} />
-                  {/* Define other routes */}
-                </Routes>
-              ) : (
-                <div className="flex justify-center items-center h-full">
-                  <h2>Please login to access the application.</h2>
-                </div>
-              )}
-            </main>
-            <Footer />
-          </div>
-        </BrowserRouter>
-      </AuthProvider>
-    </ErrorBoundary>
-  );
+                <Route path="/home-services" element={<HomeServices />} />
+                <Route path="/home-services/babysitters" element={<Babysitters />} />
+                <Route path="/dashboard" element={<DashboardComponent />} />
+                <Route path="/home-services/cleaners" element={<Cleaners />} />
+                <Route path="/search-results" element={<SearchResultsPage />} />
+                <Route path="/business/:id" element={<BusinessPage />} />
+                <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
+                <Route path="/category/:categoryId" element={<CategoryPage />} />
+                <Route path="/add-service" element={<AddServicePage />} />
+              </Routes>
+) : (
+  <div className="flex justify-center items-center h-full">
+    <h2>Please login to access the application.</h2>
+  </div>
+)}
+</main>
+<Footer />
+</div>
+</BrowserRouter>
+</AuthProvider>
+</ErrorBoundary>
+);
 }
 
 export default App;
