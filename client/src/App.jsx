@@ -22,24 +22,13 @@ function App() {
   const [loadingSession, setLoadingSession] = useState(true);
 
   useEffect(() => {
-    const getSessionData = async () => {
-       const { data, error } = await supabase.auth.getSession();
-
-       if (error) {
-         // Handle error
-         console.error('Error getting session:', error);
-       } else {
-         setSession(data.session);
-       }   
-       setLoadingSession(false); 
-    };
-
-    getSessionData();
-
+    setSession(supabase.auth.session());
+    setLoadingSession(false);
+  
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
-
+  
     return () => subscription.unsubscribe();
   }, []);
 
