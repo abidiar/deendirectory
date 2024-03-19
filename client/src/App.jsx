@@ -20,22 +20,23 @@ import CategoryPage from './components/CategoryPage';
 import AddServicePage from './pages/AddServicePage';
 
 function App() {
-  const [session, setSession] = useState(null);
-  const [loadingSession, setLoadingSession] = useState(true);
+  // const [session, setSession] = useState(null); // Not used for now
+  // const [loadingSession, setLoadingSession] = useState(true); // Not used for now
 
-  useEffect(() => {
-    setSession(supabase.auth.session);
-    setLoadingSession(false);
+  // Comment out useEffect hook related to session logic
+  // useEffect(() => {
+  //   setSession(supabase.auth.session);
+  //   setLoadingSession(false);
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+  //   const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     setSession(session);
+  //   });
 
-    return () => {
-      if (subscription) subscription.unsubscribe();
-    };
-  }, []);
-
+  //   return () => {
+  //     if (subscription) subscription.unsubscribe();
+  //   };
+  // }, []);
+  
   return (
     <ErrorBoundary>
       <BrowserRouter>
