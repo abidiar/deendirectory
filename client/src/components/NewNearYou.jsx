@@ -1,6 +1,5 @@
-// NewNearYou.jsx
 import React, { useState, useEffect } from 'react';
-import Card from './Card'; // Import the Card component
+import Card from './Card';
 
 function NewNearYou() {
   const [services, setServices] = useState([]);
@@ -11,9 +10,7 @@ function NewNearYou() {
   }, []);
 
   function success(position) {
-    let { latitude, longitude } = position.coords;
-    latitude = parseFloat(latitude.toFixed(6));
-    longitude = parseFloat(longitude.toFixed(6));
+    const { latitude, longitude } = position.coords;
     fetchNewNearYouServices(latitude, longitude);
   }
 
@@ -26,39 +23,24 @@ function NewNearYou() {
     const fetchUrl = `https://deendirectorybackend.onrender.com/api/services/new-near-you/?latitude=${latitude}&longitude=${longitude}&limit=${limit}`;
 
     fetch(fetchUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch services');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setServices(data);
-      })
-      .catch(err => {
-        setLocationError('Failed to fetch services');
-      });
-  }
-
-  if (locationError) {
-    return <div className="text-accent-coral">Error: {locationError}</div>;
+      .then(response => response.json())
+      .then(data => setServices(data))
+      .catch(err => setLocationError('Failed to fetch services'));
   }
 
   return (
-    <div className="py-6">
+    <section className="py-6">
       <h2 className="text-2xl font-bold text-primary-dark mb-4">New Near You</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {services.map((service) => (
-          <Card
-            key={service.id}
-            id={service.id}
-            title={service.name}
-            description={service.description}
-            imageUrl={service.imageUrl} // Replace this with your actual image URL field
-          />
-        ))}
-      </div>
-    </div>
+      {locationError ? (
+        <div className="text-accent-coral">Error: {locationError}</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {services.map(service => (
+            <Card key={service.id} {...service} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
