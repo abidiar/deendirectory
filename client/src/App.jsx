@@ -1,42 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { supabase } from './services/supabaseClient'; 
+import { supabase } from './services/supabaseClient'; // Ensure this path matches your Supabase client initialization
 import { LocationProvider } from './context/LocationContext'; 
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-// Static imports
-import MainLayout from './components/MainLayout';
-import BusinessSignIn from './components/BusinessSignIn';
-import UserSignIn from './components/UserSignIn';
-import DashboardComponent from './components/DashboardComponent';
-import HomeServices from './components/HomeServices';
-import SearchResultsPage from './components/SearchResultsPage';
-import BusinessPage from './components/BusinessPage';
-import Babysitters from './components/Babysitters';
-import Cleaners from './components/Cleaners';
-import SubcategoryPage from './components/SubcategoryPage';
-import CategoryPage from './components/CategoryPage';
-import AddServicePage from './pages/AddServicePage';
+// Lazy loading components
+const MainLayout = lazy(() => import('./components/MainLayout'));
+const BusinessSignIn = lazy(() => import('./components/BusinessSignIn'));
+const UserSignIn = lazy(() => import('./components/UserSignIn'));
+const DashboardComponent = lazy(() => import('./components/DashboardComponent'));
+const HomeServices = lazy(() => import('./components/HomeServices'));
+const SearchResultsPage = lazy(() => import('./components/SearchResultsPage'));
+const BusinessPage = lazy(() => import('./components/BusinessPage'));
+const Babysitters = lazy(() => import('./components/Babysitters'));
+const Cleaners = lazy(() => import('./components/Cleaners'));
+const SubcategoryPage = lazy(() => import('./components/SubcategoryPage'));
+const CategoryPage = lazy(() => import('./components/CategoryPage'));
+const AddServicePage = lazy(() => import('./pages/AddServicePage'));
 
 function App() {
   const [session, setSession] = useState(null);
-  const [loadingSession, setLoadingSession] = useState(false); // Initially false, set true if needed
 
   useEffect(() => {
-    // Accessing session as a property
     setSession(supabase.auth.session);
-
-    // Listening for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
     });
-
-    // Correctly handling the cleanup
-    return () => {
-      authListener.unsubscribe(); // Corrected unsubscribe call
-    };
+    return () => authListener.unsubscribe();
   }, []);
 
   return (
@@ -46,21 +38,23 @@ function App() {
           <div className="flex flex-col min-h-screen bg-neutral-light">
             <Navbar />
             <main className="flex-grow">
+              <Suspense fallback={<div>Loading...</div>}>
                 <Routes>
-                <Route path="/" element={<MainLayout />} />
+                  <Route path="/" element={<MainLayout />} />
+                  <Route path="/business-sign-in" element={<BusinessSignIn />} />
+                  <Route path="/user-sign-in" element={<UserSignIn />} />
+                  <Route path="/dashboard" element={<DashboardComponent />} />
                   <Route path="/home-services" element={<HomeServices />} />
-                <Route path="/home-services/babysitters" element={<Babysitters />} />
-                <Route path="/dashboard" element={<DashboardComponent />} />
-                <Route path="/home-services/cleaners" element={<Cleaners />} />
-                <Route path="/search-results" element={<SearchResultsPage />} />
-                <Route path="/business/:id" element={<BusinessPage />} />
-                <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
-                <Route path="/category/:categoryId" element={<CategoryPage />} />
-                <Route path="/add-service" element={<AddServicePage />} />
-                {/* Added routes for sign in components */}
-                <Route path="/business-sign-in" element={<BusinessSignIn />} />
-                <Route path="/user-sign-in" element={<UserSignIn />} />
+                  <Route path="/home-services/babysitters" element={<Babysitters />} />
+                  <Route path="/home-services/cleaners" element={<Cleaners />} />
+                  <Route path="/search-results" element={<SearchResultsPage />} />
+                  <Route path="/business/:id" element={<BusinessPage />} />
+                  <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
+                  <Route path="/category/:categoryId" element={<CategoryPage />} />
+                  <Route path="/add-service" element={<AddServicePage />} />
+                  {/* Add other routes as needed */}
                 </Routes>
+              </Suspense>
             </main>
             <Footer />
           </div>
