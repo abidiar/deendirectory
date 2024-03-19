@@ -7,25 +7,24 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Correctly call session() as a function
-    const session = supabase.auth.session();
-    setUser(session?.user);
-  
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user);
+    // Note: Here, session is accessed directly without calling it as a function,
+    // aligning with your App.jsx implementation.
+    setUser(supabase.auth.session);
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session);
     });
-  
-    return () => subscription?.unsubscribe();
+
+    // Clean up the subscription when the component unmounts
+    return () => authListener.unsubscribe();
   }, []);
-  
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (!error) {
-      setIsMenuOpen(false); // Close the menu if sign-out was successful
+      setIsMenuOpen(false);
     } else {
-      console.error('Sign-out error:', error.message);
-      // Optionally, inform the user of the error
+      console.error('Error signing out:', error.message);
     }
   };
 
@@ -38,7 +37,7 @@ const Navbar = () => {
           <Link to="/" className="flex items-center">
             <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">DeenDirectory</span>
           </Link>
-          <button onClick={toggleMenu} data-collapse-toggle="mobile-menu" type="button" className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="mobile-menu" aria-expanded={isMenuOpen} aria-label="Toggle navigation">
+          <button onClick={toggleMenu} data-collapse-toggle="mobile-menu" type="button" className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="mobile-menu" aria-expanded={isMenuOpen ? 'true' : 'false'} aria-label="Toggle navigation">
             <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
               <path d="M4 6h16M4 12h16m-7 6h7"></path>
             </svg>
