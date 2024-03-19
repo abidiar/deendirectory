@@ -13,7 +13,7 @@ function DashboardComponent() {
       setEmail(user.email);
     } else {
       // If no user is found, redirect to the sign-in page
-      navigate('/sign-in');
+      navigate('/business-sign-in');
     }
   }, [navigate]);
 
