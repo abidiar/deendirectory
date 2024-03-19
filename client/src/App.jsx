@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { supabase } from './services/supabaseClient'; // Ensure this import is correct
+import { supabase } from './services/supabaseClient'; 
 import { LocationProvider } from './context/LocationContext'; 
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -22,21 +22,20 @@ import AddServicePage from './pages/AddServicePage';
 
 function App() {
   const [session, setSession] = useState(null);
-  const [loadingSession, setLoadingSession] = useState(true);
+  const [loadingSession, setLoadingSession] = useState(false); // Initially false, set true if needed
 
   useEffect(() => {
-    // Initialize session from local storage if it exists
-    setSession(supabase.auth.session()); // Make sure this should be a method call or property access
-    setLoadingSession(false);
+    // Accessing session as a property
+    setSession(supabase.auth.session);
 
-    // Listen for changes on authentication state (login, logout)
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, newSession) => {
-      setSession(newSession);
+    // Listening for auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
     });
 
-    // Cleanup subscription on component unmount
+    // Correctly handling the cleanup
     return () => {
-      if (subscription) subscription.unsubscribe();
+      authListener.unsubscribe(); // Corrected unsubscribe call
     };
   }, []);
 
