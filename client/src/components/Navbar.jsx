@@ -7,17 +7,17 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    setSession(supabase.auth.session);
-    setLoadingSession(false);
-    
+    // Correctly call session() as a function
+    const session = supabase.auth.session();
+    setUser(session?.user);
+  
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-    setSession(session);
+      setUser(session?.user);
     });
-    
-    return () => {
-    if (subscription) subscription.unsubscribe();
-    };
-    }, []);
+  
+    return () => subscription?.unsubscribe();
+  }, []);
+  
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
