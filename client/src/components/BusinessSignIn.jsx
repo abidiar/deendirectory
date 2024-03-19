@@ -5,6 +5,7 @@ import { supabase } from '../services/supabaseClient';
 const BusinessSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState(null); // Declare authError in the component's state
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -12,9 +13,10 @@ const BusinessSignIn = () => {
     const { error } = await supabase.auth.signIn({ email, password });
     if (error) {
       console.error('Error signing in:', error.message);
-      setAuthError(error.message);
+      setAuthError(error.message); // Properly set the error message to display in the UI
     } else {
-      navigate('/dashboard'); // Navigate upon successful sign-in
+      setAuthError(null); // Clear any existing errors upon successful sign-in
+      navigate('/dashboard'); // Navigate to the dashboard or profile page upon successful sign-in
     }
   };
 
@@ -45,7 +47,11 @@ const BusinessSignIn = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           />
-          {authError && <p className="text-red-500 text-xs italic">{authError}</p>}
+          {authError && (
+            <div className="text-red-500 text-sm text-center">
+              {authError} {/* Display the error message here */}
+            </div>
+          )}
           <button
             type="submit"
             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

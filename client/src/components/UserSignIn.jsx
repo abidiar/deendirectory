@@ -5,6 +5,7 @@ import { supabase } from '../services/supabaseClient';
 const UserSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState(null); // Declare authError in the component's state
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -12,8 +13,9 @@ const UserSignIn = () => {
     const { error } = await supabase.auth.signIn({ email, password });
     if (error) {
       console.error('Error signing in:', error.message);
-      setAuthError(error.message);
+      setAuthError(error.message); // Properly set the error message to display in the UI
     } else {
+      setAuthError(null); // Clear any existing errors upon successful sign-in
       navigate('/'); // Navigate to the landing or profile page upon successful sign-in
     }
   };
@@ -65,7 +67,7 @@ const UserSignIn = () => {
 
           {authError && (
             <div className="text-red-500 text-sm text-center">
-              {authError}
+              {authError} {/* Display the error message here */}
             </div>
           )}
 
