@@ -36,18 +36,13 @@ function App() {
   //     if (subscription) subscription.unsubscribe();
   //   };
   // }, []);
-  
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <div className="flex flex-col min-h-screen bg-neutral-light">
           <Navbar />
           <main className="flex-grow">
-            {loadingSession ? (
-              <div className="flex justify-center items-center h-full">
-                <h2>Loading session...</h2>
-              </div>
-            ) : session ? (
               <Routes>
                 <Route path="/" element={<MainLayout />} />
                 <Route path="/home-services" element={<HomeServices />} />
@@ -62,12 +57,7 @@ function App() {
                 {/* Added routes for sign in components */}
                 <Route path="/business-sign-in" element={<BusinessSignIn />} />
                 <Route path="/user-sign-in" element={<UserSignIn />} />
-              </Routes>
-            ) : (
-              <div className="flex justify-center items-center h-full">
-                Please login to access the application.
-              </div>
-            )}
+                </Routes>
           </main>
           <Footer />
         </div>
