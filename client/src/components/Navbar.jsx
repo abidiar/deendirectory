@@ -55,7 +55,7 @@ const Navbar = () => {
             ) : (
               <>
                 <li>
-                  <Link to="/sign-in" className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0" onClick={() => setIsMenuOpen(false)}>Sign In (Users)</Link>
+                  <Link to="/user-sign-in" className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0" onClick={() => setIsMenuOpen(false)}>Sign In (Users)</Link>
                 </li>
                 <li>
                   <Link to="/business-sign-in" className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0" onClick={() => setIsMenuOpen(false)}>Sign In (Businesses)</Link>
