@@ -25,14 +25,14 @@ function App() {
 
   useEffect(() => {
     // Initialize session from local storage if it exists
-    setSession(supabase.auth.session());
+    setSession(supabase.auth.session); // changed from session() to session
     setLoadingSession(false);
-
+  
     // Listen for changes on authentication state (login, logout)
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
-
+  
     // Cleanup subscription on component unmount
     return () => {
       if (subscription) subscription.unsubscribe();

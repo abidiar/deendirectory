@@ -8,14 +8,14 @@ const Navbar = () => {
 
   useEffect(() => {
     // Check current session and set user
-    const session = supabase.auth.session();
+    const session = supabase.auth.session; // changed from session() to session
     setUser(session?.user);
-
+  
     // Listen for changes on authentication state (login, logout)
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user);
     });
-
+  
     // Cleanup subscription on component unmount
     return () => {
       if (subscription) subscription.unsubscribe();
