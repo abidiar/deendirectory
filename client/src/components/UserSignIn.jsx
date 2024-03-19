@@ -5,30 +5,42 @@ import { supabase } from '../services/supabaseClient';
 const UserSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState(null); // Declare authError in the component's state
+  const [isSigningUp, setIsSigningUp] = useState(false); // Toggle between sign-in and sign-up
+  const [authError, setAuthError] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signIn({ email, password });
-    if (error) {
-      console.error('Error signing in:', error.message);
-      setAuthError(error.message); // Properly set the error message to display in the UI
+
+    let result = null;
+    if (isSigningUp) {
+      // Sign up logic
+      result = await supabase.auth.signUp({ email, password });
     } else {
-      setAuthError(null); // Clear any existing errors upon successful sign-in
-      navigate('/'); // Navigate to the landing or profile page upon successful sign-in
+      // Sign in logic
+      result = await supabase.auth.signIn({ email, password });
+    }
+
+    const { error, user } = result;
+    if (error) {
+      console.error('Authentication error:', error.message);
+      setAuthError(error.message);
+    } else {
+      console.log('Authentication success:', user);
+      setAuthError(null); // Clear any existing errors
+      navigate('/'); // Navigate upon successful sign-in or sign-up
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white rounded-lg shadow-md p-6">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 px-4">
+      <div className="max-w-md w-full space-y-8 bg-white rounded-lg shadow-md p-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            User Sign In
+            {isSigningUp ? 'User Sign Up' : 'User Sign In'}
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <input type="hidden" name="remember" defaultValue="true" />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -65,18 +77,22 @@ const UserSignIn = () => {
             </div>
           </div>
 
-          {authError && (
-            <div className="text-red-500 text-sm text-center">
-              {authError} {/* Display the error message here */}
-            </div>
-          )}
+          {authError && <div className="text-red-500 text-sm text-center">{authError}</div>}
+          
+          <button
+            type="submit"
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            {isSigningUp ? 'Sign Up' : 'Sign In'}
+          </button>
 
-          <div>
+          <div className="text-center">
             <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              type="button"
+              onClick={() => setIsSigningUp(!isSigningUp)}
+              className="text-indigo-600 hover:text-indigo-900 text-sm"
             >
-              Sign in
+              {isSigningUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
             </button>
           </div>
         </form>
