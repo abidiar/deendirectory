@@ -36,7 +36,7 @@ const Navbar = () => {
       <div className="container flex flex-wrap justify-between items-center mx-auto">
         <Link to="/" className="flex items-center">
           {/* Logo or Brand name */}
-          <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">Your Brand</span>
+          <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">DeenDirectory</span>
         </Link>
         <button onClick={toggleMenu} data-collapse-toggle="mobile-menu" type="button" className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="mobile-menu" aria-expanded="false">
           {/* Icon for menu */}
