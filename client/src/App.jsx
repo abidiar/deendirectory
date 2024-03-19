@@ -7,6 +7,8 @@ import Footer from './components/Footer';
 
 // Lazy load components
 const MainLayout = lazy(() => import('./components/MainLayout'));
+const BusinessSignIn = lazy(() => import('./components/BusinessSignIn'));
+const UserSignIn = lazy(() => import('./components/UserSignIn'));
 const DashboardComponent = lazy(() => import('./components/DashboardComponent'));
 const HomeServices = lazy(() => import('./components/HomeServices'));
 const SearchResultsPage = lazy(() => import('./components/SearchResultsPage'));
@@ -60,10 +62,13 @@ function App() {
                   <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
                   <Route path="/add-service" element={<AddServicePage />} />
+                  {/* Added routes for sign in components */}
+                  <Route path="/business-sign-in" element={<BusinessSignIn />} />
+                  <Route path="/user-sign-in" element={<UserSignIn />} />
                 </Routes>
               ) : (
                 <div className="flex justify-center items-center h-full">
-                  <h2>Please login to access the application.</h2>
+                  Please login to access the application.
                 </div>
               )}
             </Suspense>

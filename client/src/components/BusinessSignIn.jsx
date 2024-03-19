@@ -14,7 +14,7 @@ const BusinessSignIn = () => {
       console.error('Error signing in:', error.message);
       setAuthError(error.message);
     } else {
-      navigate('/business-dashboard'); // Navigate upon successful sign-in
+      navigate('/dashboard'); // Navigate upon successful sign-in
     }
   };
 
