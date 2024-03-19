@@ -13,7 +13,7 @@ function ProfessionalCallToAction() {
           <p className="mb-6 text-neutral-dark">Connect with the community and grow your business.</p>
           <button 
             className="bg-accent-coral text-white font-bold py-2 px-6 rounded hover:bg-accent-coral-dark transition-colors duration-200"
-            onClick={() => navigate('/add-service')}
+            onClick={() => navigate('/business-sign-in')}
           >
             Join Our Network
           </button>
