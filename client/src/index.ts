@@ -1,12 +1,15 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client'; // Use the client method for React 18
+import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-const root = ReactDOM.createRoot(document.getElementById('root')); // React 18 root API
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
+
+const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <React.StrictMode>
-    <App /> {/* AuthProvider is now inside App, so we don't wrap it here */}
+    <App />
   </React.StrictMode>
 );
