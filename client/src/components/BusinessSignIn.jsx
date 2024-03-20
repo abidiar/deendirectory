@@ -6,29 +6,32 @@ const BusinessSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false); // Toggle between sign-in and sign-up
-  const [authError, setAuthError] = useState(null);
+  const [authError, setAuthError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthError(''); // Clear previous errors
 
-    let result = null;
-    if (isSigningUp) {
-      // Sign up logic
-      result = await supabase.auth.signUp({ email, password });
-    } else {
-      // Sign in logic
-      result = await supabase.auth.signIn({ email, password });
-    }
+    const action = isSigningUp ? supabase.auth.signUp : supabase.auth.signIn;
+    const response = await action({
+      email,
+      password,
+      ...(isSigningUp && {
+        data: { isBusinessUser: true }, // Custom metadata for business user
+      }),
+    });
 
-    const { error, user } = result;
-    if (error) {
-      console.error('Authentication error:', error.message);
-      setAuthError(error.message); // Properly set the error message
+    if (response.error) {
+      // Handle common errors
+      if (response.error.message.includes('exists')) {
+        setAuthError('Email already in use. Please sign in or use a different email.');
+      } else {
+        setAuthError(response.error.message);
+      }
     } else {
-      console.log('Authentication success:', user);
-      setAuthError(null); // Clear any existing errors
-      navigate('/dashboard'); // Navigate to the dashboard or another appropriate page upon successful sign-in or sign-up
+      // Navigate based on account type
+      navigate(isSigningUp ? '/setup-business-profile' : '/dashboard');
     }
   };
 
