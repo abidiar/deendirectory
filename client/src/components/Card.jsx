@@ -7,7 +7,10 @@ const Card = ({ id, title, description, imageUrl, averageRating, isHalalCertifie
   const placeholderImage = 'https://via.placeholder.com/150';
 
   const truncateText = (text, maxLength) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    if (typeof text === 'string' && text.length > maxLength) {
+      return text.substring(0, maxLength) + '...';
+    }
+    return text;
   };
 
   const handleImageError = (e) => {
