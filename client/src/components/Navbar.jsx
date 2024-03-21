@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient'; // Adjust the path as necessary
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isBusinessDropdownOpen, setIsBusinessDropdownOpen] = useState(false);
+  const businessDropdownRef = useRef(null);
+
+  useOutsideAlerter(businessDropdownRef, () => setIsBusinessDropdownOpen(false));
 
   useEffect(() => {
-    // Note: Here, session is accessed directly without calling it as a function,
-    // aligning with your App.jsx implementation.
     setUser(supabase.auth.session);
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session);
     });
-
-    // Clean up the subscription when the component unmounts
     return () => authListener.unsubscribe();
   }, []);
 
@@ -37,29 +36,42 @@ const Navbar = () => {
           <Link to="/" className="flex items-center">
             <span className="self-center text-lg font-semibold whitespace-nowrap dark:text-white">DeenDirectory</span>
           </Link>
-          <button onClick={toggleMenu} data-collapse-toggle="mobile-menu" type="button" className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200" aria-controls="mobile-menu" aria-expanded={isMenuOpen ? 'true' : 'false'} aria-label="Toggle navigation">
-            <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-              <path d="M4 6h16M4 12h16m-7 6h7"></path>
-            </svg>
+          <div className="relative" ref={businessDropdownRef}>
+            <button onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)} className="text-gray-700 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              Yelp for Business
+            </button>
+            {isBusinessDropdownOpen && (
+              <div className="absolute right-0 w-56 mt-2 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg outline-none">
+                <div className="py-1">
+                  <Link to="/add-service" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Add Business/Service</Link>
+                  <Link to="/claim-business" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Claim Your Business</Link>
+                  <Link to="/business-login" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Business Owner Login</Link>
+                  <Link to="/business-learn-more" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Learn More</Link>
+                </div>
+              </div>
+            )}
+          </div>
+          <button onClick={toggleMenu} className="inline-flex items-center p-2 text-sm rounded-lg md:hidden hover:bg-gray-100 focus:outline-none" aria-expanded={isMenuOpen}>
+            {/* Icon for mobile menu */}
           </button>
           <div className={`${isMenuOpen ? 'block' : 'hidden'} w-full md:block md:w-auto`} id="mobile-menu">
             <ul className="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">
               {user ? (
                 <>
                   <li>
-                    <Link to="/add-service" onClick={() => setIsMenuOpen(false)} className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0">Add Business/Service</Link>
+                    <Link to="/dashboard" className="block py-2 pr-4 pl-3 text-gray-700 rounded md:p-0">Dashboard</Link>
                   </li>
                   <li>
-                    <button onClick={handleSignOut} className="py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0">Sign Out</button>
+                    <button onClick={handleSignOut} className="block py-2 pr-4 pl-3 text-gray-700 rounded md:p-0">Sign Out</button>
                   </li>
                 </>
               ) : (
                 <>
                   <li>
-                    <Link to="/user-sign-in" onClick={() => setIsMenuOpen(false)} className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0">Sign In/Up (Users)</Link>
+                    <Link to="/sign-in" className="block py-2 pr-4 pl-3 text-gray-700 rounded md:p-0">Sign In</Link>
                   </li>
                   <li>
-                    <Link to="/business-sign-in" onClick={() => setIsMenuOpen(false)} className="block py-2 pr-4 pl-3 text-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0">Sign In/Up (Businesses)</Link>
+                    <Link to="/sign-up" className="block py-2 pr-4 pl-3 text-gray-700 rounded md:p-0">Sign Up</Link>
                   </li>
                 </>
               )}
@@ -72,3 +84,17 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+function useOutsideAlerter(ref, onOutsideClick) {
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (ref.current && !ref.current.contains(event.target)) {
+        onOutsideClick();
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [ref, onOutsideClick]);
+}
