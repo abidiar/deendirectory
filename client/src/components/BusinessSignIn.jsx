@@ -1,36 +1,42 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 
 const BusinessSignIn = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSigningUp, setIsSigningUp] = useState(false); // Toggle between sign-in and sign-up
   const [authError, setAuthError] = useState('');
-  const navigate = useNavigate();
+
+  // Determine mode from URL query parameters
+  const searchParams = new URLSearchParams(location.search);
+  const isSignupMode = searchParams.get('mode') === 'signup';
+
+  // Set the initial mode based on query parameter
+  const [isSigningUp, setIsSigningUp] = useState(isSignupMode);
+
+  useEffect(() => {
+    // Update the mode if the URL changes
+    setIsSigningUp(searchParams.get('mode') === 'signup');
+  }, [location, searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setAuthError(''); // Clear previous errors
+    setAuthError('');
 
-    const action = isSigningUp ? supabase.auth.signUp : supabase.auth.signIn;
-    const response = await action({
+    const action = isSigningUp ? 'signUp' : 'signIn';
+    const { user, session, error } = await supabase.auth[action]({
       email,
       password,
-      ...(isSigningUp && {
-        data: { isBusinessUser: true }, // Custom metadata for business user
-      }),
+      ...(isSigningUp && { data: { isBusinessUser: true } }),
     });
 
-    if (response.error) {
-      // Handle common errors
-      if (response.error.message.includes('exists')) {
-        setAuthError('Email already in use. Please sign in or use a different email.');
-      } else {
-        setAuthError(response.error.message);
-      }
-    } else {
-      // Navigate based on account type
+    if (error) {
+      setAuthError(error.message);
+    } else if (user && session) {
+      // On sign up, redirect to set up business profile
+      // On sign in, redirect to dashboard
       navigate(isSigningUp ? '/setup-business-profile' : '/dashboard');
     }
   };
@@ -74,7 +80,10 @@ const BusinessSignIn = () => {
           <div className="text-center">
             <button
               type="button"
-              onClick={() => setIsSigningUp(!isSigningUp)}
+              onClick={() => {
+                setIsSigningUp(!isSigningUp);
+                navigate(`/business-sign-in?mode=${!isSigningUp ? 'signup' : 'signin'}`);
+              }}
               className="text-indigo-600 hover:text-indigo-900 text-sm"
             >
               {isSigningUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
