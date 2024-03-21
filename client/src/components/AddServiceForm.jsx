@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { LocationContext } from '../context/LocationContext';
 import { useNavigate } from 'react-router-dom';
 import MaskedInput from 'react-text-mask';
+import Tooltip from './Tooltip'; // Assuming you have a Tooltip component
 
 function AddServiceForm() {
     const navigate = useNavigate();
@@ -20,11 +21,17 @@ function AddServiceForm() {
         hours: '',
         is_halal_certified: false,
     });
+
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submissionError, setSubmissionError] = useState('');
     const { backendUrl } = useContext(LocationContext);
     const [image, setImage] = useState(null);
-    
+    const hasError = (fieldName) => !formData[fieldName];
+    const tooltips = {
+        businessName: "Please enter the full legal name of your business.",
+        halalCertified: "Check this if your business has a Halal certification."
+    };
+
     useEffect(() => {
         fetch(`${backendUrl}/api/categories`)
             .then(response => response.json())
@@ -61,11 +68,12 @@ function AddServiceForm() {
         const file = e.target.files ? e.target.files[0] : null;
         const maxFileSize = 5 * 1024 * 1024; // 5 MB
       
+        // Improved image validation and user feedback
         if (file) {
-          if (file.size > maxFileSize) {
-            alert("The file is too large. Please select a file smaller than 5MB.");
-            return;
-          }
+            if (file.size > maxFileSize) {
+                setSubmissionError("The file is too large. Please select a file smaller than 5MB.");
+                return;
+            }
       
           const img = new Image();
           img.onload = () => {
@@ -137,14 +145,33 @@ function AddServiceForm() {
         }
     };
 
+    const validationClass = (fieldName) => {
+        return formData[fieldName] !== '' ? 'border-green-500' : 'border-red-500';
+    };
+
     return (
-        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
-            {/* Business Name */}
-            <div>
-                <label htmlFor="name" className="block text-sm font-medium text-neutral-dark">Business Name</label>
-                <input id="name" name="name" type="text" required
-                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
-                       value={formData.name} onChange={handleChange} />
+        <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white rounded-md shadow" encType="multipart/form-data">
+            {/* ...other form fields... */}
+            
+            {/* State with Tooltip and validation */}
+            <div className={`relative ${hasError('state') ? 'border-red-500' : ''}`}>
+                <label htmlFor="state" className="block text-sm font-medium text-neutral-dark">
+                    State
+                    <Tooltip text="Enter the state abbreviation, e.g., 'NY' for New York." />
+                </label>
+                <input
+                    id="state"
+                    name="state"
+                    type="text"
+                    required
+                    pattern="[A-Za-z]{2}"
+                    title="State must be a 2-letter abbreviation"
+                    placeholder="NY"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary-light focus:ring-opacity-50"
+                    value={formData.state}
+                    onChange={handleChange}
+                />
+                {hasError('state') && <p className="mt-1 text-red-500 text-xs">State is required.</p>}
             </div>
 
             {/* Description */}
@@ -246,19 +273,19 @@ function AddServiceForm() {
   </div>
 )}
 
-                  {/* Image Upload Field */}
-      <div>
-        <label htmlFor="image" className="block text-sm font-medium text-neutral-dark">Service Image</label>
-        <input 
-          id="image" 
-          name="image" 
-          type="file" 
-          onChange={handleImageChange} 
-          className="mt-1 block w-full text-sm text-neutral-dark file:mr-4 file:py-2 file:px-4 
-                     file:rounded-md file:border-0 file:text-sm file:font-semibold 
-                     file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
-        />
-      </div>
+            {/* Image Upload Field with improved UX */}
+            <div>
+                <label htmlFor="image" className="block text-sm font-medium text-neutral-dark">Service Image</label>
+                <input
+                    id="image"
+                    name="image"
+                    type="file"
+                    onChange={handleImageChange}
+                    className="mt-1 block w-full text-sm text-neutral-dark file:mr-4 file:py-2 file:px-4
+                               file:rounded-md file:border-0 file:text-sm file:font-semibold
+                               file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+                />
+            </div>
 
             {/* Halal Certification Checkbox */}
             <div className="flex items-center">
@@ -282,8 +309,10 @@ function AddServiceForm() {
             </button>
 
             {/* Submission Feedback */}
-            {isSubmitted && <div className="text-success-muted">Service added successfully!</div>}
-            {submissionError && <div className="text-red-500">{submissionError}</div>}
+            <div aria-live="polite">
+                {isSubmitted && <div className="text-success-muted">Service added successfully!</div>}
+                {submissionError && <div className="text-red-500">{submissionError}</div>}
+            </div>
         </form>
     );
 }
