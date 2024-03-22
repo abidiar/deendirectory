@@ -58,12 +58,12 @@ const Navbar = () => {
     <header>
       <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
         <div className="container flex justify-between items-center mx-auto">
-          <Link to="/" className="text-lg font-semibold whitespace-nowrap">DeenDirectory</Link>
+          <Link to="/" className="text-lg font-semibold whitespace-nowrap hover:text-primary">DeenDirectory</Link>
           <div className="flex items-center space-x-4">
             {/* Mobile menu toggle */}
             <button
               onClick={handleMobileMenuToggle}
-              className="menu-button text-gray-500 hover:text-gray-600 md:hidden"
+              className="menu-button text-gray-500 hover:text-primary md:hidden"
             >
               {/* Hamburger icon */}
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -71,14 +71,15 @@ const Navbar = () => {
 
             {/* Business dropdown */}
             <div className="relative hidden md:block" ref={businessDropdownRef}>
-              <button onClick={() => setIsBusinessDropdownOpen(open => !open)} className="text-gray-500 hover:text-gray-600">
+              <button onClick={() => setIsBusinessDropdownOpen(open => !open)} className="text-gray-500 hover:text-primary">
                 For Businesses
               </button>
               {isBusinessDropdownOpen && (
                 <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl">
-                  <Link to="/business-sign-in?mode=signin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Business Sign In</Link>
-                  <Link to="/business-sign-in?mode=signup" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Business Sign Up</Link>
-                  <Link to="/claim-business" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Claim Your Business</Link>
+                  {/* Add hover:text-primary to each Link for hover effect */}
+                  <Link to="/business-sign-in?mode=signin" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary">Business Sign In</Link>
+                  <Link to="/business-sign-in?mode=signup" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary">Business Sign Up</Link>
+                  <Link to="/claim-business" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary">Claim Your Business</Link>
                 </div>
               )}
             </div>
@@ -86,9 +87,9 @@ const Navbar = () => {
             {/* Desktop user sign in/up or sign out */}
             <div className="hidden md:block">
               {user ? (
-                <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">Sign Out</button>
+                <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-primary">Sign Out</button>
               ) : (
-                <Link to="/user-sign-in" className="text-sm text-gray-500 hover:text-gray-600">User Sign In/Up</Link>
+                <Link to="/user-sign-in" className="text-sm text-gray-500 hover:text-primary">User Sign In/Up</Link>
               )}
             </div>
           </div>
