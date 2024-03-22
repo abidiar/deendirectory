@@ -111,8 +111,8 @@ const Navbar = () => {
                 </div>
               </div>
               <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <Link to="/user-sign-in" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">Sign In/Up</Link>
-                <Link to="/business-sign-in" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">Sign In/Up</Link>
+                <Link to="/user-sign-in" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">User Sign In/Up</Link>
+                <Link to="/business-sign-in" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">Business Sign In/Up</Link>
                 <Link to="/claim-business" className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">Claim Your Business</Link>
                 {user && (
                   <button onClick={handleLogout} className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">Sign Out</button>
