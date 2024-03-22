@@ -10,7 +10,7 @@ const Navbar = () => {
   const businessDropdownRef = useRef(null);
 
   useEffect(() => {
-    setUser(supabase.auth.session);
+    setSession(supabase.auth.session);
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session);
     });
