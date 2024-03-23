@@ -23,14 +23,16 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (ref, setState) => (event) => {
-      if (ref.current && !ref.current.contains(event.target)) {
-        setState(false);
+    const handleClickOutsideBusiness = (event) => {
+      if (businessDropdownRef.current && !businessDropdownRef.current.contains(event.target)) {
+        setIsBusinessDropdownOpen(false);
       }
     };
-
-    const handleClickOutsideBusiness = handleClickOutside(businessDropdownRef, setIsBusinessDropdownOpen);
-    const handleClickOutsideMobileMenu = handleClickOutside(mobileMenuRef, setIsMobileMenuOpen);
+    const handleClickOutsideMobileMenu = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
 
     document.addEventListener('mousedown', handleClickOutsideBusiness);
     document.addEventListener('mousedown', handleClickOutsideMobileMenu);
@@ -49,6 +51,14 @@ const Navbar = () => {
 
   const handleMobileMenuToggle = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
+  // Style for the 'For Businesses' button with hover effect
+  const [businessButtonStyle, setBusinessButtonStyle] = useState({
+    backgroundColor: 'transparent', // Default background
+    color: '#233E8B', // Default text color
+    padding: '8px 12px',
+    borderRadius: '4px',
+  });
+
   return (
     <header>
       <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
@@ -57,10 +67,15 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden">
               {/* SVG for mobile menu button */}
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-16 6h16"></path></svg>
             </button>
             <div className="relative hidden md:block" ref={businessDropdownRef}>
-              <button onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)} className="text-gray-500 hover:text-gray-600">
+              <button
+                onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
+                className="text-gray-500"
+                style={businessButtonStyle}
+                onMouseEnter={() => setBusinessButtonStyle({ ...businessButtonStyle, backgroundColor: '#f0f0f0', color: '#102A43' })}
+                onMouseLeave={() => setBusinessButtonStyle({ ...businessButtonStyle, backgroundColor: 'transparent', color: '#233E8B' })}
+              >
                 For Businesses
               </button>
               {isBusinessDropdownOpen && (
@@ -83,9 +98,7 @@ const Navbar = () => {
                 <div className="-mr-2">
                   <button onClick={handleMobileMenuToggle} className="bg-white rounded-md p-2 inline-flex items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
                     <span className="sr-only">Close main menu</span>
-                    <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    {/* SVG for closing mobile menu */}
                   </button>
                 </div>
               </div>
@@ -93,7 +106,7 @@ const Navbar = () => {
                 <EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink>
                 <EnhancedLink to="/business-sign-in">Business Sign In/Up</EnhancedLink>
                 <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
-                {/* Add additional mobile menu items here if needed */}
+                {/* Additional mobile menu items */}
               </div>
             </div>
           </div>
