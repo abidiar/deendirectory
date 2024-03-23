@@ -17,9 +17,7 @@ const Navbar = () => {
       setUser(session);
     });
 
-    return () => {
-      authListener.unsubscribe();
-    };
+    return () => authListener.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -51,45 +49,35 @@ const Navbar = () => {
 
   const handleMobileMenuToggle = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
-  // Style for the 'For Businesses' button with hover effect
-  const [businessButtonStyle, setBusinessButtonStyle] = useState({
-    backgroundColor: 'transparent', // Default background
-    color: '#233E8B', // Default text color
-    padding: '8px 12px',
-    borderRadius: '4px',
-  });
-
   return (
     <header>
       <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
         <div className="container flex justify-between items-center mx-auto">
-          <EnhancedLink to="/">DeenDirectory</EnhancedLink>
+          <EnhancedLink to="/" className="text-base">DeenDirectory</EnhancedLink>
           <div className="flex items-center space-x-4">
-            <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden">
+            <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden text-base">
               {/* SVG for mobile menu button */}
             </button>
             <div className="relative hidden md:block" ref={businessDropdownRef}>
               <button
                 onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
-                className="text-gray-500"
-                style={businessButtonStyle}
-                onMouseEnter={() => setBusinessButtonStyle({ ...businessButtonStyle, backgroundColor: '#f0f0f0', color: '#102A43' })}
-                onMouseLeave={() => setBusinessButtonStyle({ ...businessButtonStyle, backgroundColor: 'transparent', color: '#233E8B' })}
+                className="text-gray-500 hover:text-gray-600 flex items-center text-base"
               >
                 For Businesses
+                <svg className={`w-4 h-4 ml-2 transition-transform duration-200 ${isBusinessDropdownOpen ? 'rotate-180' : 'rotate-0'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </button>
               {isBusinessDropdownOpen && (
                 <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl">
-                  <EnhancedLink to="/business-sign-in?mode=signin">Business Sign In</EnhancedLink>
-                  <EnhancedLink to="/business-sign-in?mode=signup">Business Sign Up</EnhancedLink>
-                  <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
+                  <EnhancedLink to="/business-sign-in?mode=signin" className="text-base">Business Sign In</EnhancedLink>
+                  <EnhancedLink to="/business-sign-in?mode=signup" className="text-base">Business Sign Up</EnhancedLink>
+                  <EnhancedLink to="/claim-business" className="text-base">Claim Your Business</EnhancedLink>
                 </div>
               )}
             </div>
             {user ? (
-              <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">Sign Out</button>
+              <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600 text-base">Sign Out</button>
             ) : (
-              <EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink>
+              <EnhancedLink to="/user-sign-in" className="text-base">User Sign In/Up</EnhancedLink>
             )}
           </div>
           <div className={`fixed top-0 inset-x-0 p-2 transition transform origin-top-right z-50 ${isMobileMenuOpen ? 'block' : 'hidden'}`} ref={mobileMenuRef}>
@@ -103,9 +91,9 @@ const Navbar = () => {
                 </div>
               </div>
               <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink>
-                <EnhancedLink to="/business-sign-in">Business Sign In/Up</EnhancedLink>
-                <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
+                <EnhancedLink to="/user-sign-in" className="text-base">User Sign In/Up</EnhancedLink>
+                <EnhancedLink to="/business-sign-in" className="text-base">Business Sign In/Up</EnhancedLink>
+                <EnhancedLink to="/claim-business" className="text-base">Claim Your Business</EnhancedLink>
                 {/* Additional mobile menu items */}
               </div>
             </div>
