@@ -48,27 +48,32 @@ const Navbar = () => {
   return (
     <header>
       <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
-        <div className="container flex justify-between items-center mx-auto">
-          <EnhancedLink to="/" className="text-xl font-bold">DeenDirectory</EnhancedLink>
-          <button onClick={handleMobileMenuToggle} className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded lg:hidden">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-16 6h16"></path></svg>
-          </button>
-          <div className="hidden w-full lg:block lg:w-auto" id="mobile-menu">
-            <ul className="flex flex-col mt-4 lg:flex-row lg:space-x-8 lg:mt-0 lg:text-sm lg:font-medium">
-              <li>
-                <EnhancedLink to="/about" className="block py-2 pr-4 pl-3 text-gray-700 rounded lg:bg-transparent lg:p-0">About</EnhancedLink>
-              </li>
-              {/* More navigation items */}
-              {user ? (
-                <li>
-                  <button onClick={handleLogout} className="block py-2 pr-4 pl-3 text-gray-700 rounded lg:bg-transparent lg:p-0 lg:hover:text-gray-900 hover:bg-gray-50 lg:hover:bg-transparent">Sign Out</button>
-                </li>
-              ) : (
-                <li>
-                  <EnhancedLink to="/user-sign-in" className="block py-2 pr-4 pl-3 text-gray-700 rounded lg:bg-transparent lg:p-0 lg:hover:text-gray-900 hover:bg-gray-50 lg:hover:bg-transparent">User Sign In/Up</EnhancedLink>
-                </li>
+        <div className="container flex justify-between items-center mx-auto text-base">
+          <EnhancedLink to="/">DeenDirectory</EnhancedLink>
+          <div className="flex items-center space-x-4">
+            <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-16 6h16"></path></svg>
+            </button>
+            <div className="relative hidden md:block" ref={businessDropdownRef}>
+              <button
+                onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
+                className="text-gray-500 hover:text-gray-600 flex items-center"
+              >
+                For Businesses <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 20 20"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+              </button>
+              {isBusinessDropdownOpen && (
+                <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl">
+                  <EnhancedLink to="/business-sign-in?mode=signin">Business Sign In</EnhancedLink>
+                  <EnhancedLink to="/business-sign-in?mode=signup">Business Sign Up</EnhancedLink>
+                  <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
+                </div>
               )}
-            </ul>
+            </div>
+            {user ? (
+              <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">Sign Out</button>
+            ) : (
+              <EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink>
+            )}
           </div>
           {isMobileMenuOpen && (
             <div className="absolute top-0 right-0 z-50 w-full p-5 bg-white rounded-lg shadow-lg lg:hidden" ref={mobileMenuRef}>
