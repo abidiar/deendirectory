@@ -12,17 +12,12 @@
     const mobileMenuRef = useRef(null);
 
     useEffect(() => {
-      setUser(supabase.auth.session());
+      setUser(supabase.auth.session);
       const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session);
       });
-    
-      // Make sure that unsubscribe is a function before calling it
-      return () => {
-        if (authListener && typeof authListener.unsubscribe === 'function') {
-          authListener.unsubscribe();
-        }
-      };
+  
+      return () => authListener.unsubscribe();
     }, []);
 
     useEffect(() => {
