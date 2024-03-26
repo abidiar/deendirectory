@@ -48,18 +48,18 @@ const Navbar = () => {
   return (
     <header>
       <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
-        <div className="container flex justify-between items-center mx-auto text-base">
-          <EnhancedLink to="/">DeenDirectory</EnhancedLink>
-          <div className="flex items-center space-x-4">
-            <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-16 6h16"></path></svg>
-            </button>
-            <div className="relative hidden md:block" ref={businessDropdownRef}>
+        <div className="container flex flex-wrap justify-between items-center mx-auto">
+          <EnhancedLink to="/" className="text-xl font-bold">DeenDirectory</EnhancedLink>
+          <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden">
+            {/* Mobile menu toggle icon */}
+          </button>
+          <div className="hidden md:flex items-center space-x-4">
+            <div className="relative" ref={businessDropdownRef}>
               <button
                 onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
                 className="text-gray-500 hover:text-gray-600 flex items-center"
               >
-                For Businesses <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 20 20"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
+                For Businesses {/* Dropdown Icon */}
               </button>
               {isBusinessDropdownOpen && (
                 <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl">
@@ -72,32 +72,34 @@ const Navbar = () => {
             {user ? (
               <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">Sign Out</button>
             ) : (
-              <EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink>
+              <EnhancedLink to="/user-sign-in" className="text-sm text-gray-500 hover:text-gray-600 hidden md:block">User Sign In/Up</EnhancedLink>
             )}
           </div>
           {isMobileMenuOpen && (
             <div className="absolute top-0 right-0 z-50 w-full p-5 bg-white rounded-lg shadow-lg lg:hidden" ref={mobileMenuRef}>
               <button onClick={handleMobileMenuToggle} className="absolute top-0 right-0 mt-4 mr-4">
-                <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                {/* Close icon */}
               </button>
               <ul className="space-y-4">
-                <li><EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink></li>
-                <li><EnhancedLink to="/business-sign-in">Business Sign In/Up</EnhancedLink></li>
-                <li><EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink></li>
-                {/* Additional mobile menu items */}
-                {user
-&& (
-<li><button onClick={handleLogout}>Sign Out</button></li>
-)}
-</ul>
-</div>
-)}
-</div>
-</nav>
-</header>
-);
+                {/* Conditional rendering for authenticated users */}
+                {user ? (
+                  <li>
+                    <button onClick={handleLogout}>Sign Out</button>
+                  </li>
+                ) : (
+                  <>
+                    <li><EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink></li>
+                    <li><EnhancedLink to="/business-sign-in">Business Sign In/Up</EnhancedLink></li>
+                    <li><EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink></li>
+                  </>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      </nav>
+    </header>
+  );
 };
 
 export default Navbar;
