@@ -10,7 +10,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const businessDropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
-  
+
   useEffect(() => {
     setUser(supabase.auth.session);
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -58,11 +58,14 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             <div className="relative" ref={businessDropdownRef}>
               <button
-                onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
-                className="text-gray-500 hover:text-gray-600 flex items-center"
-              >
-                For Businesses {/* Consider adding an icon here if needed */}
-              </button>
+               onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
+               className="text-gray-500 hover:text-gray-600 flex items-center"
+             >
+               For Businesses
+               <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+               </svg>
+             </button>
               {isBusinessDropdownOpen && (
                 <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl">
                   <EnhancedLink to="/business-sign-in?mode=signin">Business Sign In</EnhancedLink>
