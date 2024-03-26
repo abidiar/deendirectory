@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet'; // Make sure to install react-helmet
 
 function BusinessPage() {
   const { id } = useParams();
@@ -28,50 +29,76 @@ function BusinessPage() {
   }, [id, backendUrl]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="text-center">Loading...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div className="text-center text-red-600">{error}</div>;
   }
 
   if (!business) {
-    return <div>Business not found.</div>;
+    return <div className="text-center">Business not found.</div>;
   }
 
+  // Dynamic page metadata for SEO
+  const pageTitle = `${business.name} - DeenDirectory`;
+  const pageDescription = business.description;
+
   return (
-    <div className="container mx-auto p-6">
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="flex flex-col items-center mb-4">
-          <img
-            src={business.image_url || '/path/to/placeholder-image.jpg'}
-            alt={`Profile for ${business.name}`}
-            className="rounded-full h-32 w-32 object-cover"
-          />
-          <h1 className="text-4xl font-heading font-bold text-primary-dark mt-4">{business.name}</h1>
-          {business.is_halal_certified && (
-            <span className="bg-accent-green text-white text-sm rounded-full px-3 py-1">Halal Certified</span>
-          )}
+    <>
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        {/* Other SEO relevant meta tags */}
+      </Helmet>
+
+      <div className="container mx-auto p-4 sm:p-6">
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
+          {/* Business Image */}
+          <div className="flex justify-center mb-4">
+            <img
+              src={business.image_url || '/path/to/placeholder-image.jpg'}
+              alt={`Profile for ${business.name}`}
+              className="rounded-lg h-40 w-40 sm:h-48 sm:w-48 object-cover"
+            />
+          </div>
+          
+          {/* Business Details */}
+          <h1 className="text-2xl sm:text-4xl font-bold text-center text-primary-dark mb-4">{business.name}</h1>
+          <p className="text-sm sm:text-base text-gray-600 mb-4">{business.description}</p>
+          {/* ...other business details */}
+          
+          {/* Return Navigation */}
+          <div className="text-center mt-4">
+            <Link to="/" className="text-primary hover:underline">Back to directory</Link>
+          </div>
         </div>
-        <p className="text-neutral-dark mb-4">{business.description}</p>
-        <div className="text-neutral-dark mb-4">
-          <strong>Category:</strong> {business.category ? business.category.name : 'N/A'}
-        </div>
-        <div className="text-neutral-dark mb-4">
-          <strong>Address:</strong> {`${business.street_address}, ${business.city}, ${business.state} ${business.postal_code}, ${business.country}`}
-        </div>
-        <div className="text-neutral-dark mb-4">
-          <strong>Phone Number:</strong> {business.phone_number}
-        </div>
-        <div className="text-neutral-dark mb-4">
-          <strong>Website:</strong> <a href={business.website} target="_blank" rel="noopener noreferrer">{business.website}</a>
-        </div>
-        <div className="text-neutral-dark">
-          <strong>Hours:</strong> {business.hours}
-        </div>
-        {/* Here you can add more sections like reviews, map location, etc. */}
+        
+        {/* Optionally, add a map and reviews here */}
       </div>
-    </div>
+
+      {/* JSON-LD structured data for SEO */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "http://schema.org",
+          "@type": "LocalBusiness",
+          "name": business.name,
+          "description": business.description,
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": business.street_address,
+            "addressLocality": business.city,
+            "addressRegion": business.state,
+            "postalCode": business.postal_code,
+            "addressCountry": business.country
+          },
+          "telephone": business.phone_number,
+          "image": business.image_url,
+          "url": window.location.href,
+          // Add any additional structured data here
+        })}
+      </script>
+    </>
   );
 }
 
