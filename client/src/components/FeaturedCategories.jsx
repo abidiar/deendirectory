@@ -35,8 +35,10 @@ function FeaturedCategories() {
         {categories.map(category => (
           <Link key={category.id} to={`/category/${category.id}`} className="group block bg-white rounded-lg shadow hover:shadow-md transition-all p-4 flex items-center justify-center text-center">
             <div className="w-full">
-              <div className="text-primary-dark text-3xl mx-auto">{getCategoryIcon(category.name)}</div>
-              <h3 className="mt-2 text-sm font-bold">{category.name}</h3>
+              {/* Responsive icon size: larger on md screens and above */}
+              <div className="text-primary-dark mx-auto text-4xl md:text-6xl">{getCategoryIcon(category.name)}</div>
+              {/* Responsive text size: larger on md screens and above */}
+              <h3 className="mt-2 text-base md:text-lg font-bold">{category.name}</h3>
             </div>
           </Link>
         ))}
