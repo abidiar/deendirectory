@@ -30,21 +30,19 @@ function FeaturedCategories() {
 
   return (
     <section className="container mx-auto px-4 py-6">
-      <h2 className="text-2xl font-heading font-bold mb-6 text-primary-dark">Featured Categories</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+      <h2 className="text-2xl font-bold mb-6 text-primary-dark">Featured Categories</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {categories.map(category => (
-          <div key={category.id} className="group relative text-center p-4">
-            <Link to={`/category/${category.id}`} className="block overflow-hidden rounded-lg shadow-lg flex flex-col items-center justify-center p-4">
-              {getCategoryIcon(category.name)}
-              <div className="mt-2">
-                <h3 className="font-heading font-bold text-primary-dark">{category.name}</h3>
-              </div>
+          <div key={category.id} className="group relative p-4">
+            <Link to={`/category/${category.id}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow hover:shadow-md transition-all">
+              <div className="p-6 text-4xl text-primary-dark">{getCategoryIcon(category.name)}</div>
+              <h3 className="text-lg font-bold mb-4">{category.name}</h3>
             </Link>
           </div>
         ))}
       </div>
       <div className="text-right">
-        <Link to="/categories" className="text-primary hover:text-primary-dark transition-colors">View all categories</Link>
+        <Link to="/categories" className="text-primary-dark hover:text-primary transition-colors">View all categories</Link>
       </div>
     </section>
   );
