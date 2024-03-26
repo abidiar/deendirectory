@@ -20,12 +20,27 @@ function NewNearYou() {
 
   function fetchNewNearYouServices(latitude, longitude) {
     const limit = 5;
+    // Corrected to use template string syntax
     const fetchUrl = `https://deendirectorybackend.onrender.com/api/services/new-near-you/?latitude=${latitude}&longitude=${longitude}&limit=${limit}`;
 
     fetch(fetchUrl)
-      .then(response => response.json())
-      .then(data => setServices(data))
-      .catch(err => setLocationError('Failed to fetch services'));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          setServices(data);
+        } else {
+          console.error('Data is not an array', data);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch services', err);
+        setLocationError('Failed to fetch services');
+      });
   }
 
   return (
@@ -35,9 +50,13 @@ function NewNearYou() {
         <div className="text-accent-coral">Error: {locationError}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {services.map(service => (
-            <Card key={service.id} {...service} />
-          ))}
+          {Array.isArray(services) ? (
+            services.map(service => (
+              <Card key={service.id} {...service} />
+            ))
+          ) : (
+            <div>No new services available.</div>
+          )}
         </div>
       )}
     </section>
@@ -45,3 +64,4 @@ function NewNearYou() {
 }
 
 export default NewNearYou;
+  
