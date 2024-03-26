@@ -31,14 +31,14 @@ function FeaturedCategories() {
   return (
     <section className="container mx-auto px-4 py-6">
       <h2 className="text-2xl font-bold mb-6 text-primary-dark">Featured Categories</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 mb-6">
         {categories.map(category => (
-          <div key={category.id} className="group relative p-4">
-            <Link to={`/category/${category.id}`} className="flex flex-col items-center justify-center bg-white rounded-lg shadow hover:shadow-md transition-all">
-              <div className="p-6 text-4xl text-primary-dark">{getCategoryIcon(category.name)}</div>
-              <h3 className="text-lg font-bold mb-4">{category.name}</h3>
-            </Link>
-          </div>
+          <Link key={category.id} to={`/category/${category.id}`} className="group block bg-white rounded-lg shadow hover:shadow-md transition-all p-4 flex items-center justify-center text-center">
+            <div className="w-full">
+              <div className="text-primary-dark text-3xl mx-auto">{getCategoryIcon(category.name)}</div>
+              <h3 className="mt-2 text-sm font-bold">{category.name}</h3>
+            </div>
+          </Link>
         ))}
       </div>
       <div className="text-right">
