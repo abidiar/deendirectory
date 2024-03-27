@@ -26,34 +26,43 @@ const BusinessSignIn = () => {
     e.preventDefault();
     setAuthError('');
     setAuthSuccess('');
-  
+
     try {
       if (isSigningUp) {
-        const { user, error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
-  
+
         if (error) {
+          console.error('Error during sign-up:', error);
           setAuthError(error.message);
         } else {
-          // Insert the business user data into the "business_profiles" table
-          const { data, error: insertError } = await supabase
-            .from('business_profiles')
-            .insert({ id: user.id, email: user.email, user_type: 'business' });
-  
-          if (insertError) {
-            console.error('Error inserting business user data:', insertError);
-            setAuthError('An error occurred while creating the business account');
+          console.log('Business user signed up successfully:', data);
+
+          if (data && data.user && data.user.id) {
+            // Insert the business user data into the "business_profiles" table
+            const { data: insertData, error: insertError } = await supabase
+              .from('business_profiles')
+              .insert({ id: data.user.id, email: data.user.email, user_type: 'business' });
+
+            if (insertError) {
+              console.error('Error inserting business user data:', insertError);
+              setAuthError('An error occurred while creating the business account');
+            } else {
+              console.log('Business user data inserted successfully:', insertData);
+              setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
+              // Reset form fields
+              setEmail('');
+              setPassword('');
+            }
           } else {
-            setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
-            // Reset form fields
-            setEmail('');
-            setPassword('');
+            console.error('Business user data not available after sign-up');
+            setAuthError('An error occurred while creating the business account');
           }
         }
       } else {
-        const { user, error } = await supabase.auth.signIn({
+        const { data, error } = await supabase.auth.signIn({
           email,
           password,
         });
@@ -69,6 +78,7 @@ const BusinessSignIn = () => {
         }
       }
     } catch (error) {
+      console.error('Error during authentication:', error);
       setAuthError('An error occurred during authentication');
     }
   };
