@@ -5,6 +5,7 @@ import { LocationProvider } from './context/LocationContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import SignOutPopup from './components/SignOutPopup';
 
 // Lazy loading components
 const MainLayout = lazy(() => import('./components/MainLayout'));
@@ -22,21 +23,38 @@ const AddServicePage = lazy(() => import('./pages/AddServicePage'));
 
 function App() {
   const [session, setSession] = useState(null);
+  const [showSignOutPopup, setShowSignOutPopup] = useState(false);
 
   useEffect(() => {
     setSession(supabase.auth.session);
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
     });
+
     return () => authListener.unsubscribe();
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setShowSignOutPopup(true);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const closeSignOutPopup = () => {
+    setShowSignOutPopup(false);
+    // Redirect to the appropriate page after sign-out
+    // For example, navigate('/');
+  };
 
   return (
     <LocationProvider>
       <ErrorBoundary>
         <BrowserRouter>
           <div className="flex flex-col min-h-screen bg-neutral-light">
-            <Navbar />
+            <Navbar onSignOut={handleSignOut} />
             <main className="flex-grow">
               <Suspense fallback={<div>Loading...</div>}>
                 <Routes>
@@ -53,12 +71,13 @@ function App() {
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
                   <Route path="/add-service" element={<AddServicePage />} />
                   {/* Add other routes as needed */}
-                </Routes>
+                  </Routes>
               </Suspense>
             </main>
             <Footer />
           </div>
         </BrowserRouter>
+        {showSignOutPopup && <SignOutPopup onClose={closeSignOutPopup} />}
       </ErrorBoundary>
     </LocationProvider>
   );
