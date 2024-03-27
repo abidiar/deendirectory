@@ -24,20 +24,31 @@ const BusinessSignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
-
-    const action = isSigningUp ? 'signUp' : 'signIn';
-    const { user, session, error } = await supabase.auth[action]({
-      email,
-      password,
-      ...(isSigningUp && { data: { isBusinessUser: true } }),
-    });
-
-    if (error) {
-      setAuthError(error.message);
-    } else if (user && session) {
-      // On sign up, redirect to set up business profile
-      // On sign in, redirect to dashboard
-      navigate(isSigningUp ? '/setup-business-profile' : '/dashboard');
+  
+    try {
+      const response = await fetch('/api/business/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          isSignUp: isSigningUp,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        setAuthError(data.message || 'An error occurred');
+      } else {
+        // On sign up, redirect to set up business profile
+        // On sign in, redirect to dashboard
+        navigate(isSigningUp ? '/setup-business-profile' : '/dashboard');
+      }
+    } catch (error) {
+      setAuthError('An error occurred');
     }
   };
 

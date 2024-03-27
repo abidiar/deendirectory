@@ -11,27 +11,31 @@ const UserSignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setAuthError(''); // Clear previous errors
-
-    const action = isSigningUp ? supabase.auth.signUp : supabase.auth.signIn;
-    const response = await action({
-      email,
-      password,
-      ...(isSigningUp && {
-        data: { isBusinessUser: false }, // Custom metadata for regular user
-      }),
-    });
-
-    if (response.error) {
-      // Handle common errors
-      if (response.error.message.includes('exists')) {
-        setAuthError('Email already in use. Please sign in or use a different email.');
+    setAuthError('');
+  
+    try {
+      const response = await fetch('/api/user/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          isSignUp: isSigningUp,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        setAuthError(data.message || 'An error occurred');
       } else {
-        setAuthError(response.error.message);
+        // Navigate upon successful sign-in or sign-up
+        navigate('/');
       }
-    } else {
-      // Navigate upon successful sign-in or sign-up
-      navigate('/');
+    } catch (error) {
+      setAuthError('An error occurred');
     }
   };
 
