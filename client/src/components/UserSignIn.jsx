@@ -7,11 +7,13 @@ const UserSignIn = () => {
   const [password, setPassword] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [authSuccess, setAuthSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
+    setAuthSuccess('');
 
     try {
       if (isSigningUp) {
@@ -23,8 +25,10 @@ const UserSignIn = () => {
         if (error) {
           setAuthError(error.message);
         } else {
-          // User registration successful, navigate to the desired page
-          navigate('/');
+          setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
+          // Reset form fields
+          setEmail('');
+          setPassword('');
         }
       } else {
         const { user, error } = await supabase.auth.signIn({
@@ -35,8 +39,11 @@ const UserSignIn = () => {
         if (error) {
           setAuthError(error.message);
         } else {
-          // User login successful, navigate to the desired page
-          navigate('/');
+          setAuthSuccess('Sign-in successful! Redirecting...');
+          // Redirect to the desired page after a short delay
+          setTimeout(() => {
+            navigate('/');
+          }, 1500);
         }
       }
     } catch (error) {
@@ -74,6 +81,7 @@ const UserSignIn = () => {
             className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           />
           {authError && <div className="text-red-500 text-sm text-center">{authError}</div>}
+          {authSuccess && <div className="text-green-500 text-sm text-center">{authSuccess}</div>}
           <button
             type="submit"
             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
