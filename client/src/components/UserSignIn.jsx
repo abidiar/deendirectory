@@ -34,6 +34,7 @@ const UserSignIn = () => {
         navigate('/');
       }
     } catch (error) {
+      console.error('Error during user authentication:', error);
       setAuthError('An error occurred');
     }
   };

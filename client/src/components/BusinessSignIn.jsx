@@ -47,6 +47,7 @@ const BusinessSignIn = () => {
         navigate(isSigningUp ? '/setup-business-profile' : '/dashboard');
       }
     } catch (error) {
+      console.error('Error during user authentication:', error);
       setAuthError('An error occurred');
     }
   };

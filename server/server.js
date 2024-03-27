@@ -8,6 +8,8 @@ const { body, validationResult } = require('express-validator');
 // Adjust the path according to your project structure for sequelize and models import
 const { Sequelize, Op } = require('sequelize');
 const { sequelize, Service, Category } = require('./models'); 
+const { createClient } = require('@supabase/supabase-js');
+const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_KEY);
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
