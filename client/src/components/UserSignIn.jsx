@@ -14,22 +14,23 @@ const UserSignIn = () => {
     e.preventDefault();
     setAuthError('');
     setAuthSuccess('');
-
+  
     try {
       if (isSigningUp) {
         const { user, error } = await supabase.auth.signUp({
           email,
           password,
         });
-
+  
         if (error) {
           setAuthError(error.message);
         } else {
-          // Insert the user data into the "users" table
+          // Insert the user data into the appropriate table based on user type
+          const tableName = isBusinessUser ? 'business_profiles' : 'profiles';
           const { data, error: insertError } = await supabase
-            .from('users')
-            .insert({ id: user.id, email: user.email });
-
+            .from(tableName)
+            .insert({ id: user.id, email: user.email, user_type: isBusinessUser ? 'business' : 'regular' });
+  
           if (insertError) {
             console.error('Error inserting user data:', insertError);
             setAuthError('An error occurred while creating the user account');

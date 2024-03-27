@@ -26,22 +26,22 @@ const BusinessSignIn = () => {
     e.preventDefault();
     setAuthError('');
     setAuthSuccess('');
-
+  
     try {
       if (isSigningUp) {
         const { user, error } = await supabase.auth.signUp({
           email,
           password,
         });
-
+  
         if (error) {
           setAuthError(error.message);
         } else {
-          // Insert the business user data into the "business_users" table
+          // Insert the business user data into the "business_profiles" table
           const { data, error: insertError } = await supabase
-            .from('business_users')
-            .insert({ id: user.id, email: user.email });
-
+            .from('business_profiles')
+            .insert({ id: user.id, email: user.email, user_type: 'business' });
+  
           if (insertError) {
             console.error('Error inserting business user data:', insertError);
             setAuthError('An error occurred while creating the business account');
