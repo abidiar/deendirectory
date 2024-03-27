@@ -6,6 +6,7 @@ const UserSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [isBusinessUser, setIsBusinessUser] = useState(false);
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
   const navigate = useNavigate();
@@ -14,27 +15,30 @@ const UserSignIn = () => {
     e.preventDefault();
     setAuthError('');
     setAuthSuccess('');
-  
+
     try {
       if (isSigningUp) {
         const { user, error } = await supabase.auth.signUp({
           email,
           password,
         });
-  
+
         if (error) {
+          console.error('Error during sign-up:', error);
           setAuthError(error.message);
         } else {
+          console.log('User signed up successfully:', user);
           // Insert the user data into the appropriate table based on user type
           const tableName = isBusinessUser ? 'business_profiles' : 'profiles';
           const { data, error: insertError } = await supabase
             .from(tableName)
             .insert({ id: user.id, email: user.email, user_type: isBusinessUser ? 'business' : 'regular' });
-  
+
           if (insertError) {
             console.error('Error inserting user data:', insertError);
             setAuthError('An error occurred while creating the user account');
           } else {
+            console.log('User data inserted successfully:', data);
             setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
             // Reset form fields
             setEmail('');
@@ -58,6 +62,7 @@ const UserSignIn = () => {
         }
       }
     } catch (error) {
+      console.error('Error during authentication:', error);
       setAuthError('An error occurred during authentication');
     }
   };
@@ -91,6 +96,21 @@ const UserSignIn = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           />
+          {isSigningUp && (
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="businessUser"
+                name="businessUser"
+                checked={isBusinessUser}
+                onChange={(e) => setIsBusinessUser(e.target.checked)}
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              />
+              <label htmlFor="businessUser" className="ml-2 block text-sm text-gray-900">
+                Sign up as a business user
+              </label>
+            </div>
+          )}
           {authError && <div className="text-red-500 text-sm text-center">{authError}</div>}
           {authSuccess && <div className="text-green-500 text-sm text-center">{authSuccess}</div>}
           <button
