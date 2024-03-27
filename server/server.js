@@ -8,8 +8,6 @@ const { body, validationResult } = require('express-validator');
 // Adjust the path according to your project structure for sequelize and models import
 const { Sequelize, Op } = require('sequelize');
 const { sequelize, Service, Category } = require('./models'); 
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_KEY);
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
@@ -293,89 +291,6 @@ app.get('/api/categories/featured', async (req, res) => {
   } catch (error) {
     logger.error('Error fetching featured categories:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
-  }
-});
-
-
-app.post('/api/user/auth', async (req, res) => {
-  const { email, password, isSignUp } = req.body;
-
-  try {
-    if (isSignUp) {
-      const { user, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        return res.status(400).json({ message: error.message });
-      }
-
-      // Create a new user record in the users table
-      await sequelize.query(
-        'INSERT INTO users (id, email) VALUES (:id, :email)',
-        {
-          replacements: { id: user.id, email: user.email },
-          type: sequelize.QueryTypes.INSERT,
-        }
-      );
-
-      res.status(201).json({ message: 'User registered successfully' });
-    } else {
-      const { user, error } = await supabase.auth.signIn({
-        email,
-        password,
-      });
-
-      if (error) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      res.json({ message: 'User logged in successfully' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-app.post('/api/business/auth', async (req, res) => {
-  const { email, password, isSignUp } = req.body;
-
-  try {
-    if (isSignUp) {
-      const { user, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) {
-        return res.status(400).json({ message: error.message });
-      }
-
-      // Create a new business user record in the business_users table
-      await sequelize.query(
-        'INSERT INTO business_users (id, email) VALUES (:id, :email)',
-        {
-          replacements: { id: user.id, email: user.email },
-          type: sequelize.QueryTypes.INSERT,
-        }
-      );
-
-      res.status(201).json({ message: 'Business user registered successfully' });
-    } else {
-      const { user, error } = await supabase.auth.signIn({
-        email,
-        password,
-      });
-
-      if (error) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-
-      res.json({ message: 'Business user logged in successfully' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

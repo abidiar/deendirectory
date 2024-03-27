@@ -1,41 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabaseClient';
 
 const UserSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSigningUp, setIsSigningUp] = useState(false); // Toggle between sign-in and sign-up
+  const [isSigningUp, setIsSigningUp] = useState(false);
   const [authError, setAuthError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
-  
+
     try {
-      const response = await fetch('/api/user/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      if (isSigningUp) {
+        const { user, error } = await supabase.auth.signUp({
           email,
           password,
-          isSignUp: isSigningUp,
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        setAuthError(data.message || 'An error occurred');
+        });
+
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          // User registration successful, navigate to the desired page
+          navigate('/');
+        }
       } else {
-        // Navigate upon successful sign-in or sign-up
-        navigate('/');
+        const { user, error } = await supabase.auth.signIn({
+          email,
+          password,
+        });
+
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          // User login successful, navigate to the desired page
+          navigate('/');
+        }
       }
     } catch (error) {
-      console.error('Error during user authentication:', error);
-      setAuthError('An error occurred');
+      setAuthError('An error occurred during authentication');
     }
   };
 

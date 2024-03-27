@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../services/supabaseClient';
 
 const BusinessSignIn = () => {
   const navigate = useNavigate();
@@ -23,32 +24,35 @@ const BusinessSignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAuthError('');
-  
+
     try {
-      const response = await fetch('/api/business/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      if (isSigningUp) {
+        const { user, error } = await supabase.auth.signUp({
           email,
           password,
-          isSignUp: isSigningUp,
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        setAuthError(data.message || 'An error occurred');
+        });
+
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          // Business user registration successful, navigate to the desired page
+          navigate('/setup-business-profile');
+        }
       } else {
-        // On sign up, redirect to set up business profile
-        // On sign in, redirect to dashboard
-        navigate(isSigningUp ? '/setup-business-profile' : '/dashboard');
+        const { user, error } = await supabase.auth.signIn({
+          email,
+          password,
+        });
+
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          // Business user login successful, navigate to the desired page
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
-      console.error('Error during user authentication:', error);
-      setAuthError('An error occurred');
+      setAuthError('An error occurred during authentication');
     }
   };
 
