@@ -25,10 +25,20 @@ const UserSignIn = () => {
         if (error) {
           setAuthError(error.message);
         } else {
-          setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
-          // Reset form fields
-          setEmail('');
-          setPassword('');
+          // Insert the user data into the "users" table
+          const { data, error: insertError } = await supabase
+            .from('users')
+            .insert({ id: user.id, email: user.email });
+
+          if (insertError) {
+            console.error('Error inserting user data:', insertError);
+            setAuthError('An error occurred while creating the user account');
+          } else {
+            setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
+            // Reset form fields
+            setEmail('');
+            setPassword('');
+          }
         }
       } else {
         const { user, error } = await supabase.auth.signIn({

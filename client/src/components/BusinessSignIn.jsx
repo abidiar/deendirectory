@@ -37,10 +37,20 @@ const BusinessSignIn = () => {
         if (error) {
           setAuthError(error.message);
         } else {
-          setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
-          // Reset form fields
-          setEmail('');
-          setPassword('');
+          // Insert the business user data into the "business_users" table
+          const { data, error: insertError } = await supabase
+            .from('business_users')
+            .insert({ id: user.id, email: user.email });
+
+          if (insertError) {
+            console.error('Error inserting business user data:', insertError);
+            setAuthError('An error occurred while creating the business account');
+          } else {
+            setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
+            // Reset form fields
+            setEmail('');
+            setPassword('');
+          }
         }
       } else {
         const { user, error } = await supabase.auth.signIn({
