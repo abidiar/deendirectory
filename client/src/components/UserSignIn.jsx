@@ -18,7 +18,7 @@ const UserSignIn = () => {
 
     try {
       if (isSigningUp) {
-        const { user, error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
@@ -27,26 +27,32 @@ const UserSignIn = () => {
           console.error('Error during sign-up:', error);
           setAuthError(error.message);
         } else {
-          console.log('User signed up successfully:', user);
-          // Insert the user data into the appropriate table based on user type
-          const tableName = isBusinessUser ? 'business_profiles' : 'profiles';
-          const { data, error: insertError } = await supabase
-            .from(tableName)
-            .insert({ id: user.id, email: user.email, user_type: isBusinessUser ? 'business' : 'regular' });
+          console.log('User signed up successfully:', data);
 
-          if (insertError) {
-            console.error('Error inserting user data:', insertError);
-            setAuthError('An error occurred while creating the user account');
+          if (data && data.user && data.user.id) {
+            // Insert the user data into the appropriate table based on user type
+            const tableName = isBusinessUser ? 'business_profiles' : 'profiles';
+            const { data: insertData, error: insertError } = await supabase
+              .from(tableName)
+              .insert({ id: data.user.id, email: data.user.email, user_type: isBusinessUser ? 'business' : 'regular' });
+
+            if (insertError) {
+              console.error('Error inserting user data:', insertError);
+              setAuthError('An error occurred while creating the user account');
+            } else {
+              console.log('User data inserted successfully:', insertData);
+              setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
+              // Reset form fields
+              setEmail('');
+              setPassword('');
+            }
           } else {
-            console.log('User data inserted successfully:', data);
-            setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
-            // Reset form fields
-            setEmail('');
-            setPassword('');
+            console.error('User data not available after sign-up');
+            setAuthError('An error occurred while creating the user account');
           }
         }
       } else {
-        const { user, error } = await supabase.auth.signIn({
+        const { data, error } = await supabase.auth.signIn({
           email,
           password,
         });
