@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { supabase } from './services/supabaseClient'; // Ensure this path matches your Supabase client initialization
-import { LocationProvider } from './context/LocationContext'; 
+import { LocationProvider } from './context/LocationContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -26,12 +26,20 @@ function App() {
   const [showSignOutPopup, setShowSignOutPopup] = useState(false);
 
   useEffect(() => {
-    setSession(supabase.auth.session);
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-    });
+    };
 
-    return () => authListener.unsubscribe();
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSignOut = async () => {
@@ -71,7 +79,7 @@ function App() {
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
                   <Route path="/add-service" element={<AddServicePage />} />
                   {/* Add other routes as needed */}
-                  </Routes>
+                </Routes>
               </Suspense>
             </main>
             <Footer />
