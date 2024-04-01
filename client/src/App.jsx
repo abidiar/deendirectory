@@ -46,6 +46,10 @@ function App() {
     try {
       await supabase.auth.signOut();
       setShowSignOutPopup(true);
+      // Navigate to the appropriate page after a short delay
+      setTimeout(() => {
+        window.location.href = '/'; // Example: Redirect to the home page
+      }, 2000); // Adjust the delay as needed (in milliseconds)
     } catch (error) {
       console.error('Error signing out:', error);
     }
