@@ -63,7 +63,7 @@ const UserSignIn = () => {
           setAuthSuccess('Sign-in successful! Redirecting...');
           // Redirect to the desired page after a short delay
           setTimeout(() => {
-            navigate('/');
+            navigate('/dashboard'); // Update the redirection path as needed
           }, 1500);
         }
       }
