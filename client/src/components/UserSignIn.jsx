@@ -69,7 +69,11 @@ const UserSignIn = () => {
 
           if (profileError) {
             console.error('Error retrieving user type:', profileError);
-            setAuthError('An error occurred while retrieving user type');
+            if (profileError.details.includes('Results contain 0 rows')) {
+              setAuthError('Invalid user type. Please use the business sign-in page.');
+            } else {
+              setAuthError('An error occurred while retrieving user type');
+            }
           } else {
             const userType = profileData.user_type;
 
