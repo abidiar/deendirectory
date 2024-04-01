@@ -81,21 +81,25 @@ const BusinessSignIn = () => {
             console.error('Error retrieving user type:', profileError);
             if (profileError.details.includes('Results contain 0 rows')) {
               setAuthError('Invalid user type. Please use the regular user sign-in page.');
+              return; // Add this line to stop further execution
             } else {
               setAuthError('An error occurred while retrieving user type');
+              return; // Add this line to stop further execution
             }
-          } else {
-            const userType = profileData.user_type;
+          }
 
-            if (userType === 'business') {
-              setAuthSuccess('Sign-in successful! Redirecting...');
-              // Redirect to the business dashboard
-              setTimeout(() => {
-                navigate('/dashboard');
-              }, 1500);
-            } else {
-              setAuthError('Invalid user type. Please use the regular user sign-in page.');
-            }
+          const userType = profileData.user_type;
+
+          if (userType === 'business') {
+            setAuthSuccess('Sign-in successful! Redirecting...');
+            // Redirect to the business dashboard
+            setTimeout(() => {
+              navigate('/dashboard');
+            }, 1500);
+          } else {
+            setAuthError('Invalid user type. Please use the regular user sign-in page.');
+            // Add the following lines to sign out the user
+            await supabase.auth.signOut();
           }
         }
       }
