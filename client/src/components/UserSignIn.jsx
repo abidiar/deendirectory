@@ -52,19 +52,37 @@ const UserSignIn = () => {
           }
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (error) {
-          setAuthError(error.message);
+        if (signInError) {
+          setAuthError(signInError.message);
         } else {
-          setAuthSuccess('Sign-in successful! Redirecting...');
-          // Redirect to the desired page after a short delay
-          setTimeout(() => {
-            navigate('/dashboard'); // Update the redirection path as needed
-          }, 1500);
+          // Retrieve the user type from the profiles table
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('id', signInData.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Error retrieving user type:', profileError);
+            setAuthError('An error occurred while retrieving user type');
+          } else {
+            const userType = profileData.user_type;
+
+            if (userType === 'regular') {
+              setAuthSuccess('Sign-in successful! Redirecting...');
+              // Redirect to the regular user dashboard
+              setTimeout(() => {
+                navigate('/dashboard');
+              }, 1500);
+            } else {
+              setAuthError('Invalid user type. Please use the business sign-in page.');
+            }
+          }
         }
       }
     } catch (error) {
