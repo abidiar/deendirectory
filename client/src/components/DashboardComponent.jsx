@@ -22,7 +22,7 @@ function DashboardComponent() {
     if (error) {
       console.error('Error signing out:', error.message);
     } else {
-      navigate('/');
+      navigate('/'); // Redirect to the home page or any other appropriate page
     }
   };
 

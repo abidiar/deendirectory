@@ -71,7 +71,7 @@ const BusinessSignIn = () => {
           setAuthError(error.message);
         } else {
           setAuthSuccess('Sign-in successful! Redirecting...');
-          // Redirect to the desired page after a short delay
+          // Redirect to the dashboard after a short delay
           setTimeout(() => {
             navigate('/dashboard');
           }, 1500);
