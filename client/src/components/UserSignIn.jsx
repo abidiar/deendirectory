@@ -22,7 +22,7 @@ const UserSignIn = () => {
           email: values.email,
           password: values.password,
         });
-    
+
         if (error) {
           setErrors({ serverError: error.message });
         } else {
@@ -32,20 +32,21 @@ const UserSignIn = () => {
             .select('id')
             .eq('id', user.id)
             .single();
-    
+
           if (userProfileError || !userProfile) {
             setErrors({ serverError: 'Invalid credentials. Please use the correct sign-in page.' });
             // Sign out the user
             await supabase.auth.signOut();
-          } else {
-            // Redirect to the user dashboard or appropriate page
-            navigate('/dashboard/user');
+            return; // Add this line to prevent further execution
           }
+
+          // Redirect to the user dashboard or appropriate page
+          navigate('/dashboard/user');
         }
       } catch (error) {
         setErrors({ serverError: 'An error occurred. Please try again.' });
       }
-    
+
       setSubmitting(false);
     },
   });

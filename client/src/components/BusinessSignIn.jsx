@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { supabase } from '../services/supabaseClient';
 
-const BusinessSignIn = () => {
+const UserSignIn = () => {
   const navigate = useNavigate();
 
   const formik = useFormik({
@@ -22,30 +22,31 @@ const BusinessSignIn = () => {
           email: values.email,
           password: values.password,
         });
-    
+
         if (error) {
           setErrors({ serverError: error.message });
         } else {
-          // Check if the user exists in the business_profiles table
-          const { data: businessProfile, error: businessProfileError } = await supabase
-            .from('business_profiles')
+          // Check if the user exists in the profiles table
+          const { data: userProfile, error: userProfileError } = await supabase
+            .from('profiles')
             .select('id')
             .eq('id', user.id)
             .single();
-    
-          if (businessProfileError || !businessProfile) {
+
+          if (userProfileError || !userProfile) {
             setErrors({ serverError: 'Invalid credentials. Please use the correct sign-in page.' });
             // Sign out the user
             await supabase.auth.signOut();
-          } else {
-            // Redirect to the business dashboard or appropriate page
-            navigate('/dashboard/business');
+            return; // Add this line to prevent further execution
           }
+
+          // Redirect to the user dashboard or appropriate page
+          navigate('/dashboard/user');
         }
       } catch (error) {
         setErrors({ serverError: 'An error occurred. Please try again.' });
       }
-    
+
       setSubmitting(false);
     },
   });
