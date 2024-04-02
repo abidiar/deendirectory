@@ -30,7 +30,7 @@ const UserSignIn = () => {
           const { data: userProfile, error: userProfileError } = await supabase
             .from('profiles')
             .select('email')
-            .eq('email', user.email)
+            .eq('email', values.email)
             .single();
 
           if (userProfileError) {
