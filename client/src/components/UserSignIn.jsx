@@ -6,10 +6,15 @@ const UserSignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSigningUp, setIsSigningUp] = useState(false);
-  const [isBusinessUser, setIsBusinessUser] = useState(false);
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
   const navigate = useNavigate();
+
+  const handleInvalidUserType = async () => {
+    setAuthError('Invalid user type. Please use the business sign-in page.');
+    await supabase.auth.signOut();
+    navigate('/business-sign-in'); // Redirect to business sign-in page
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,80 +22,59 @@ const UserSignIn = () => {
     setAuthSuccess('');
 
     try {
-      if (isSigningUp) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      const { user, error } = isSigningUp
+        ? await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signInWithPassword({ email, password });
 
-        if (error) {
-          console.error('Error during sign-up:', error);
-          setAuthError(error.message);
-        } else {
-          console.log('User signed up successfully:', data);
+      if (error) {
+        setAuthError(error.message);
+        return;
+      }
 
-          if (data && data.user && data.user.id) {
-            // Insert the user data into the appropriate table based on user type
-            const tableName = isBusinessUser ? 'business_profiles' : 'profiles';
-            const { data: insertData, error: insertError } = await supabase
-              .from(tableName)
-              .insert({ id: data.user.id, email: data.user.email, user_type: isBusinessUser ? 'business' : 'regular' });
+      if (user && user.id) {
+        const profileResponse = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
 
-            if (insertError) {
-              console.error('Error inserting user data:', insertError);
-              setAuthError('An error occurred while creating the user account');
-            } else {
-              console.log('User data inserted successfully:', insertData);
-              setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
-              // Reset form fields
-              setEmail('');
-              setPassword('');
-            }
-          } else {
-            console.error('User data not available after sign-up');
-            setAuthError('An error occurred while creating the user account');
-          }
+        if (profileResponse.error || !profileResponse.data || profileResponse.data.user_type !== 'regular') {
+          handleInvalidUserType();
+          return;
         }
-      } else {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
 
-        if (signInError) {
-          setAuthError(signInError.message);
-        } else {
-          // Retrieve the user type from the profiles table
-          const { data: profileData, error: profileError } = await supabase
+        if (isSigningUp) {
+          console.log('User signed up successfully:', user);
+
+          // For a regular user, you might ask for less information than a business user.
+          const userDetails = {
+            full_name: "Placeholder User Name", // Replace with actual data collected from sign-up form
+            // ... any other user-related information
+          };
+
+          const { data, error: insertError } = await supabase
             .from('profiles')
-            .select('user_type')
-            .eq('id', signInData.user.id)
-            .single();
+            .insert({
+              ...userDetails,
+              id: user.id,
+              email: user.email,
+              user_type: 'regular'
+            });
 
-          if (profileError) {
-            console.error('Error retrieving user type:', profileError);
-            if (profileError.details.includes('Results contain 0 rows')) {
-              setAuthError('Invalid user type. Please use the business sign-in page.');
-              return; // Add this line to stop further execution
-            } else {
-              setAuthError('An error occurred while retrieving user type');
-              return; // Add this line to stop further execution
-            }
-          }
-
-          const userType = profileData.user_type;
-
-          if (userType === 'regular') {
-            setAuthSuccess('Sign-in successful! Redirecting...');
-            // Redirect to the regular user dashboard
-            setTimeout(() => {
-              navigate('/dashboard');
-            }, 1500);
+          if (insertError) {
+            console.error('Error inserting user data:', insertError);
+            setAuthError('An error occurred while creating the user account');
           } else {
-            setAuthError('Invalid user type. Please use the business sign-in page.');
-            // Add the following lines to sign out the user
-            await supabase.auth.signOut();
+            console.log('User data inserted successfully:', data);
+            setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
+            setEmail('');
+            setPassword('');
           }
+        } else {
+          setAuthSuccess('Sign-in successful! Redirecting...');
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1500);
         }
       }
     } catch (error) {
@@ -128,21 +112,6 @@ const UserSignIn = () => {
             onChange={(e) => setPassword(e.target.value)}
             className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
           />
-          {isSigningUp && (
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="businessUser"
-                name="businessUser"
-                checked={isBusinessUser}
-                onChange={(e) => setIsBusinessUser(e.target.checked)}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <label htmlFor="businessUser" className="ml-2 block text-sm text-gray-900">
-                Sign up as a business user
-              </label>
-            </div>
-          )}
           {authError && <div className="text-red-500 text-sm text-center">{authError}</div>}
           {authSuccess && <div className="text-green-500 text-sm text-center">{authSuccess}</div>}
           <button

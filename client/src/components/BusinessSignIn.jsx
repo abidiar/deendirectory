@@ -9,7 +9,6 @@ const BusinessSignIn = () => {
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
-
   const searchParams = new URLSearchParams(location.search);
   const isSignupMode = searchParams.get('mode') === 'signup';
   const [isSigningUp, setIsSigningUp] = useState(isSignupMode);
@@ -18,20 +17,10 @@ const BusinessSignIn = () => {
     setIsSigningUp(searchParams.get('mode') === 'signup');
   }, [location]);
 
-  const handleSignInSuccess = (userType) => {
-    if (userType === 'business') {
-      setAuthSuccess('Sign-in successful! Redirecting...');
-      setTimeout(() => {
-        navigate('/dashboard/business');
-      }, 1500);
-    } else {
-      handleInvalidUserType();
-    }
-  };
-
   const handleInvalidUserType = async () => {
     setAuthError('Invalid user type. Please use the regular user sign-in page.');
     await supabase.auth.signOut();
+    navigate('/user-sign-in'); // Redirect to regular sign-in page
   };
 
   const handleSubmit = async (e) => {
@@ -40,61 +29,63 @@ const BusinessSignIn = () => {
     setAuthSuccess('');
 
     try {
-      if (isSigningUp) {
-        const { user, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      const { user, error } = isSigningUp
+        ? await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signInWithPassword({ email, password });
 
-        if (error) {
-          console.error('Error during sign-up:', error);
-          setAuthError(error.message);
-        } else {
+      if (error) {
+        setAuthError(error.message);
+        return;
+      }
+
+      if (user && user.id) {
+        const profileResponse = await supabase
+          .from('business_profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .single();
+
+        if (profileResponse.error || !profileResponse.data || profileResponse.data.user_type !== 'business') {
+          handleInvalidUserType();
+          return;
+        }
+
+        if (isSigningUp) {
           console.log('Business user signed up successfully:', user);
 
-          if (user && user.id) {
-            const { data, error: insertError } = await supabase
-              .from('business_profiles')
-              .insert({ id: user.id, email: user.email, user_type: 'business' });
+          // Placeholder: Prompt user to complete their business profile.
+          // For example, ask for business name, contact details, etc.
+          // This data could be collected from a form in your application.
+          const businessDetails = {
+            business_name: "Placeholder Business Name", // Replace with actual data
+            contact_info: "Placeholder Contact Info", // Replace with actual data
+            services_offered: "Placeholder Services", // Replace with actual data
+            // ... any other business-related information
+          };
 
-            if (insertError) {
-              console.error('Error inserting business user data:', insertError);
-              setAuthError('An error occurred while creating the business account');
-            } else {
-              console.log('Business user data inserted successfully:', data);
-              setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
-              setEmail('');
-              setPassword('');
-            }
-          } else {
-            console.error('Business user data not available after sign-up');
-            setAuthError('An error occurred while creating the business account');
-          }
-        }
-      } else {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError) {
-          setAuthError(signInError.message);
-        } else if (signInData.user) {
-          const { data: profileData, error: profileError } = await supabase
+          const { data, error: insertError } = await supabase
             .from('business_profiles')
-            .select('user_type')
-            .eq('id', signInData.user.id)
-            .single();
+            .insert({
+              ...businessDetails,
+              id: user.id,
+              email: user.email,
+              user_type: 'business'
+            });
 
-          if (profileError) {
-            if (profileError.details.includes('Results contain 0 rows')) {
-              await handleInvalidUserType();
-            } else {
-              setAuthError('An error occurred while retrieving user type');
-            }
-          } else if (profileData) {
-            handleSignInSuccess(profileData.user_type);
+          if (insertError) {
+            console.error('Error inserting business user data:', insertError);
+            setAuthError('An error occurred while creating the business account');
+          } else {
+            console.log('Business user data inserted successfully:', data);
+            setAuthSuccess('Sign-up successful! Please check your email to verify your account.');
+            setEmail('');
+            setPassword('');
           }
+        } else {
+          setAuthSuccess('Sign-in successful! Redirecting...');
+          setTimeout(() => {
+            navigate('/dashboard/business');
+          }, 1500);
         }
       }
     } catch (error) {
