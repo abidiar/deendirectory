@@ -6,15 +6,13 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import SignOutPopup from './components/SignOutPopup';
-import BusinessSignIn from './components/BusinessSignIn';
-import BusinessSignUp from './components/BusinessSignUp';
-import UserSignIn from './components/UserSignIn';
-import UserSignUp from './components/UserSignUp';
 
 // Lazy loading components
 const MainLayout = lazy(() => import('./components/MainLayout'));
 const BusinessSignIn = lazy(() => import('./components/BusinessSignIn'));
+const BusinessSignUp = lazy(() => import('./components/BusinessSignUp'));
 const UserSignIn = lazy(() => import('./components/UserSignIn'));
+const UserSignUp = lazy(() => import('./components/UserSignUp'));
 const DashboardComponent = lazy(() => import('./components/DashboardComponent'));
 const HomeServices = lazy(() => import('./components/HomeServices'));
 const SearchResultsPage = lazy(() => import('./components/SearchResultsPage'));
