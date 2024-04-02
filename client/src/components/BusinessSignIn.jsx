@@ -18,21 +18,34 @@ const BusinessSignIn = () => {
     }),
     onSubmit: async (values, { setSubmitting, setErrors }) => {
       try {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { user, error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
         });
-
+    
         if (error) {
           setErrors({ serverError: error.message });
         } else {
-          // Redirect to the business dashboard or appropriate page
-          navigate('/dashboard/business');
+          // Check if the user exists in the business_profiles table
+          const { data: businessProfile, error: businessProfileError } = await supabase
+            .from('business_profiles')
+            .select('id')
+            .eq('id', user.id)
+            .single();
+    
+          if (businessProfileError || !businessProfile) {
+            setErrors({ serverError: 'Invalid credentials. Please use the correct sign-in page.' });
+            // Sign out the user
+            await supabase.auth.signOut();
+          } else {
+            // Redirect to the business dashboard or appropriate page
+            navigate('/dashboard/business');
+          }
         }
       } catch (error) {
         setErrors({ serverError: 'An error occurred. Please try again.' });
       }
-
+    
       setSubmitting(false);
     },
   });
