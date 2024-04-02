@@ -12,12 +12,18 @@ const Navbar = () => {
   const mobileMenuRef = useRef(null);
 
   useEffect(() => {
-    setUser(supabase.auth.user()); // Use supabase.auth.user() instead of supabase.auth.session
+    const session = supabase.auth.session();
+    setUser(session?.user ?? null);
+  }, []);
+
+  useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null); // Update user state based on session
+      setUser(session?.user ?? null);
     });
 
-    return () => authListener.unsubscribe();
+    return () => {
+      authListener.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
