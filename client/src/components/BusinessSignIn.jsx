@@ -16,7 +16,7 @@ const BusinessSignIn = () => {
       email: Yup.string().email('Invalid email address').required('Email is required'),
       password: Yup.string().required('Password is required'),
     }),
-    onSubmit: async (values, { setSubmitting, setErrors }) => {
+    onSubmit: async (values, { setSubmitting, setErrors, setStatus }) => {
       try {
         const { user, error } = await supabase.auth.signInWithPassword({
           email: values.email,
@@ -24,27 +24,32 @@ const BusinessSignIn = () => {
         });
 
         if (error) {
-          setErrors({ serverError: error.message });
+          setStatus({ error: error.message });
         } else {
-          // Check if the user exists in the profiles table
-          const { data: userProfile, error: userProfileError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', user.id)
+          // Check if the user exists in the business_profiles table based on email
+          const { data: businessProfile, error: businessProfileError } = await supabase
+            .from('business_profiles')
+            .select('email')
+            .eq('email', values.email)
             .single();
 
-          if (userProfileError || !userProfile) {
-            setErrors({ serverError: 'Invalid credentials. Please use the correct sign-in page.' });
+          if (businessProfileError) {
+            setStatus({ error: 'An error occurred. Please try again.' });
+          } else if (!businessProfile) {
+            setStatus({ error: 'Invalid credentials. Please use the correct sign-in page.' });
             // Sign out the user
             await supabase.auth.signOut();
-            return; // Add this line to prevent further execution
+          } else {
+            // Redirect to the business dashboard or appropriate page
+            navigate('/dashboard/business');
           }
-
-          // Redirect to the user dashboard or appropriate page
-          navigate('/dashboard/user');
         }
       } catch (error) {
-        setErrors({ serverError: 'An error occurred. Please try again.' });
+        // Handle any unexpected errors
+        console.error('Error during sign-in:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack trace:', error.stack);
+        setStatus({ error: 'An unexpected error occurred. Please try again.' });
       }
 
       setSubmitting(false);
@@ -88,8 +93,8 @@ const BusinessSignIn = () => {
               <div className="text-red-500 mt-1">{formik.errors.password}</div>
             )}
           </div>
-          {formik.errors.serverError && (
-            <div className="text-red-500 mb-4">{formik.errors.serverError}</div>
+          {formik.status && formik.status.error && (
+            <div className="text-red-500 mb-4">{formik.status.error}</div>
           )}
           <button
             type="submit"
