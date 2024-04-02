@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
-import EnhancedLink from './EnhancedLink';
+import EnhancedLink from './EnhancedLink'; 
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -12,12 +12,16 @@ const Navbar = () => {
   const mobileMenuRef = useRef(null);
 
   useEffect(() => {
-    const session = supabase.auth.session();
-    setUser(session?.user ?? null);
+    const fetchUser = async () => {
+      const session = await supabase.auth.getSession();
+      setUser(session?.data?.user ?? null);
+    };
+
+    fetchUser();
   }, []);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
     });
 
