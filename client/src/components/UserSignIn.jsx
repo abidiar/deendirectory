@@ -47,12 +47,15 @@ const UserSignIn = () => {
       } catch (error) {
         // Handle any unexpected errors
         console.error('Error during sign-in:', error);
+        console.error('Error details:', error.message);
+        console.error('Error stack trace:', error.stack);
         setStatus({ error: 'An unexpected error occurred. Please try again.' });
       }
 
       setSubmitting(false);
     },
   });
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
