@@ -58,18 +58,18 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-4">
             <div className="relative" ref={businessDropdownRef}>
               <button
-               onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
-               className="text-gray-500 hover:text-gray-600 flex items-center"
-             >
-               For Businesses
-               <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 20 20">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-               </svg>
-             </button>
+                onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
+                className="text-gray-500 hover:text-gray-600 flex items-center"
+              >
+                For Businesses
+                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+              </button>
               {isBusinessDropdownOpen && (
                 <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl">
-                  <EnhancedLink to="/business-sign-in?mode=signin">Business Sign In</EnhancedLink>
-                  <EnhancedLink to="/business-sign-in?mode=signup">Business Sign Up</EnhancedLink>
+                  <EnhancedLink to="/business-sign-in">Business Sign In</EnhancedLink>
+                  <EnhancedLink to="/business-sign-up">Business Sign Up</EnhancedLink>
                   <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
                 </div>
               )}
@@ -77,7 +77,10 @@ const Navbar = () => {
             {user ? (
               <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">Sign Out</button>
             ) : (
-              <EnhancedLink to="/user-sign-in" className="text-sm text-gray-500 hover:text-gray-600 hidden md:block">User Sign In/Up</EnhancedLink>
+              <>
+                <EnhancedLink to="/user-sign-in" className="text-sm text-gray-500 hover:text-gray-600">User Sign In</EnhancedLink>
+                <EnhancedLink to="/user-sign-up" className="text-sm text-gray-500 hover:text-gray-600">User Sign Up</EnhancedLink>
+              </>
             )}
           </div>
           {isMobileMenuOpen && (
@@ -94,8 +97,10 @@ const Navbar = () => {
                   </li>
                 ) : (
                   <>
-                    <li><EnhancedLink to="/user-sign-in">User Sign In/Up</EnhancedLink></li>
-                    <li><EnhancedLink to="/business-sign-in">Business Sign In/Up</EnhancedLink></li>
+                    <li><EnhancedLink to="/user-sign-in">User Sign In</EnhancedLink></li>
+                    <li><EnhancedLink to="/user-sign-up">User Sign Up</EnhancedLink></li>
+                    <li><EnhancedLink to="/business-sign-in">Business Sign In</EnhancedLink></li>
+                    <li><EnhancedLink to="/business-sign-up">Business Sign Up</EnhancedLink></li>
                     <li><EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink></li>
                   </>
                 )}
