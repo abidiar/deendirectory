@@ -26,11 +26,11 @@ const UserSignIn = () => {
         if (error) {
           setStatus({ error: error.message });
         } else {
-          // Check if the user exists in the profiles table
+          // Check if the user exists in the profiles table based on email
           const { data: userProfile, error: userProfileError } = await supabase
             .from('profiles')
-            .select('id')
-            .eq('id', user.id)
+            .select('email')
+            .eq('email', user.email)
             .single();
 
           if (userProfileError) {
