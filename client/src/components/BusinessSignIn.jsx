@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { supabase } from '../services/supabaseClient';
 
-const UserSignIn = () => {
+const BusinessSignIn = () => {
   const navigate = useNavigate();
 
   const formik = useFormik({

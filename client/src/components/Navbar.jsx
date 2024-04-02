@@ -22,7 +22,7 @@ const Navbar = () => {
     });
 
     return () => {
-      authListener.unsubscribe();
+      authListener?.unsubscribe();
     };
   }, []);
 
