@@ -33,7 +33,9 @@ const UserSignIn = () => {
             .eq('id', user.id)
             .single();
 
-          if (userProfileError || !userProfile) {
+          if (userProfileError) {
+            setStatus({ error: 'An error occurred. Please try again.' });
+          } else if (!userProfile) {
             setStatus({ error: 'Invalid credentials. Please use the correct sign-in page.' });
             // Sign out the user
             await supabase.auth.signOut();
@@ -43,7 +45,9 @@ const UserSignIn = () => {
           }
         }
       } catch (error) {
-        setStatus({ error: 'An error occurred. Please try again.' });
+        // Handle any unexpected errors
+        console.error('Error during sign-in:', error);
+        setStatus({ error: 'An unexpected error occurred. Please try again.' });
       }
 
       setSubmitting(false);
