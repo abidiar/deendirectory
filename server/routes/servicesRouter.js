@@ -3,8 +3,9 @@ const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const { convertCityStateToCoords } = require('../utils/locationUtils');
 const { uploadImage } = require('../utils/imageUpload');
-const { Service, Category } = require('../models');
+const { Service, Category, sequelize } = require('../models'); // Import sequelize here
 const { validateService } = require('../validations/serviceValidation');
+const logger = require('../utils/logger'); // Make sure the path to logger is correct
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
