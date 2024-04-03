@@ -37,12 +37,12 @@ const UserSignIn = () => {
 
           if (userProfileError) {
             setStatus({ error: 'An error occurred. Please try again.' });
+            // Sign out the user
+            await supabase.auth.signOut();
           } else if (!userProfile) {
             setStatus({ error: 'Invalid credentials. Please use the correct sign-in page.' });
             // Sign out the user
-            setMessage('Signing out...');
             await supabase.auth.signOut();
-            setMessage('');
           } else {
             // Redirect to the user dashboard or appropriate page
             setMessage('Login successful. Redirecting...');

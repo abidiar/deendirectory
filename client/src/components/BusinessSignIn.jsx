@@ -37,12 +37,12 @@ const BusinessSignIn = () => {
 
           if (businessProfileError) {
             setStatus({ error: 'An error occurred. Please try again.' });
+            // Sign out the user
+            await supabase.auth.signOut();
           } else if (!businessProfile) {
             setStatus({ error: 'Invalid credentials. Please use the correct sign-in page.' });
             // Sign out the user
-            setMessage('Signing out...');
             await supabase.auth.signOut();
-            setMessage('');
           } else {
             // Redirect to the business dashboard or appropriate page
             setMessage('Login successful. Redirecting...');
