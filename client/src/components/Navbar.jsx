@@ -60,9 +60,9 @@ const Navbar = ({ onSearch, backendUrl }) => {
     <header>
       <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
         <div className="container flex flex-wrap justify-between items-center mx-auto">
-          <EnhancedLink to="/" className="text-xl font-bold">
-            DeenDirectory
-          </EnhancedLink>
+        <EnhancedLink to="/" className="text-xl font-bold">
+  DeenDirectory
+</EnhancedLink>
           <div className="flex-grow md:ml-4">
             <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
           </div>
