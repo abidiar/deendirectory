@@ -5,13 +5,12 @@ const express = require('express');
 const logger = require('./utils/logger');
 const cache = require('./utils/cache');
 const { body, validationResult } = require('express-validator');
-// Adjust the path according to your project structure for sequelize and models import
 const { Sequelize, Op } = require('sequelize');
-const { sequelize, Service, Category } = require('./models'); 
+const { sequelize, Service, Category } = require('./models');
 const path = require('path');
 const setupMiddlewares = require('./middlewares/middlewareSetup');
 const servicesRouter = require('./routes/servicesRouter');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { fetchCoordinates } = require('./utils/locationUtils');
 
 // Initialize Express app
