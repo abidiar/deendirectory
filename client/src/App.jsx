@@ -71,12 +71,35 @@ function App() {
     // For example, navigate('/');
   };
 
+  const handleSearch = async (searchTerm, location) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('searchTerm', searchTerm);
+      if (location) {
+        params.append('latitude', location.latitude);
+        params.append('longitude', location.longitude);
+      }
+
+      const response = await fetch(`/api/search?${params}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        // Handle the search results, e.g., update state or redirect to search results page
+        console.log('Search results:', data);
+      } else {
+        console.error('Search request failed');
+      }
+    } catch (error) {
+      console.error('Error during search:', error);
+    }
+  };
+
   return (
     <LocationProvider>
       <ErrorBoundary>
         <BrowserRouter>
           <div className="flex flex-col min-h-screen bg-neutral-light">
-            <Navbar onSignOut={handleSignOut} />
+            <Navbar onSignOut={handleSignOut} onSearch={handleSearch} />
             <main className="flex-grow">
               <Suspense fallback={<div>Loading...</div>}>
                 <Routes>
