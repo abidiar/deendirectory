@@ -28,7 +28,13 @@ const UserSignIn = () => {
         if (error) {
           setStatus({ error: error.message });
         } else {
-          // ... check if user exists in profiles table
+          // Check if the user exists in the profiles table based on email
+          const { data: userProfile, error: userProfileError } = await supabase
+            .from('profiles')
+            .select('email')
+            .eq('email', values.email)
+            .single();
+
           if (userProfileError) {
             setStatus({ error: 'An error occurred. Please try again.' });
           } else if (!userProfile) {
@@ -54,7 +60,6 @@ const UserSignIn = () => {
       setSubmitting(false);
     },
   });
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

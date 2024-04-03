@@ -28,7 +28,13 @@ const BusinessSignIn = () => {
         if (error) {
           setStatus({ error: error.message });
         } else {
-          // ... check if user exists in business_profiles table
+          // Check if the user exists in the business_profiles table based on email
+          const { data: businessProfile, error: businessProfileError } = await supabase
+            .from('business_profiles')
+            .select('id')
+            .eq('email', values.email)
+            .single();
+
           if (businessProfileError) {
             setStatus({ error: 'An error occurred. Please try again.' });
           } else if (!businessProfile) {
