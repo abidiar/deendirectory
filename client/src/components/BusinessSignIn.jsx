@@ -26,11 +26,11 @@ const BusinessSignIn = () => {
         if (error) {
           setStatus({ error: error.message });
         } else {
-          // Check if the user exists in the business_profiles table based on id
+          // Check if the user exists in the business_profiles table based on email
           const { data: businessProfile, error: businessProfileError } = await supabase
             .from('business_profiles')
             .select('id')
-            .eq('id', user.id)
+            .eq('email', values.email)
             .single();
 
           if (businessProfileError) {
