@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { supabase } from './services/supabaseClient'; // Ensure this path matches your Supabase client initialization
+import { supabase } from './services/supabaseClient';
 import { LocationProvider } from './context/LocationContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
@@ -22,6 +22,14 @@ const Cleaners = lazy(() => import('./components/Cleaners'));
 const SubcategoryPage = lazy(() => import('./components/SubcategoryPage'));
 const CategoryPage = lazy(() => import('./components/CategoryPage'));
 const AddServicePage = lazy(() => import('./pages/AddServicePage'));
+
+// New pages
+const AboutUs = lazy(() => import('./pages/AboutUs'));
+const ContactUs = lazy(() => import('./pages/ContactUs'));
+const Support = lazy(() => import('./pages/Support'));
+const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const License = lazy(() => import('./pages/License'));
 
 function App() {
   const [session, setSession] = useState(null);
@@ -86,7 +94,14 @@ function App() {
                   <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
                   <Route path="/add-service" element={<AddServicePage />} />
-                  {/* Add other routes as needed */}
+
+                  {/* New routes */}
+                  <Route path="/about-us" element={<AboutUs />} />
+                  <Route path="/contact-us" element={<ContactUs />} />
+                  <Route path="/support" element={<Support />} />
+                  <Route path="/terms-of-use" element={<TermsOfUse />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/license" element={<License />} />
                 </Routes>
               </Suspense>
             </main>
