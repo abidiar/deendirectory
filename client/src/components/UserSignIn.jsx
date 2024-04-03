@@ -114,6 +114,12 @@ const UserSignIn = () => {
           </button>
         </form>
         {message && <div className="text-blue-500 mt-4">{message}</div>}
+        <div className="mt-4 text-center">
+          Don't have an account?{' '}
+          <Link to="/user-sign-up" className="text-indigo-600 hover:underline">
+            Sign Up
+          </Link>
+        </div>
       </div>
     </div>
   );
