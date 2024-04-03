@@ -29,20 +29,18 @@ function SearchBar() {
 
   const fetchCoordinates = async (location) => {
     try {
-      const response = await fetch(`/api/geocode?location=${encodeURIComponent(location)}`);
+      const response = await fetch(`/api/geocode?location=${encodeURIComponent(location)}`, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
-      if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
-        const data = await response.json();
-        if (data.latitude && data.longitude) {
-          return { latitude: data.latitude, longitude: data.longitude };
-        } else {
-          console.error('Geocoding failed:', data.error || 'No response data');
-          return null;
-        }
-      } else {
-        console.error('Non-JSON response or request failed', response.status, response.statusText);
-        return null;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
+      return { latitude: data.latitude, longitude: data.longitude };
     } catch (error) {
       console.error('Error in fetching coordinates:', error);
       return null;
@@ -60,54 +58,36 @@ function SearchBar() {
     setIsLoading(true);
     setSearchError('');
 
-    const searchLocation = locationInput.trim() || (currentLocation && currentLocation.name);
-    if (!searchLocation) {
-      setSearchError('Location is required. Please enable location services or enter a location.');
-      setIsLoading(false);
-      return;
-    }
-
-    let latitude, longitude;
-    if (locationInput.trim()) {
-      const coords = await fetchCoordinates(searchLocation);
+    try {
+      const coords = await fetchCoordinates(locationInput.trim());
       if (coords) {
-        latitude = coords.latitude;
-        longitude = coords.longitude;
+        navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm.trim())}&latitude=${coords.latitude}&longitude=${coords.longitude}`);
       } else {
         setSearchError('Unable to find location. Please check the entered location.');
-        setIsLoading(false);
-        return;
       }
-    } else if (currentLocation && currentLocation.latitude && currentLocation.longitude) {
-      latitude = currentLocation.latitude;
-      longitude = currentLocation.longitude;
+    } catch (error) {
+      setSearchError('An error occurred during the search.');
+      console.error('Search error:', error);
+    } finally {
+      setIsLoading(false);
     }
-
-    const searchParams = new URLSearchParams({
-      searchTerm: searchTerm.trim(),
-      location: searchLocation,
-    });
-
-    if (latitude && longitude) {
-      searchParams.append('latitude', latitude);
-      searchParams.append('longitude', longitude);
-    }
-
-    navigate(`/search-results?${searchParams.toString()}`);
-    setIsLoading(false);
   };
 
   const fetchSuggestions = async (term) => {
     if (!term.trim()) return;
 
     try {
-      const response = await fetch(`/api/suggestions?term=${encodeURIComponent(term)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSuggestions(data);
-      } else {
-        console.error('Failed to fetch suggestions');
+      const response = await fetch(`/api/suggestions?term=${encodeURIComponent(term)}`, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      const data = await response.json();
+      setSuggestions(data);
     } catch (error) {
       console.error('Error fetching suggestions:', error);
     }
