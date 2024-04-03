@@ -27,6 +27,7 @@ const UserSignIn = () => {
 
         if (error) {
           setStatus({ error: error.message });
+          setMessage(''); // Clear the "Logging in" message
         } else {
           // Check if the user exists in the profiles table based on email
           const { data: userProfile, error: userProfileError } = await supabase
@@ -37,10 +38,12 @@ const UserSignIn = () => {
 
           if (userProfileError) {
             setStatus({ error: 'An error occurred. Please try again.' });
+            setMessage(''); // Clear the "Logging in" message
             // Sign out the user
             await supabase.auth.signOut();
           } else if (!userProfile) {
             setStatus({ error: 'Invalid credentials. Please use the correct sign-in page.' });
+            setMessage(''); // Clear the "Logging in" message
             // Sign out the user
             await supabase.auth.signOut();
           } else {
@@ -55,6 +58,7 @@ const UserSignIn = () => {
         console.error('Error details:', error.message);
         console.error('Error stack trace:', error.stack);
         setStatus({ error: 'An unexpected error occurred. Please try again.' });
+        setMessage(''); // Clear the "Logging in" message
       }
 
       setSubmitting(false);
