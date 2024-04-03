@@ -6,6 +6,7 @@ import { supabase } from '../services/supabaseClient';
 
 const BusinessSignIn = () => {
   const navigate = useNavigate();
+  const [message, setMessage] = useState('');
 
   const formik = useFormik({
     initialValues: {
@@ -17,6 +18,7 @@ const BusinessSignIn = () => {
       password: Yup.string().required('Password is required'),
     }),
     onSubmit: async (values, { setSubmitting, setErrors, setStatus }) => {
+      setMessage('Logging in...');
       try {
         const { user, error } = await supabase.auth.signInWithPassword({
           email: values.email,
@@ -26,21 +28,18 @@ const BusinessSignIn = () => {
         if (error) {
           setStatus({ error: error.message });
         } else {
-          // Check if the user exists in the business_profiles table based on email
-          const { data: businessProfile, error: businessProfileError } = await supabase
-            .from('business_profiles')
-            .select('id')
-            .eq('email', values.email)
-            .single();
-
+          // ... check if user exists in business_profiles table
           if (businessProfileError) {
             setStatus({ error: 'An error occurred. Please try again.' });
           } else if (!businessProfile) {
             setStatus({ error: 'Invalid credentials. Please use the correct sign-in page.' });
             // Sign out the user
+            setMessage('Signing out...');
             await supabase.auth.signOut();
+            setMessage('');
           } else {
             // Redirect to the business dashboard or appropriate page
+            setMessage('Login successful. Redirecting...');
             navigate('/dashboard/business');
           }
         }
@@ -104,6 +103,7 @@ const BusinessSignIn = () => {
             {formik.isSubmitting ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
+        {message && <div className="text-blue-500 mt-4">{message}</div>}
       </div>
     </div>
   );
