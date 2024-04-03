@@ -25,12 +25,11 @@ app.set('trust proxy', 1);
 // Setup middlewares
 setupMiddlewares(app);
 
-// API route for the homepage to verify the server is running
+// API routes for the homepage and version 1
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-// API route example for version 1
 app.get('/api/v1/example', (req, res) => {
   res.json({ message: 'This is an example API endpoint for version 1' });
 });
@@ -127,7 +126,6 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-
 app.get('/api/suggestions', async (req, res) => {
   const { term } = req.query;
 
@@ -214,7 +212,6 @@ app.get('/api/services/new-near-you', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
-
 
 app.get('/api/categories/featured', async (req, res) => {
   const featuredCategoryIds = [1, 8, 3, 7, 5];
@@ -598,6 +595,7 @@ app.get('/api/geocode', async (req, res) => {
   }
 });
 
+// Use the API router for services before serving static files
 app.use('/api/services', servicesRouter);
 
 // Serve static files from the React app build directory
