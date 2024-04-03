@@ -10,7 +10,7 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 function isValidUSAddress(address) {
-  const regex = /^[0-9]{1,6}\s[a-zA-Z0-9\s,'-]{3,40},\s[a-zA-Z\s]{2,20},\s[A-Z]{2}\s[0-9]{5}$/;
+  const regex = /^\d{1,6}\s[a-zA-Z0-9\s,'-]{3,40},\s[a-zA-Z\s]{2,20},\s[A-Z]{2}\s\d{5}$/;
   return regex.test(address);
 }
 
