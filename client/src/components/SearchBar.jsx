@@ -8,17 +8,16 @@ import styles from './searchbar.module.css';
 
 function SearchBar() {
   const navigate = useNavigate();
-  const { location: currentLocation, backendUrl } = useContext(LocationContext);
+  const { location: currentLocation } = useContext(LocationContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [locationInput, setLocationInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [searchError, setSearchError] = useState('');
 
-  const ref = useRef(null); // Ref for the search bar container
+  const ref = useRef(null);
 
   useClickAway(ref, () => {
-    // Close suggestions when clicking outside the search bar
     setSuggestions([]);
   });
 
@@ -30,9 +29,8 @@ function SearchBar() {
 
   const fetchCoordinates = async (location) => {
     try {
-      const response = await fetch(`${backendUrl}/api/geocode?location=${encodeURIComponent(location)}`);
-  
-      // Check if the response is okay and is of type 'application/json'
+      const response = await fetch(`/api/geocode?location=${encodeURIComponent(location)}`);
+
       if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
         const data = await response.json();
         if (data.latitude && data.longitude) {
@@ -42,7 +40,6 @@ function SearchBar() {
           return null;
         }
       } else {
-        // Handle non-JSON responses or unsuccessful requests
         console.error('Non-JSON response or request failed', response.status, response.statusText);
         return null;
       }
@@ -102,10 +99,9 @@ function SearchBar() {
 
   const fetchSuggestions = async (term) => {
     if (!term.trim()) return;
-  
-    // Assuming you have a backend endpoint for fetching suggestions
+
     try {
-      const response = await fetch(`${backendUrl}/api/suggestions?term=${encodeURIComponent(term)}`);
+      const response = await fetch(`/api/suggestions?term=${encodeURIComponent(term)}`);
       if (response.ok) {
         const data = await response.json();
         setSuggestions(data);
@@ -119,63 +115,60 @@ function SearchBar() {
 
   return (
     <div className={styles.searchBarWrapper} ref={ref}>
-      <form className="flex flex-col justify-center" onSubmit={handleSearch}>
+      <form className={styles.searchForm} onSubmit={handleSearch}>
         <div className={styles.searchInputContainer}>
+          <div className={styles.searchInputWrapper}>
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Find cleaner, web developer, seo, babysitter, etc."
+              value={searchTerm}
+              onChange={(e) => {
+                const newSearchTerm = e.target.value;
+                setSearchTerm(newSearchTerm);
+                if (newSearchTerm.trim()) {
+                  fetchSuggestions(newSearchTerm);
+                } else {
+                  setSuggestions([]);
+                }
+              }}
+              aria-label="Search for services or businesses"
+            />
+            {suggestions.length > 0 && (
+              <ul className={styles.suggestionsDropdown}>
+                {suggestions.map((suggestion, index) => (
+                  <li
+                    key={index}
+                    className={styles.suggestionItem}
+                    onClick={() => {
+                      setSearchTerm(suggestion);
+                      setSuggestions([]);
+                    }}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <span className={styles.separator}></span>
           <input
             type="text"
-            className="flex-grow p-4 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Find cleaner, web developer, seo, babysitter, etc."
-            value={searchTerm}
-            onChange={(e) => {
-              const newSearchTerm = e.target.value;
-              setSearchTerm(newSearchTerm);
-              if (newSearchTerm.trim()) {
-                fetchSuggestions(newSearchTerm);
-              } else {
-                setSuggestions([]);
-              }
-            }}
-            aria-label="Search for services or businesses"
-          />
-          <span className="bg-gray-300 w-px h-10 self-center"></span>
-          <input
-            type="text"
-            className="w-1/4 p-4 focus:outline-none focus:ring-2 focus:ring-primary"
+            className={styles.locationInput}
             placeholder="Location"
             value={locationInput}
             onChange={(e) => setLocationInput(e.target.value)}
             aria-label="Location"
           />
-          <button
-            type="submit"
-            className="bg-accent-coral text-white rounded-r-lg p-4 hover:bg-accent-coral-dark focus:bg-accent-coral-dark focus:outline-none transition-colors duration-200"
-            disabled={isLoading}
-          >
+          <button type="submit" className={styles.searchButton} disabled={isLoading}>
             <FontAwesomeIcon icon={faSearch} />
           </button>
-          {/* Suggestions Dropdown */}
-          {suggestions.length > 0 && (
-            <ul className={styles.suggestionsDropdown}>
-              {suggestions.map((suggestion, index) => (
-                <li
-                  key={index}
-                  className={styles.suggestionItem}
-                  onClick={() => {
-                    setSearchTerm(suggestion);
-                    setSuggestions([]);
-                  }}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
-        {isLoading && <div className="text-center">Loading...</div>}
-        {searchError && <div className="text-red-500 text-center">{searchError}</div>}
+        {isLoading && <div className={styles.loadingMessage}>Loading...</div>}
+        {searchError && <div className={styles.errorMessage}>{searchError}</div>}
       </form>
     </div>
-  );  
+  );
 }
 
 export default SearchBar;

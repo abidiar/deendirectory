@@ -1,41 +1,121 @@
-/* searchbar.module.css */
 .searchBarWrapper {
-    position: relative; /* All children with absolute positioning will be relative to this */
-    margin-top: 1.5rem; /* Same as mt-6 */
-  }
-  
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.searchForm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+}
+
+.searchInputContainer {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+}
+
+.searchInputWrapper {
+  position: relative;
+  flex-grow: 1;
+}
+
+.searchInput {
+  flex-grow: 1;
+  padding: 12px;
+  border: none;
+  font-size: 16px;
+  border-radius: 4px;
+  outline: none;
+}
+
+.separator {
+  width: 1px;
+  height: 24px;
+  background-color: #ccc;
+  margin: 0 12px;
+}
+
+.locationInput {
+  padding: 12px;
+  border: none;
+  font-size: 16px;
+  border-radius: 4px;
+  outline: none;
+  width: 200px;
+}
+
+.searchButton {
+  background-color: #ff5a5f;
+  color: #fff;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.searchButton:hover {
+  background-color: #ff7e82;
+}
+
+.searchButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.loadingMessage,
+.errorMessage {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.errorMessage {
+  color: red;
+}
+
+.suggestionsDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 1;
+}
+
+.suggestionItem {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.suggestionItem:hover {
+  background-color: #f5f5f5;
+}
+
+@media screen and (max-width: 600px) {
   .searchInputContainer {
-    display: flex;
-    align-items: center;
-    border-radius: 0.5rem; /* Same as rounded-lg */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Same as shadow-lg */
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .separator {
+    display: none;
+  }
+
+  .locationInput {
     width: 100%;
-    max-width: 40rem; /* Same as max-w-2xl */
+    margin-top: 8px;
   }
-  
-  .suggestionsDropdown {
-    position: absolute;
-    z-index: 10;
-    width: 100%; /* Ensure it's the same width as the input field */
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb; /* Tailwind gray-200 */
-    border-top-width: 0;
-    max-height: 15rem; /* Same as max-h-60 */
-    overflow-y: auto;
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
-    top: 100%; /* Aligns directly to the bottom of the search input */
-    left: 0; /* Aligns the suggestions dropdown to the left edge of the parent container */
-    margin-top: -1px; /* Removes the gap caused by borders */
-  }
-  
-  .suggestionItem {
-    padding: 1rem; /* Same as p-4 */
-    cursor: pointer;
-    transition: background-color 150ms ease-in-out;
-  }
-  
-  .suggestionItem:hover {
-    background-color: #f3f4f6; /* Tailwind gray-100 */
-  }
-  
+}
