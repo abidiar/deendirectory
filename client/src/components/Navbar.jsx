@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
-import EnhancedLink from './EnhancedLink'; 
+import EnhancedLink from './EnhancedLink';
+import SearchBar from './SearchBar';
 
-const Navbar = () => {
+const Navbar = ({ onSearch, backendUrl }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isBusinessDropdownOpen, setIsBusinessDropdownOpen] = useState(false);
@@ -59,7 +60,12 @@ const Navbar = () => {
     <header>
       <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
         <div className="container flex flex-wrap justify-between items-center mx-auto">
-          <EnhancedLink to="/" className="text-xl font-bold">DeenDirectory</EnhancedLink>
+          <EnhancedLink to="/" className="text-xl font-bold">
+            DeenDirectory
+          </EnhancedLink>
+          <div className="flex-grow md:ml-4">
+            <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
+          </div>
           <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
@@ -85,11 +91,17 @@ const Navbar = () => {
               )}
             </div>
             {user ? (
-              <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">Sign Out</button>
+              <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">
+                Sign Out
+              </button>
             ) : (
               <>
-                <EnhancedLink to="/user-sign-in" className="text-sm text-gray-500 hover:text-gray-600">User Sign In</EnhancedLink>
-                <EnhancedLink to="/user-sign-up" className="text-sm text-gray-500 hover:text-gray-600">User Sign Up</EnhancedLink>
+                <EnhancedLink to="/user-sign-in" className="text-sm text-gray-500 hover:text-gray-600">
+                  User Sign In
+                </EnhancedLink>
+                <EnhancedLink to="/user-sign-up" className="text-sm text-gray-500 hover:text-gray-600">
+                  User Sign Up
+                </EnhancedLink>
               </>
             )}
           </div>
@@ -107,11 +119,21 @@ const Navbar = () => {
                   </li>
                 ) : (
                   <>
-                    <li><EnhancedLink to="/user-sign-in">User Sign In</EnhancedLink></li>
-                    <li><EnhancedLink to="/user-sign-up">User Sign Up</EnhancedLink></li>
-                    <li><EnhancedLink to="/business-sign-in">Business Sign In</EnhancedLink></li>
-                    <li><EnhancedLink to="/business-sign-up">Business Sign Up</EnhancedLink></li>
-                    <li><EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink></li>
+                    <li>
+                      <EnhancedLink to="/user-sign-in">User Sign In</EnhancedLink>
+                    </li>
+                    <li>
+                      <EnhancedLink to="/user-sign-up">User Sign Up</EnhancedLink>
+                    </li>
+                    <li>
+                      <EnhancedLink to="/business-sign-in">Business Sign In</EnhancedLink>
+                    </li>
+                    <li>
+                      <EnhancedLink to="/business-sign-up">Business Sign Up</EnhancedLink>
+                    </li>
+                    <li>
+                      <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
+                    </li>
                   </>
                 )}
               </ul>
