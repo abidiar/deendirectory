@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import EnhancedLink from './EnhancedLink';
 import SearchBar from './SearchBar';
 
 const Navbar = ({ onSearch, backendUrl }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [isBusinessDropdownOpen, setIsBusinessDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -58,12 +59,12 @@ const Navbar = ({ onSearch, backendUrl }) => {
 
   return (
     <header>
-      <nav className="bg-white px-2 sm:px-4 py-2.5 rounded shadow">
+      <nav className="bg-gray-100 px-4 py-3 shadow">
         <div className="container flex flex-wrap justify-between items-center mx-auto">
-        <EnhancedLink to="/" className="text-xl font-bold">
-  DeenDirectory
-</EnhancedLink>
-          <div className="flex-grow md:ml-4">
+          <EnhancedLink to="/" className="text-2xl font-bold text-gray-800 hover:text-gray-600">
+            DeenDirectory
+          </EnhancedLink>
+          <div className="flex-grow md:ml-6">
             <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
           </div>
           <button onClick={handleMobileMenuToggle} className="menu-button text-gray-500 md:hidden">
@@ -71,35 +72,41 @@ const Navbar = ({ onSearch, backendUrl }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
             </svg>
           </button>
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-6">
             <div className="relative" ref={businessDropdownRef}>
               <button
                 onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
-                className="text-gray-500 hover:text-gray-600 flex items-center"
+                className="text-gray-600 hover:text-gray-800 flex items-center text-lg"
               >
                 For Businesses
-                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 20 20">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
                 </svg>
               </button>
               {isBusinessDropdownOpen && (
                 <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl">
-                  <EnhancedLink to="/business-sign-in">Business Sign In</EnhancedLink>
-                  <EnhancedLink to="/business-sign-up">Business Sign Up</EnhancedLink>
-                  <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
+                  <EnhancedLink to="/business-sign-in" className={location.pathname === '/business-sign-in' ? 'text-blue-500' : ''}>
+                    Business Sign In
+                  </EnhancedLink>
+                  <EnhancedLink to="/business-sign-up" className={location.pathname === '/business-sign-up' ? 'text-blue-500' : ''}>
+                    Business Sign Up
+                  </EnhancedLink>
+                  <EnhancedLink to="/claim-business" className={location.pathname === '/claim-business' ? 'text-blue-500' : ''}>
+                    Claim Your Business
+                  </EnhancedLink>
                 </div>
               )}
             </div>
             {user ? (
-              <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-600">
+              <button onClick={handleLogout} className="text-lg text-gray-600 hover:text-gray-800">
                 Sign Out
               </button>
             ) : (
               <>
-                <EnhancedLink to="/user-sign-in" className="text-sm text-gray-500 hover:text-gray-600">
+                <EnhancedLink to="/user-sign-in" className={`text-lg text-gray-600 hover:text-gray-800 ${location.pathname === '/user-sign-in' ? 'text-blue-500' : ''}`}>
                   User Sign In
                 </EnhancedLink>
-                <EnhancedLink to="/user-sign-up" className="text-sm text-gray-500 hover:text-gray-600">
+                <EnhancedLink to="/user-sign-up" className={`text-lg text-gray-600 hover:text-gray-800 ${location.pathname === '/user-sign-up' ? 'text-blue-500' : ''}`}>
                   User Sign Up
                 </EnhancedLink>
               </>
@@ -115,24 +122,36 @@ const Navbar = ({ onSearch, backendUrl }) => {
               <ul className="space-y-4">
                 {user ? (
                   <li>
-                    <button onClick={handleLogout}>Sign Out</button>
+                    <button onClick={handleLogout} className="text-lg text-gray-600 hover:text-gray-800">
+                      Sign Out
+                    </button>
                   </li>
                 ) : (
                   <>
                     <li>
-                      <EnhancedLink to="/user-sign-in">User Sign In</EnhancedLink>
+                      <EnhancedLink to="/user-sign-in" className="text-lg text-gray-600 hover:text-gray-800">
+                        User Sign In
+                      </EnhancedLink>
                     </li>
                     <li>
-                      <EnhancedLink to="/user-sign-up">User Sign Up</EnhancedLink>
+                      <EnhancedLink to="/user-sign-up" className="text-lg text-gray-600 hover:text-gray-800">
+                        User Sign Up
+                      </EnhancedLink>
                     </li>
                     <li>
-                      <EnhancedLink to="/business-sign-in">Business Sign In</EnhancedLink>
+                      <EnhancedLink to="/business-sign-in" className="text-lg text-gray-600 hover:text-gray-800">
+                        Business Sign In
+                      </EnhancedLink>
                     </li>
                     <li>
-                      <EnhancedLink to="/business-sign-up">Business Sign Up</EnhancedLink>
+                      <EnhancedLink to="/business-sign-up" className="text-lg text-gray-600 hover:text-gray-800">
+                        Business Sign Up
+                      </EnhancedLink>
                     </li>
                     <li>
-                      <EnhancedLink to="/claim-business">Claim Your Business</EnhancedLink>
+                      <EnhancedLink to="/claim-business" className="text-lg text-gray-600 hover:text-gray-800">
+                        Claim Your Business
+                      </EnhancedLink>
                     </li>
                   </>
                 )}
