@@ -49,7 +49,7 @@ const BusinessSignIn = () => {
           } else {
             // Redirect to the business dashboard
             setMessage('Login successful. Redirecting...');
-            navigate('/dashboard/business');
+            navigate('/dashboard');
           }
         }
       } catch (error) {
