@@ -15,6 +15,7 @@ function SearchBar() {
   const [searchError, setSearchError] = useState('');
 
   const ref = useRef(null);
+  const suggestionsRef = useRef(null); // Define suggestionsRef here
 
   useClickAway(ref, () => {
     setSuggestions([]);
