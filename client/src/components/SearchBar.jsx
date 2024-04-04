@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 import { LocationContext } from '../context/LocationContext';
 import { useClickAway } from 'react-use';
 
