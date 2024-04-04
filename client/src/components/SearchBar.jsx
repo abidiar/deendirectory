@@ -106,7 +106,7 @@ function SearchBar() {
 
   // Use the debounce function for fetchSuggestions
   const debouncedFetchSuggestions = debounce(fetchSuggestions, 500);
-  
+
   return (
     <div className="relative flex justify-center my-4 z-10" ref={ref}>
       <form className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full max-w-3xl" onSubmit={handleSearch}>
