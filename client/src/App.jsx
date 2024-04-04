@@ -14,6 +14,7 @@ const BusinessSignUp = lazy(() => import('./components/BusinessSignUp'));
 const UserSignIn = lazy(() => import('./components/UserSignIn'));
 const UserSignUp = lazy(() => import('./components/UserSignUp'));
 const DashboardComponent = lazy(() => import('./components/DashboardComponent'));
+const UserDashboard = lazy(() => import('./components/UserDashboard'));
 const HomeServices = lazy(() => import('./components/HomeServices'));
 const SearchResultsPage = lazy(() => import('./components/SearchResultsPage'));
 const BusinessPage = lazy(() => import('./components/BusinessPage'));
@@ -109,6 +110,7 @@ function App() {
                   <Route path="/user-sign-in" element={<UserSignIn />} />
                   <Route path="/user-sign-up" element={<UserSignUp />} />
                   <Route path="/dashboard" element={<DashboardComponent />} />
+                  <Route path="/UserDashboard" element={<UserDashboard />} />
                   <Route path="/home-services" element={<HomeServices />} />
                   <Route path="/home-services/babysitters" element={<Babysitters />} />
                   <Route path="/home-services/cleaners" element={<Cleaners />} />
