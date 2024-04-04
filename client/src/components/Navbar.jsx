@@ -63,12 +63,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
     <header className="relative z-20">
       <nav className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <EnhancedLink to="/" className="text-2xl font-bold text-gray-800">
-                DeenDirectory
-              </EnhancedLink>
-            </div>
+          <div className="flex justify-between h-16 items-center">
+            <EnhancedLink to="/" className="text-2xl font-bold text-gray-800">
+              DeenDirectory
+            </EnhancedLink>
             <div className="hidden md:flex items-center space-x-4">
               <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
               <div className="relative" ref={businessDropdownRef}>
@@ -111,15 +109,14 @@ const Navbar = ({ onSearch, backendUrl }) => {
               )}
             </div>
             <div className="md:hidden flex items-center">
-              <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
               <button
                 onClick={handleMobileMenuToggle}
                 type="button"
-                className="ml-4 text-gray-600 hover:text-gray-800 focus:outline-none focus:text-gray-800"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
                 aria-label="Toggle menu"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                 </svg>
               </button>
             </div>
@@ -128,43 +125,53 @@ const Navbar = ({ onSearch, backendUrl }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden" ref={mobileMenuRef}>
             <div className="px-2 pt-2 pb-3 space-y-1">
+              <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
               {user ? (
-                <button onClick={handleLogout} className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
+                <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
                   Sign Out
                 </button>
               ) : (
                 <>
                   <EnhancedLink
                     to="/user-sign-in"
-                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-in' ? 'text-blue-500' : ''}`}
+                    className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-in' ? 'bg-gray-100' : ''}`}
                   >
                     User Sign In
                   </EnhancedLink>
                   <EnhancedLink
                     to="/user-sign-up"
-                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-up' ? 'text-blue-500' : ''}`}
+                    className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-up' ? 'bg-gray-100' : ''}`}
                   >
                     User Sign Up
                   </EnhancedLink>
                 </>
               )}
               <div className="pt-4 pb-3 border-t border-gray-200">
-                <div className="px-2 space-y-1">
+                <div className="flex items-center px-5">
+                  <div className="flex-shrink-0">
+                    {/* Avatar or icon could go here */}
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-base font-medium leading-none text-gray-800">{user?.email}</div>
+                    <div className="mt-1 text-sm font-medium leading-none text-gray-500">{user?.user_metadata.full_name}</div>
+                  </div>
+                </div>
+                <div className="mt-3 px-2 space-y-1">
                   <EnhancedLink
                     to="/business-sign-in"
-                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-in' ? 'text-blue-500' : ''}`}
+                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-in' ? 'bg-gray-100' : ''}`}
                   >
                     Business Sign In
                   </EnhancedLink>
                   <EnhancedLink
                     to="/business-sign-up"
-                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-up' ? 'text-blue-500' : ''}`}
+                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-up' ? 'bg-gray-100' : ''}`}
                   >
                     Business Sign Up
                   </EnhancedLink>
                   <EnhancedLink
                     to="/claim-business"
-                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/claim-business' ? 'text-blue-500' : ''}`}
+                    className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/claim-business' ? 'bg-gray-100' : ''}`}
                   >
                     Claim Your Business
                   </EnhancedLink>

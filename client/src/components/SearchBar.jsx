@@ -109,23 +109,15 @@ function SearchBar() {
 
   return (
     <div className="relative flex justify-center my-4 z-10" ref={ref}>
-      <form className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full max-w-3xl" onSubmit={handleSearch}>
+      <form className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2 w-full px-4 sm:px-0" onSubmit={handleSearch}>
         <div className="flex flex-col md:flex-row md:flex-grow bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="relative flex-grow">
+          <div className="flex-grow">
             <input
               type="text"
-              className="w-full px-4 py-2 text-base border-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 text-base border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Find services..."
               value={searchTerm}
-              onChange={(e) => {
-                const newSearchTerm = e.target.value;
-                setSearchTerm(newSearchTerm);
-                if (newSearchTerm.trim()) {
-                  debouncedFetchSuggestions(newSearchTerm);
-                } else {
-                  setSuggestions([]);
-                }
-              }}
+              onChange={handleInputChange} // Extract the event handler to a function
               aria-label="Search for services or businesses"
             />
             {suggestions.length > 0 && (
@@ -145,21 +137,21 @@ function SearchBar() {
               </ul>
             )}
           </div>
-          <div className="flex items-center px-2 md:border-l md:border-gray-200">
+          <div className="flex items-center px-2 border-t md:border-t-0 md:border-l border-gray-200">
             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-500" />
             <input
               type="text"
-              className="px-4 py-2 text-base border-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 text-base border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Location"
               value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
+              onChange={handleLocationChange} // Extract the event handler to a function
               aria-label="Location"
             />
           </div>
         </div>
         <button
           type="submit"
-          className="px-5 py-2 text-base text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
+          className="w-full md:w-auto px-5 py-2 text-base text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
           disabled={isLoading}
         >
           <FontAwesomeIcon icon={faSearch} />
