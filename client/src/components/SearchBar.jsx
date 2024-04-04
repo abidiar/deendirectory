@@ -29,7 +29,7 @@ function SearchBar() {
 
   const fetchCoordinates = async (location) => {
     try {
-      const response = await fetch(`/api/geocode?location=${encodeURIComponent(location)}`, {
+      const response = await fetch(`https://deendirectorybackend.onrender.com/api/geocode?location=${encodeURIComponent(location)}`, {
         headers: {
           'Accept': 'application/json',
         },
@@ -77,7 +77,7 @@ function SearchBar() {
     if (!term.trim()) return;
 
     try {
-      const response = await fetch(`/api/suggestions?term=${encodeURIComponent(term)}`, {
+      const response = await fetch(`https://deendirectorybackend.onrender.com/api/suggestions?term=${encodeURIComponent(term)}`, {
         headers: {
           'Accept': 'application/json',
         },
