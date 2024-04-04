@@ -55,7 +55,6 @@ const Navbar = ({ onSearch, backendUrl }) => {
     navigate('/');
   };
 
-  // Define handleMobileMenuToggle function
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(prevState => !prevState);
   };
@@ -68,24 +67,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
             DeenDirectory
           </EnhancedLink>
           
-          {/* Conditional rendering of the SearchBar based on mobile menu state */}
-          {!isMobileMenuOpen && (
-            <div className="flex-grow flex justify-center md:flex-grow-0">
+          <div className="flex items-center space-x-6">
+            <div className="hidden md:flex flex-grow justify-center">
               <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
             </div>
-          )}
-          
-          <div className="md:hidden flex items-center">
-            <button onClick={handleMobileMenuToggle} className="text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-              </svg>
-            </button>
-          </div>
-          <div className="hidden md:flex flex-grow items-center ml-6">
-            <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
-          </div>
-          <div className="hidden md:flex items-center space-x-6">
             <div className="relative" ref={businessDropdownRef}>
               <button
                 onClick={() => setIsBusinessDropdownOpen(!isBusinessDropdownOpen)}
@@ -124,55 +109,60 @@ const Navbar = ({ onSearch, backendUrl }) => {
                 </EnhancedLink>
               </>
             )}
+            <button onClick={handleMobileMenuToggle} className="md:hidden text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+              </svg>
+            </button>
           </div>
-          {isMobileMenuOpen && (
-            <div className="absolute top-0 right-0 z-50 w-full p-5 bg-white rounded-lg shadow-lg lg:hidden" ref={mobileMenuRef}>
-              <button onClick={handleMobileMenuToggle} className="absolute top-0 right-0 mt-4 mr-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <ul className="space-y-4">
-                {user ? (
-                  <li>
-                    <button onClick={handleLogout} className="text-lg text-gray-600 hover:text-gray-800">
-                      Sign Out
-                    </button>
-                  </li>
-                ) : (
-                  <>
-                    <li>
-                      <EnhancedLink to="/user-sign-in" className="text-lg text-gray-600 hover:text-gray-800">
-                        User Sign In
-                      </EnhancedLink>
-                    </li>
-                    <li>
-                      <EnhancedLink to="/user-sign-up" className="text-lg text-gray-600 hover:text-gray-800">
-                        User Sign Up
-                      </EnhancedLink>
-                    </li>
-                    <li>
-                      <EnhancedLink to="/business-sign-in" className="text-lg text-gray-600 hover:text-gray-800">
-                        Business Sign In
-                      </EnhancedLink>
-                    </li>
-                    <li>
-                      <EnhancedLink to="/business-sign-up" className="text-lg text-gray-600 hover:text-gray-800">
-                        Business Sign Up
-                      </EnhancedLink>
-                    </li>
-                    <li>
-                      <EnhancedLink to="/claim-business" className="text-lg text-gray-600 hover:text-gray-800">
-                        Claim Your Business
-                      </EnhancedLink>
-                    </li>
-                  </>
-                )}
-              </ul>
-            </div>
-          )}
         </div>
+        {isMobileMenuOpen && (
+          <div className="md:hidden mt-4">
+            <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
+          </div>
+        )}
       </nav>
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white shadow-lg p-4" ref={mobileMenuRef}>
+          <ul className="space-y-4">
+            {user ? (
+              <li>
+                <button onClick={handleLogout} className="text-lg text-gray-600 hover:text-gray-800">
+                  Sign Out
+                </button>
+              </li>
+            ) : (
+              <>
+                <li>
+                  <EnhancedLink to="/user-sign-in" className="text-lg text-gray-600 hover:text-gray-800">
+                    User Sign In
+                  </EnhancedLink>
+                </li>
+                <li>
+                  <EnhancedLink to="/user-sign-up" className="text-lg text-gray-600 hover:text-gray-800">
+                    User Sign Up
+                  </EnhancedLink>
+                </li>
+                <li>
+                  <EnhancedLink to="/business-sign-in" className="text-lg text-gray-600 hover:text-gray-800">
+                    Business Sign In
+                  </EnhancedLink>
+                </li>
+                <li>
+                  <EnhancedLink to="/business-sign-up" className="text-lg text-gray-600 hover:text-gray-800">
+                    Business Sign Up
+                  </EnhancedLink>
+                </li>
+                <li>
+                  <EnhancedLink to="/claim-business" className="text-lg text-gray-600 hover:text-gray-800">
+                    Claim Your Business
+                  </EnhancedLink>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
+      )}
     </header>
   );
 };
