@@ -114,7 +114,7 @@ function SearchBar() {
           <div className="relative flex-grow">
             <input
               type="text"
-              className="w-full px-4 py-3 text-lg border-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 text-base border-none focus:ring-2 focus:ring-blue-500"
               placeholder="Find services..."
               value={searchTerm}
               onChange={(e) => {
@@ -149,7 +149,7 @@ function SearchBar() {
             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-500" />
             <input
               type="text"
-              className="px-4 py-3 text-lg border-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 text-base border-none focus:ring-2 focus:ring-blue-500"
               placeholder="Location"
               value={locationInput}
               onChange={(e) => setLocationInput(e.target.value)}
@@ -159,7 +159,7 @@ function SearchBar() {
         </div>
         <button
           type="submit"
-          className="px-6 py-3 text-lg text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
+          className="px-5 py-2 text-base text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
           disabled={isLoading}
         >
           <FontAwesomeIcon icon={faSearch} />
