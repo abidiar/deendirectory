@@ -64,14 +64,20 @@ const Navbar = ({ onSearch, backendUrl }) => {
           <EnhancedLink to="/" className="text-2xl font-bold text-gray-800 hover:text-gray-600">
             DeenDirectory
           </EnhancedLink>
-          <div className="block md:hidden">
-            <button onClick={handleMobileMenuToggle} className="text-gray-500 float-right">
+          <div className="flex md:hidden items-center">
+            {/* Conditional rendering to toggle visibility of SearchBar and Menu */}
+            {!isMobileMenuOpen && (
+              <div className="flex-grow">
+                <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
+              </div>
+            )}
+            <button onClick={handleMobileMenuToggle} className="text-gray-500 ml-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
               </svg>
             </button>
           </div>
-          <div className="hidden md:block flex-grow ml-6">
+          <div className="hidden md:flex flex-grow items-center ml-6">
             <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
           </div>
           <div className="hidden md:flex items-center space-x-6">
