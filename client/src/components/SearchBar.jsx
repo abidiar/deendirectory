@@ -15,9 +15,9 @@ function SearchBar() {
   const [searchError, setSearchError] = useState('');
 
   const ref = useRef(null);
-  const suggestionsRef = useRef(null); // Define suggestionsRef here
+  const suggestionsRef = useRef(null);
 
-  useClickAway(ref, () => {
+  useClickAway(suggestionsRef, () => {
     setSuggestions([]);
   });
 
@@ -115,7 +115,7 @@ function SearchBar() {
               aria-label="Search for services or businesses"
             />
             {suggestions.length > 0 && (
-              <ul className="absolute top-full left-0 right-0 bg-white shadow-md rounded-b-lg mt-1 overflow-auto z-10">
+              <ul ref={suggestionsRef} className="absolute top-full left-0 right-0 bg-white shadow-md rounded-b-lg mt-1 overflow-auto z-10">
                 {suggestions.map((suggestion, index) => (
                   <li
                     key={index}
