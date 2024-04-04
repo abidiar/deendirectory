@@ -73,16 +73,27 @@ function SearchBar() {
     }
   };
 
+  // Debounce utility function
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
   const fetchSuggestions = async (term) => {
     if (!term.trim()) return;
-
     try {
       const response = await fetch(`https://deendirectorybackend.onrender.com/api/suggestions?term=${encodeURIComponent(term)}`, {
         headers: {
           'Accept': 'application/json',
         },
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -92,6 +103,9 @@ function SearchBar() {
       console.error('Error fetching suggestions:', error);
     }
   };
+
+  // Use the debounce function for fetchSuggestions
+  const debouncedFetchSuggestions = debounce(fetchSuggestions, 500);
 
   return (
     <div className="relative flex justify-center my-4" ref={ref}>
@@ -107,7 +121,7 @@ function SearchBar() {
                 const newSearchTerm = e.target.value;
                 setSearchTerm(newSearchTerm);
                 if (newSearchTerm.trim()) {
-                  fetchSuggestions(newSearchTerm);
+                  debouncedFetchSuggestions(newSearchTerm);
                 } else {
                   setSuggestions([]);
                 }
