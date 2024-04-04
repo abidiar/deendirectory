@@ -47,6 +47,22 @@ function SearchBar() {
     }
   };
 
+    // Add the handleInputChange function
+    const handleInputChange = (e) => {
+      const newSearchTerm = e.target.value;
+      setSearchTerm(newSearchTerm);
+      if (newSearchTerm.trim()) {
+        debouncedFetchSuggestions(newSearchTerm);
+      } else {
+        setSuggestions([]);
+      }
+    };
+  
+    // Add the handleLocationChange function if not already defined
+    const handleLocationChange = (e) => {
+      setLocationInput(e.target.value);
+    };
+
   const handleSearch = async (event) => {
     event.preventDefault();
     if (!searchTerm.trim()) {
