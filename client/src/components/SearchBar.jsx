@@ -94,25 +94,43 @@ function SearchBar() {
   };
 
   return (
-    <div className="flex justify-center my-4" ref={ref}>
+    <div className="relative flex justify-center my-4" ref={ref}>
       <form className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full max-w-3xl" onSubmit={handleSearch}>
         <div className="flex flex-col md:flex-row md:flex-grow bg-white rounded-lg shadow-md overflow-hidden">
-          <input
-            type="text"
-            className="flex-grow px-4 py-2 text-lg border-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Find cleaner, web developer, seo, babysitter, etc."
-            value={searchTerm}
-            onChange={(e) => {
-              const newSearchTerm = e.target.value;
-              setSearchTerm(newSearchTerm);
-              if (newSearchTerm.trim()) {
-                fetchSuggestions(newSearchTerm);
-              } else {
-                setSuggestions([]);
-              }
-            }}
-            aria-label="Search for services or businesses"
-          />
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              className="w-full px-4 py-2 text-lg border-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Find cleaner, web developer, seo, babysitter, etc."
+              value={searchTerm}
+              onChange={(e) => {
+                const newSearchTerm = e.target.value;
+                setSearchTerm(newSearchTerm);
+                if (newSearchTerm.trim()) {
+                  fetchSuggestions(newSearchTerm);
+                } else {
+                  setSuggestions([]);
+                }
+              }}
+              aria-label="Search for services or businesses"
+            />
+            {suggestions.length > 0 && (
+              <ul className="absolute top-full left-0 right-0 bg-white shadow-md rounded-b-lg mt-1 overflow-auto z-10">
+                {suggestions.map((suggestion, index) => (
+                  <li
+                    key={index}
+                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                    onClick={() => {
+                      setSearchTerm(suggestion);
+                      setSuggestions([]);
+                    }}
+                  >
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <div className="flex items-center px-2 md:border-l md:border-gray-200">
             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-500" />
             <input
@@ -135,24 +153,6 @@ function SearchBar() {
       </form>
       {isLoading && <div className="text-center">Loading...</div>}
       {searchError && <div className="text-center text-red-500">{searchError}</div>}
-      {suggestions.length > 0 && (
-        <div ref={suggestionsRef} className="relative w-full max-w-3xl">
-          <ul className="absolute bg-white shadow-md rounded-lg mt-1 w-full overflow-auto z-10">
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                onClick={() => {
-                  setSearchTerm(suggestion);
-                  setSuggestions([]);
-                }}
-              >
-                {suggestion}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }
