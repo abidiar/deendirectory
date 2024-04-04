@@ -47,7 +47,7 @@ const BusinessSignIn = () => {
             // Sign out the user
             await supabase.auth.signOut();
           } else {
-            // Redirect to the business dashboard or appropriate page
+            // Redirect to the business dashboard
             setMessage('Login successful. Redirecting...');
             navigate('/dashboard/business');
           }
@@ -68,7 +68,7 @@ const BusinessSignIn = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6">Business Sign In</h2>
+        <h1 className="text-2xl font-bold mb-6">Business Sign In</h1>
         <form onSubmit={formik.handleSubmit}>
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-700 font-bold mb-2">
@@ -112,7 +112,7 @@ const BusinessSignIn = () => {
           >
             {formik.isSubmitting ? 'Signing In...' : 'Sign In'}
           </button>
-        </form>
+          </form>
         {message && <div className="text-blue-500 mt-4">{message}</div>}
         <div className="mt-4 text-center">
           Don't have an account?{' '}
