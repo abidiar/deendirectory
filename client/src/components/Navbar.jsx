@@ -54,6 +54,12 @@ const Navbar = ({ onSearch, backendUrl }) => {
     setUser(null);
     navigate('/');
   };
+
+  // Define handleMobileMenuToggle function
+  const handleMobileMenuToggle = () => {
+    setIsMobileMenuOpen(prevState => !prevState);
+  };
+  
   return (
     <header>
       <nav className="bg-gray-100 px-4 py-3 shadow">
