@@ -165,6 +165,8 @@ app.get('/api/suggestions', async (req, res) => {
     // Deduplicate names
     const uniqueSuggestions = [...new Set(combinedSuggestions)].slice(0, 10); // Ensuring up to 10 unique suggestions
 
+    console.log('Suggestions:', uniqueSuggestions); // Add this line
+
     res.json(uniqueSuggestions);
   } catch (error) {
     console.error('Error fetching suggestions:', error);
