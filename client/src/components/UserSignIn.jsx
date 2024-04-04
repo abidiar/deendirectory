@@ -49,7 +49,7 @@ const UserSignIn = () => {
           } else {
             // Redirect to the user dashboard or appropriate page
             setMessage('Login successful. Redirecting...');
-            navigate('/dashboard/user');
+            navigate('/UserDashboard');
           }
         }
       } catch (error) {
