@@ -106,7 +106,7 @@ function SearchBar() {
 
   // Use the debounce function for fetchSuggestions
   const debouncedFetchSuggestions = debounce(fetchSuggestions, 500);
-
+  
   return (
     <div className="relative flex justify-center my-4 z-10" ref={ref}>
       <form className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 w-full max-w-3xl" onSubmit={handleSearch}>
@@ -114,8 +114,8 @@ function SearchBar() {
           <div className="relative flex-grow">
             <input
               type="text"
-              className="w-full px-4 py-2 text-lg border-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Find cleaner, web developer, seo, babysitter, etc."
+              className="w-full px-4 py-3 text-lg border-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Find services..."
               value={searchTerm}
               onChange={(e) => {
                 const newSearchTerm = e.target.value;
@@ -149,7 +149,7 @@ function SearchBar() {
             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-500" />
             <input
               type="text"
-              className="px-4 py-2 text-lg border-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-3 text-lg border-none focus:ring-2 focus:ring-blue-500"
               placeholder="Location"
               value={locationInput}
               onChange={(e) => setLocationInput(e.target.value)}
@@ -159,7 +159,7 @@ function SearchBar() {
         </div>
         <button
           type="submit"
-          className="px-6 py-2 text-lg text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
+          className="px-6 py-3 text-lg text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
           disabled={isLoading}
         >
           <FontAwesomeIcon icon={faSearch} />
