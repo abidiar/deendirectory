@@ -2,15 +2,16 @@
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
-  padding: 8px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  border: 2px solid #ff5a5f;
+  padding: 12px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .searchForm {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   width: 100%;
   max-width: 800px;
 }
@@ -18,7 +19,8 @@
 .searchInputContainer {
   display: flex;
   align-items: center;
-  background-color: #fff;
+  flex-grow: 1;
+  background-color: #f5f5f5;
   border-radius: 4px;
   padding: 8px;
 }
@@ -35,6 +37,7 @@
   font-size: 16px;
   border-radius: 4px;
   outline: none;
+  background-color: transparent;
 }
 
 .separator {
@@ -50,7 +53,7 @@
   font-size: 16px;
   border-radius: 4px;
   outline: none;
-  width: 200px;
+  background-color: transparent;
 }
 
 .searchButton {
@@ -62,6 +65,7 @@
   font-size: 16px;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-left: 12px;
 }
 
 .searchButton:hover {
@@ -96,10 +100,11 @@
   padding: 0;
   margin: 0;
   z-index: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .suggestionItem {
-  padding: 8px 12px;
+  padding: 12px;
   cursor: pointer;
 }
 
@@ -109,8 +114,12 @@
 
 @media screen and (max-width: 600px) {
   .searchBarWrapper {
-    padding: 4px;
-    border-radius: 8px;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  .searchForm {
+    flex-direction: column;
   }
 
   .searchInputContainer {
@@ -118,12 +127,13 @@
     align-items: stretch;
     border-radius: 4px;
     padding: 0;
+    margin-bottom: 12px;
   }
 
   .searchInput {
-    border-radius: 4px 4px 0 0;
+    border-radius: 4px;
     padding: 16px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: none;
   }
 
   .separator {
@@ -132,14 +142,15 @@
 
   .locationInput {
     width: 100%;
-    border-radius: 0;
+    border-radius: 4px;
     padding: 16px;
-    border-bottom: 1px solid #ccc;
+    border-top: 1px solid #ccc;
   }
 
   .searchButton {
     width: 100%;
-    border-radius: 0 0 4px 4px;
+    border-radius: 4px;
     padding: 16px;
+    margin-left: 0;
   }
 }
