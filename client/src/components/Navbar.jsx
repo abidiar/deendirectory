@@ -110,11 +110,12 @@ const Navbar = ({ onSearch, backendUrl }) => {
                 </>
               )}
             </div>
-            <div className="flex md:hidden">
+            <div className="md:hidden flex items-center">
+              <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
               <button
                 onClick={handleMobileMenuToggle}
                 type="button"
-                className="text-gray-600 hover:text-gray-800 focus:outline-none focus:text-gray-800"
+                className="ml-4 text-gray-600 hover:text-gray-800 focus:outline-none focus:text-gray-800"
                 aria-label="Toggle menu"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -127,7 +128,6 @@ const Navbar = ({ onSearch, backendUrl }) => {
         {isMobileMenuOpen && (
           <div className="md:hidden" ref={mobileMenuRef}>
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
               {user ? (
                 <button onClick={handleLogout} className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
                   Sign Out
