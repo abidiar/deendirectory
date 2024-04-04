@@ -131,11 +131,12 @@ function SearchBar() {
         >
           <FontAwesomeIcon icon={faSearch} />
         </button>
-        </form>
-        {isLoading && <div className="text-center">Loading...</div>}
-        {searchError && <div className="text-center text-red-500">{searchError}</div>}
-        {suggestions.length > 0 && (
-          <ul className="absolute bg-white shadow-md rounded-lg mt-1 max-h-60 w-full overflow-auto z-10">
+      </form>
+      {isLoading && <div className="text-center">Loading...</div>}
+      {searchError && <div className="text-center text-red-500">{searchError}</div>}
+      {suggestions.length > 0 && (
+        <div ref={suggestionsRef} className="relative w-full max-w-3xl">
+          <ul className="absolute bg-white shadow-md rounded-lg mt-1 w-full overflow-auto z-10">
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
@@ -149,7 +150,8 @@ function SearchBar() {
               </li>
             ))}
           </ul>
-        )}
+        </div>
+      )}
     </div>
   );
 }
