@@ -122,61 +122,61 @@ function SearchBar() {
 
   // Use the debounce function for fetchSuggestions
   const debouncedFetchSuggestions = debounce(fetchSuggestions, 500);
-
-  return (
-    <div className="relative flex justify-center my-4 z-10" ref={ref}>
-      <form className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2 w-full px-4 sm:px-0" onSubmit={handleSearch}>
-        <div className="flex flex-col md:flex-row md:flex-grow bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="flex-grow">
-            <input
-              type="text"
-              className="w-full px-4 py-2 text-base border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Find services..."
-              value={searchTerm}
-              onChange={handleInputChange} // Extract the event handler to a function
-              aria-label="Search for services or businesses"
-            />
-            {suggestions.length > 0 && (
-              <ul ref={suggestionsRef} className="absolute top-full left-0 right-0 bg-white shadow-md rounded-b-lg mt-1 overflow-auto z-10">
-                {suggestions.map((suggestion, index) => (
-                  <li
-                    key={index}
-                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                    onClick={() => {
-                      setSearchTerm(suggestion);
-                      setSuggestions([]);
-                    }}
-                  >
-                    {suggestion}
-                  </li>
-                ))}
-              </ul>
-            )}
+  
+    return(
+      <div className="relative flex justify-center my-4 z-10" ref={ref}>
+        <form className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-2 w-full px-4 sm:px-0" onSubmit={handleSearch}>
+          <div className="flex flex-col md:flex-row md:flex-grow bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="relative flex-grow">
+              <input
+                type="text"
+                className="w-full px-4 py-2 text-base border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Find services..."
+                value={searchTerm}
+                onChange={handleInputChange}
+                aria-label="Search for services or businesses"
+              />
+              {suggestions.length > 0 && (
+                <ul ref={suggestionsRef} className="absolute top-full left-0 right-0 bg-white shadow-md rounded-b-lg mt-1 overflow-auto z-10">
+                  {suggestions.map((suggestion, index) => (
+                    <li
+                      key={index}
+                      className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSearchTerm(suggestion);
+                        setSuggestions([]);
+                      }}
+                    >
+                      {suggestion}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="flex items-center px-2 border-t md:border-t-0 md:border-l border-gray-200">
+              <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-500" />
+              <input
+                type="text"
+                className="w-full px-4 py-2 text-base border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Location"
+                value={locationInput}
+                onChange={handleLocationChange}
+                aria-label="Location"
+              />
+            </div>
           </div>
-          <div className="flex items-center px-2 border-t md:border-t-0 md:border-l border-gray-200">
-            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-500" />
-            <input
-              type="text"
-              className="w-full px-4 py-2 text-base border-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Location"
-              value={locationInput}
-              onChange={handleLocationChange} // Extract the event handler to a function
-              aria-label="Location"
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="w-full md:w-auto px-5 py-2 text-base text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
-          disabled={isLoading}
-        >
-          <FontAwesomeIcon icon={faSearch} />
-        </button>
-      </form>
-      {isLoading && <div className="text-center">Loading...</div>}
-      {searchError && <div className="text-center text-red-500">{searchError}</div>}
-    </div>
-  );
-}
-
-export default SearchBar;
+          <button
+            type="submit"
+            className="w-full md:w-auto px-5 py-2 text-base text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-300"
+            disabled={isLoading}
+          >
+            <FontAwesomeIcon icon={faSearch} />
+          </button>
+        </form>
+        {isLoading && <div className="text-center">Loading...</div>}
+        {searchError && <div className="text-center text-red-500">{searchError}</div>}
+      </div>
+    );
+  }
+  
+  export default SearchBar;

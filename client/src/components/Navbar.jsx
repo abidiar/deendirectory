@@ -63,7 +63,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
     <header className="relative z-20">
       <nav className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap justify-between items-center h-16">
+          <div className="flex flex-wrap justify-between items-center py-4">
             <EnhancedLink to="/" className="text-2xl font-bold text-gray-800">
               DeenDirectory
             </EnhancedLink>
