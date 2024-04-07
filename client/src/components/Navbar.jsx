@@ -26,9 +26,11 @@ const Navbar = ({ onSearch, backendUrl }) => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
     });
-
+  
     return () => {
-      authListener?.unsubscribe();
+      if (authListener && typeof authListener.unsubscribe === 'function') {
+        authListener.unsubscribe();
+      }
     };
   }, []);
 
