@@ -93,6 +93,9 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       <EnhancedLink to="/claim-business" className={location.pathname === '/claim-business' ? 'text-blue-500' : ''}>
                         Claim Your Business
                       </EnhancedLink>
+                      <EnhancedLink to="/add-business" className={location.pathname === '/add-business' ? 'text-blue-500' : ''}>
+                        Add Your Business
+                      </EnhancedLink>
                     </div>
                   )}
                 </div>
@@ -145,6 +148,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                     User Sign Up
                   </EnhancedLink>
                 </>
+                
               )}
               <div className="pt-4 pb-3 border-t border-gray-200">
                 <div className="flex items-center px-5">
@@ -175,6 +179,12 @@ const Navbar = ({ onSearch, backendUrl }) => {
                   >
                     Claim Your Business
                   </EnhancedLink>
+                  <EnhancedLink
+                  to="/add-business"
+                  className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/add-business' ? 'bg-gray-100' : ''}`}
+                >
+                  Add Your Business
+                </EnhancedLink>
                 </div>
               </div>
             </div>
