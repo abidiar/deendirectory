@@ -292,6 +292,49 @@ app.get('/api/categories/featured', async (req, res) => {
   }
 });
 
+app.post('/api/businesses', async (req, res) => {
+  const {
+    name,
+    description,
+    latitude,
+    longitude,
+    street_address,
+    city,
+    state,
+    postal_code,
+    country,
+    phone_number,
+    website,
+    hours,
+    is_halal_certified,
+    category_id
+  } = req.body;
+
+  try {
+    const newBusiness = await Service.create({
+      name,
+      description,
+      latitude,
+      longitude,
+      street_address,
+      city,
+      state,
+      postal_code,
+      country,
+      phone_number,
+      website,
+      hours,
+      is_halal_certified,
+      category_id
+    });
+
+    res.status(201).json(newBusiness);
+  } catch (error) {
+    console.error('Error adding business:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 app.post('/api/reviews/add', async (req, res) => {
   // Implement logic to add a review
   // This should be a function called within the review add/update endpoints

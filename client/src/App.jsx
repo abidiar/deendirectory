@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import SignOutPopup from './components/SignOutPopup';
+import ClaimOrAddBusiness from './components/ClaimOrAddBusiness';
 
 // Lazy loading components
 const MainLayout = lazy(() => import('./components/MainLayout'));
@@ -107,6 +108,7 @@ function App() {
                   <Route path="/" element={<MainLayout />} />
                   <Route path="/business-sign-in" element={<BusinessSignIn />} />
                   <Route path="/business-sign-up" element={<BusinessSignUp />} />
+                  <Route path="/claim-or-add-business" component={ClaimOrAddBusiness} />
                   <Route path="/user-sign-in" element={<UserSignIn />} />
                   <Route path="/user-sign-up" element={<UserSignUp />} />
                   <Route path="/dashboard" element={<DashboardComponent />} />
