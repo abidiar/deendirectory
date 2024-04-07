@@ -108,7 +108,7 @@ function App() {
                   <Route path="/" element={<MainLayout />} />
                   <Route path="/business-sign-in" element={<BusinessSignIn />} />
                   <Route path="/business-sign-up" element={<BusinessSignUp />} />
-                  <Route path="/claim-or-add-business" component={ClaimOrAddBusiness} />
+                  <Route path="/claim-or-add-business" element={<ClaimOrAddBusiness />} />
                   <Route path="/user-sign-in" element={<UserSignIn />} />
                   <Route path="/user-sign-up" element={<UserSignUp />} />
                   <Route path="/dashboard" element={<DashboardComponent />} />
