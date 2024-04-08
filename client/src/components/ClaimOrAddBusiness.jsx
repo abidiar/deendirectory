@@ -42,7 +42,7 @@ const ClaimOrAddBusiness = () => {
   const handleSearch = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.get(`/api/businesses/search?name=${searchTerm}`);
+      const response = await axios.get(`https://deendirectorybackend.onrender.com/api/businesses/search?name=${searchTerm}`);
       setSearchResults(response.data);
     } catch (error) {
       console.error('Error searching for business:', error);
