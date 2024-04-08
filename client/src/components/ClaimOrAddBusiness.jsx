@@ -380,3 +380,4 @@ const ClaimOrAddBusiness = () => {
     </div>
   );
 }
+export default ClaimOrAddBusiness;
