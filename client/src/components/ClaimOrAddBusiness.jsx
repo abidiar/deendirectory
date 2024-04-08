@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -34,17 +35,18 @@ const ClaimOrAddBusiness = () => {
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]);
     }
   };
 
   const handleSearch = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.get(`/api/businesses/search?name=${searchTerm}`);
       setSearchResults(response.data);
     } catch (error) {
       console.error('Error searching for business:', error);
+      setSearchResults([]);
     }
   };
 
@@ -141,7 +143,7 @@ const ClaimOrAddBusiness = () => {
           </button>
         </div>
       </form>
-      {searchResults && searchResults.length > 0 && (
+      {searchResults && Array.isArray(searchResults) && searchResults.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Search Results</h2>
           <ul className="space-y-4">
@@ -178,36 +180,26 @@ const ClaimOrAddBusiness = () => {
       {formData.name && (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Business Name
+            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+              Category
             </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+            <select
+              id="category_id"
+              name="category_id"
+              value={formData.category_id}
               onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              className={`mt-1 block w-full border ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
               required
-            />
-            {formErrors.name && (
-              <span className="text-red-500 text-sm">{formErrors.name}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.description ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.description && (
-              <span className="text-red-500 text-sm">{formErrors.description}</span>
+            >
+              <option value="">Select a category</option>
+              {categories && Array.isArray(categories) && categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {formErrors.category_id && (
+              <span className="text-red-500 text-sm">{formErrors.category_id}</span>
             )}
           </div>
           <div>
@@ -387,6 +379,4 @@ const ClaimOrAddBusiness = () => {
       )}
     </div>
   );
-};
-
-export default ClaimOrAddBusiness;
+}
