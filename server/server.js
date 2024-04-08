@@ -335,6 +335,84 @@ app.post('/api/businesses', async (req, res) => {
   }
 });
 
+app.get('/api/businesses/search', async (req, res) => {
+  const { name, category_id, city, state, postal_code, country, is_halal_certified } = req.query;
+
+  try {
+    const whereClause = {};
+
+    if (name) {
+      whereClause.name = {
+        [Op.iLike]: `%${name}%`,
+      };
+    }
+
+    if (category_id) {
+      whereClause.category_id = category_id;
+    }
+
+    if (city) {
+      whereClause.city = {
+        [Op.iLike]: `%${city}%`,
+      };
+    }
+
+    if (state) {
+      whereClause.state = {
+        [Op.iLike]: `%${state}%`,
+      };
+    }
+
+    if (postal_code) {
+      whereClause.postal_code = postal_code;
+    }
+
+    if (country) {
+      whereClause.country = {
+        [Op.iLike]: `%${country}%`,
+      };
+    }
+
+    if (is_halal_certified !== undefined) {
+      whereClause.is_halal_certified = is_halal_certified;
+    }
+
+    const businesses = await Service.findAll({
+      where: whereClause,
+      attributes: [
+        'id',
+        'name',
+        'description',
+        'latitude',
+        'longitude',
+        'street_address',
+        'city',
+        'state',
+        'postal_code',
+        'country',
+        'phone_number',
+        'website',
+        'hours',
+        'is_halal_certified',
+        'average_rating',
+        'review_count',
+        'image_url',
+      ],
+      include: [
+        {
+          model: Category,
+          attributes: ['id', 'name'],
+        },
+      ],
+    });
+
+    res.json(businesses);
+  } catch (error) {
+    console.error('Error searching for businesses:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 app.post('/api/reviews/add', async (req, res) => {
   // Implement logic to add a review
   // This should be a function called within the review add/update endpoints
