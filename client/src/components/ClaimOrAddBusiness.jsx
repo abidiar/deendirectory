@@ -57,10 +57,10 @@ const handleSearch = async (e) => {
   setIsLoading(true);
   try {
     const response = await axios.get(`${API_BASE_URL}/api/businesses/search?name=${encodeURIComponent(searchTerm)}`);
-    setSearchResults(response.data);
+    setSearchResults(response.data.businesses);
   } catch (error) {
     console.error('Error searching for business:', error.response?.data || error.message);
-    alert('Error searching for business'); // User feedback
+    alert('Error searching for business');
     setSearchResults([]);
   } finally {
     setIsLoading(false);
@@ -167,28 +167,28 @@ const handleSubmit = async (e) => {
           </button>
         </div>
       </form>
-      {searchResults && Array.isArray(searchResults) && searchResults.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Search Results</h2>
-          <ul className="space-y-4">
-            {searchResults.map((business) => (
-              <li key={business.id} className="flex justify-between items-center border border-gray-300 rounded-md p-4">
-                <div>
-                  <h3 className="text-lg font-bold">{business.name}</h3>
-                  <p className="text-gray-500">{business.street_address}, {business.city}, {business.state} {business.postal_code}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleClaimBusiness(business.id)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Claim Business
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {searchResults && searchResults.length > 0 && (
+  <div className="mb-8">
+    <h2 className="text-xl font-bold mb-4">Search Results</h2>
+    <ul className="space-y-4">
+      {searchResults.map((business) => (
+        <li key={business.id} className="flex justify-between items-center border border-gray-300 rounded-md p-4">
+          <div>
+            <h3 className="text-lg font-bold">{business.name}</h3>
+            <p className="text-gray-500">{business.street_address}, {business.city}, {business.state} {business.postal_code}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleClaimBusiness(business.id)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Claim Business
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
       {searchTerm && searchResults && searchResults.length === 0 && (
         <div className="mb-8">
           <p className="text-lg">No results found for "{searchTerm}".</p>
