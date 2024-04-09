@@ -8,6 +8,7 @@ const ClaimOrAddBusiness = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [showNoResults, setShowNoResults] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
