@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Reintroduced axios for consistent API calls
+
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 const ClaimOrAddBusiness = () => {
   const navigate = useNavigate();
@@ -22,41 +25,47 @@ const ClaimOrAddBusiness = () => {
   const [categories, setCategories] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Declare isLoading state
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/categories`);
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        alert('Error fetching categories'); // User feedback
+        setCategories([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const source = axios.CancelToken.source(); // For HTTP request cleanup
+
     fetchCategories();
+
+    return () => {
+      source.cancel("Component got unmounted"); // Cleanup pending HTTP requests
+    };
   }, []);
 
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('https://deendirectorybackend.onrender.com/api/categories');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      setCategories([]);
-    }
-  };  
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    const url = 'https://deendirectorybackend.onrender.com/api/businesses/search?name=' + encodeURIComponent(searchTerm);
-  
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setSearchResults(data);
-    } catch (error) {
-      console.error('Error searching for business:', error);
-      setSearchResults([]);
-    }
-  };
+// Handling search
+const handleSearch = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/businesses/search?name=${encodeURIComponent(searchTerm)}`);
+    setSearchResults(response.data);
+  } catch (error) {
+    console.error('Error searching for business:', error.response?.data || error.message);
+    alert('Error searching for business'); // User feedback
+    setSearchResults([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleClaimBusiness = (businessId) => {
     // Handle the claiming process for the selected business
@@ -111,35 +120,36 @@ const ClaimOrAddBusiness = () => {
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      setIsSubmitting(true);
-      try {
-        const response = await fetch('https://deendirectorybackend.onrender.com/api/businesses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log('Business added successfully:', data);
-        navigate(`/business/${data.id}`);
-      } catch (error) {
-        console.error('Error adding business:', error);
-      }
+  
+// Handle form submission
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (validateForm()) {
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/businesses`, formData);
+      console.log('Business added successfully:', response.data);
+      navigate(`/business/${response.data.id}`);
+    } catch (error) {
+      console.error('Error adding business:', error.response?.data || error.message);
+      alert('Error adding business'); // User feedback
+      setFormErrors({ submit: error.response?.data || 'An error occurred while adding the business.' });
+    } finally {
       setIsSubmitting(false);
     }
-  };
+  }
+};
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold mb-6">Claim or Add Your Business</h1>
+
+      {/* Display loading indicator */}
+      {isLoading && <p>Loading...</p>}
+      
+      {/* Display form submission errors */}
+      {formErrors.submit && <p className="text-red-500">{formErrors.submit}</p>}
+
       <form onSubmit={handleSearch} className="mb-8">
         <div className="flex">
           <input
