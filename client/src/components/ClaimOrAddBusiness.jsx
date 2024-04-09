@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const ClaimOrAddBusiness = () => {
   const navigate = useNavigate();
@@ -41,9 +39,16 @@ const ClaimOrAddBusiness = () => {
 
   const handleSearch = async (e) => {
     e.preventDefault();
+    const url = new URL('https://deendirectorybackend.onrender.com/api/businesses/search');
+    url.searchParams.append('name', searchTerm);
+  
     try {
-      const response = await axios.get(`https://deendirectorybackend.onrender.com/api/businesses/search?name=${searchTerm}`);
-      setSearchResults(response.data);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setSearchResults(data);
     } catch (error) {
       console.error('Error searching for business:', error);
       setSearchResults([]);
