@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Reintroduced axios for consistent API calls
 
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL;
+const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL;
 
 const ClaimOrAddBusiness = () => {
   const navigate = useNavigate();
