@@ -336,7 +336,7 @@ app.post('/api/businesses', async (req, res) => {
 });
 
 app.get('/api/businesses/search', async (req, res) => {
-  const { name, category_id, city, state, postal_code, country, is_halal_certified } = req.query;
+  const { name, category_id, city, state, postal_code, country, is_halal_certified, page = 1, pageSize = 10 } = req.query;
 
   try {
     const whereClause = {};
@@ -348,7 +348,7 @@ app.get('/api/businesses/search', async (req, res) => {
     }
 
     if (category_id) {
-      whereClause.category_id = category_id;
+      whereClause.categoryId = category_id; // Ensure this matches your model's foreignKey exactly
     }
 
     if (city) {
@@ -364,7 +364,7 @@ app.get('/api/businesses/search', async (req, res) => {
     }
 
     if (postal_code) {
-      whereClause.postal_code = postal_code;
+      whereClause.postalCode = postal_code; // Match the naming convention used in your model
     }
 
     if (country) {
@@ -374,10 +374,14 @@ app.get('/api/businesses/search', async (req, res) => {
     }
 
     if (is_halal_certified !== undefined) {
-      whereClause.is_halal_certified = is_halal_certified;
+      whereClause.isHalalCertified = is_halal_certified === 'true'; // Convert query param to boolean
     }
 
-    const businesses = await Service.findAll({
+    // Calculate offset for pagination
+    const offset = (parseInt(page, 10) - 1) * parseInt(pageSize, 10);
+
+    // Execute the query with pagination
+    const result = await Service.findAndCountAll({
       where: whereClause,
       attributes: [
         'id',
@@ -401,12 +405,23 @@ app.get('/api/businesses/search', async (req, res) => {
       include: [
         {
           model: Category,
+          as: 'category',
           attributes: ['id', 'name'],
         },
       ],
+      limit: parseInt(pageSize, 10),
+      offset: offset,
+      order: [['name', 'ASC']], // Example: ordering by name, adjust as needed
     });
 
-    res.json(businesses);
+    // Format and send the response including pagination data
+    res.json({
+      currentPage: parseInt(page, 10),
+      pageSize: parseInt(pageSize, 10),
+      totalCount: result.count,
+      totalPages: Math.ceil(result.count / parseInt(pageSize, 10)),
+      businesses: result.rows,
+    });
   } catch (error) {
     console.error('Error searching for businesses:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
