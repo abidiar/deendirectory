@@ -29,7 +29,7 @@ const ClaimOrAddBusiness = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch('https://deendirectorybackend.onrender.com/api/categories');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -39,12 +39,11 @@ const ClaimOrAddBusiness = () => {
       console.error('Error fetching categories:', error);
       setCategories([]);
     }
-  };
+  };  
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    const url = new URL('https://deendirectorybackend.onrender.com/api/businesses/search');
-    url.searchParams.append('name', searchTerm);
+    const url = 'https://deendirectorybackend.onrender.com/api/businesses/search?name=' + encodeURIComponent(searchTerm);
   
     try {
       const response = await fetch(url);
@@ -115,32 +114,25 @@ const ClaimOrAddBusiness = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (validateForm()) {
       setIsSubmitting(true);
-
-      // Since you're submitting form data, you'll want to switch to fetch here as well
       try {
-        const response = await fetch('/api/businesses', {
+        const response = await fetch('https://deendirectorybackend.onrender.com/api/businesses', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(formData),
         });
-
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
         const data = await response.json();
         console.log('Business added successfully:', data);
         navigate(`/business/${data.id}`);
       } catch (error) {
         console.error('Error adding business:', error);
-        // Display error message to the user
       }
-
       setIsSubmitting(false);
     }
   };
