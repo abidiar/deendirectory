@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Reintroduced axios for consistent API calls
+import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL || 'https://deendirectorybackend.onrender.com';
 
@@ -27,49 +27,52 @@ const ClaimOrAddBusiness = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Debounced search effect
   useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/categories`);
-        setCategories(response.data);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        alert('Error fetching categories'); // User feedback
-        setCategories([]);
-      } finally {
-        setIsLoading(false);
+    const handler = setTimeout(() => {
+      if (searchTerm.trim()) {
+        setIsLoading(true);
+        axios.get(`${API_BASE_URL}/api/businesses/search?name=${encodeURIComponent(searchTerm)}`)
+          .then((response) => {
+            setSearchResults(response.data.businesses);
+          })
+          .catch((error) => {
+            console.error('Error searching for business:', error.response?.data || error.message);
+            alert('Error searching for business');
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      } else {
+        setSearchResults([]);
       }
-    };
+    }, 300); // 300ms delay
 
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setIsLoading(true);
     const source = axios.CancelToken.source(); // For HTTP request cleanup
 
-    fetchCategories();
+    axios.get(`${API_BASE_URL}/api/categories`, { cancelToken: source.token })
+      .then((response) => {
+        setCategories(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching categories:', error);
+        alert('Error fetching categories');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
 
     return () => {
-      source.cancel("Component got unmounted"); // Cleanup pending HTTP requests
+      source.cancel("Component got unmounted");
     };
   }, []);
 
-// Handling search
-const handleSearch = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  try {
-    const response = await axios.get(`${API_BASE_URL}/api/businesses/search?name=${encodeURIComponent(searchTerm)}`);
-    setSearchResults(response.data.businesses);
-  } catch (error) {
-    console.error('Error searching for business:', error.response?.data || error.message);
-    alert('Error searching for business');
-    setSearchResults([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
   const handleClaimBusiness = (businessId) => {
-    // Handle the claiming process for the selected business
-    // You can redirect the user to a claim form or dashboard
     navigate(`/claim-business/${businessId}`);
   };
 
@@ -121,54 +124,45 @@ const handleSearch = async (e) => {
     return Object.keys(errors).length === 0;
   };
 
-// Handle form submission
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (validateForm()) {
-    setIsSubmitting(true);
-    try {
-      const response = await axios.post(`${API_BASE_URL}/api/businesses`, formData);
-      console.log('Business added successfully:', response.data);
-      navigate(`/business/${response.data.id}`);
-    } catch (error) {
-      console.error('Error adding business:', error.response?.data || error.message);
-      alert('Error adding business'); // User feedback
-      setFormErrors({ submit: error.response?.data || 'An error occurred while adding the business.' });
-    } finally {
-      setIsSubmitting(false);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      setIsSubmitting(true);
+      axios.post(`${API_BASE_URL}/api/businesses`, formData)
+        .then((response) => {
+          navigate(`/business/${response.data.id}`);
+        })
+        .catch((error) => {
+          console.error('Error adding business:', error.response?.data || error.message);
+          alert('Error adding business');
+          setFormErrors({ submit: error.response?.data || 'An error occurred while adding the business.' });
+        })
+        .finally(() => {
+          setIsSubmitting(false);
+        });
     }
-  }
-};
+  };
 
-return (
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <h1 className="text-3xl font-bold mb-6">Claim or Add Your Business</h1>
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 className="text-3xl font-bold mb-6">Claim or Add Your Business</h1>
 
-    {/* Display loading indicator */}
-    {isLoading && <p>Loading...</p>}
-    
-    {/* Display form submission errors */}
-    {formErrors.submit && <p className="text-red-500">{formErrors.submit}</p>}
+      {isLoading && <p>Loading...</p>}
+      {formErrors.submit && <p className="text-red-500">{formErrors.submit}</p>}
 
-    <form onSubmit={handleSearch} className="mb-8">
-      <div className="flex">
+      <div className="flex mb-8">
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Search for your business"
+          autoComplete="off"
         />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          Search
-        </button>
+        {/* Search button removed as we're now using debounce */}
       </div>
-    </form>
 
-    {searchResults.length > 0 ? (
+      {searchResults.length > 0 ? (
       <div className="mb-8">
         <h2 className="text-xl font-bold mb-4">Search Results</h2>
         <ul className="space-y-4">
@@ -189,20 +183,19 @@ return (
           ))}
         </ul>
       </div>
-    ) : searchTerm ? (
-      <div className="mb-8">
-        <p className="text-lg">No results found for "{searchTerm}".</p>
-        <button
-          type="button"
-          onClick={handleAddBusiness}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          Add Business with this Name
-        </button>
-      </div>
-    ) : null}
+      ) : searchTerm ? (
+        <div className="mb-8">
+          <p className="text-lg">No results found for "{searchTerm}".</p>
+          <button
+            onClick={handleAddBusiness}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Add Business with this Name
+          </button>
+        </div>
+      ) : null}
 
-    {formData.name && (
+      {formData.name && (
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
