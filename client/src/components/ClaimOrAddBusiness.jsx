@@ -120,7 +120,7 @@ const handleSearch = async (e) => {
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
-  
+
 // Handle form submission
 const handleSubmit = async (e) => {
   e.preventDefault();
