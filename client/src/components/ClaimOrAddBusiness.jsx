@@ -29,8 +29,12 @@ const ClaimOrAddBusiness = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('/api/categories');
-      setCategories(response.data);
+      const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setCategories([]);
@@ -115,10 +119,23 @@ const ClaimOrAddBusiness = () => {
     if (validateForm()) {
       setIsSubmitting(true);
 
+      // Since you're submitting form data, you'll want to switch to fetch here as well
       try {
-        const response = await axios.post('/api/businesses', formData);
-        console.log('Business added successfully:', response.data);
-        navigate(`/business/${response.data.id}`);
+        const response = await fetch('/api/businesses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Business added successfully:', data);
+        navigate(`/business/${data.id}`);
       } catch (error) {
         console.error('Error adding business:', error);
         // Display error message to the user
