@@ -55,13 +55,16 @@ const ClaimOrAddBusiness = () => {
 const handleSearch = async (e) => {
   e.preventDefault();
   setIsLoading(true);
+  setShowNoResults(false);
   try {
     const response = await axios.get(`${API_BASE_URL}/api/businesses/search?name=${encodeURIComponent(searchTerm)}`);
     setSearchResults(response.data.businesses);
+    setShowNoResults(response.data.businesses.length === 0);
   } catch (error) {
     console.error('Error searching for business:', error.response?.data || error.message);
     alert('Error searching for business');
     setSearchResults([]);
+    setShowNoResults(true);
   } finally {
     setIsLoading(false);
   }
@@ -189,6 +192,20 @@ const handleSubmit = async (e) => {
     </ul>
   </div>
 )}
+
+{showNoResults && (
+  <div className="mb-8">
+    <p className="text-lg">No results found for "{searchTerm}".</p>
+    <button
+      type="button"
+      onClick={handleAddBusiness}
+      className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      Add Business with this Name
+    </button>
+  </div>
+)}
+
 {searchTerm && searchResults !== null && searchResults !== undefined && searchResults.length === 0 && (
   <div className="mb-8">
     <p className="text-lg">No results found for "{searchTerm}".</p>
