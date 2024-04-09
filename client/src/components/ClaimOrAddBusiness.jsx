@@ -143,6 +143,15 @@ const ClaimOrAddBusiness = () => {
     }
   };
 
+    // Always-visible button for adding a business
+    const initiateAddBusinessButton = () => {
+      setFormData((prevData) => ({ ...prevData, name: searchTerm }));
+      setSearchTerm('');
+      setSearchResults([]);
+      // You might also want to navigate the user to the form or change view here
+      // navigate('/add-business');
+    };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold mb-6">Claim or Add Your Business</h1>
@@ -194,6 +203,14 @@ const ClaimOrAddBusiness = () => {
           </button>
         </div>
       ) : null}
+
+      {/* No matter the search results, provide an option to add a business */}
+      <button
+        onClick={initiateAddBusinessButton}
+        className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+      >
+        Add Business with this Name
+      </button>
 
       {formData.name && (
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
