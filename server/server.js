@@ -523,6 +523,13 @@ app.get('/api/categories', async (req, res) => {
     const [categories, metadata] = await sequelize.query(query, {
       type: sequelize.QueryTypes.SELECT
     });
+    
+  // Add a log to check what 'categories' contains
+  console.log('Categories:', categories);
+
+  if (!Array.isArray(categories)) {
+    throw new TypeError('Fetched data is not an array');
+  }
 
     if (lat && lng) {
       const floatLat = parseFloat(lat);
