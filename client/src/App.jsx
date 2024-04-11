@@ -24,6 +24,7 @@ const Cleaners = lazy(() => import('./components/Cleaners'));
 const SubcategoryPage = lazy(() => import('./components/SubcategoryPage'));
 const CategoryPage = lazy(() => import('./components/CategoryPage'));
 const AddServicePage = lazy(() => import('./pages/AddServicePage'));
+const AddServiceForm = lazy(() => import('./components/AddServiceForm')); // New import
 
 // New pages
 const AboutUs = lazy(() => import('./pages/AboutUs'));
@@ -121,6 +122,7 @@ function App() {
                   <Route path="/subcategory/:subcategoryId" element={<SubcategoryPage />} />
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
                   <Route path="/add-service" element={<AddServicePage />} />
+                  <Route path="/add-service-form" element={<AddServiceForm />} /> {/* New route */}
 
                   {/* New routes */}
                   <Route path="/about-us" element={<AboutUs />} />

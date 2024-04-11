@@ -9,25 +9,6 @@ const ClaimOrAddBusiness = () => {
   const isMountedRef = useRef(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    latitude: '',
-    longitude: '',
-    street_address: '',
-    city: '',
-    state: '',
-    postal_code: '',
-    country: '',
-    phone_number: '',
-    website: '',
-    hours: '',
-    is_halal_certified: false,
-    category_id: '',
-  });
-  const [categories, setCategories] = useState([]);
-  const [formErrors, setFormErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -49,25 +30,6 @@ const ClaimOrAddBusiness = () => {
       clearTimeout(handler);
     };
   }, [searchTerm]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/categories`);
-        if (isMountedRef.current) {
-          setCategories(response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        alert('Error fetching categories');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    fetchCategories();
-  }, []);
 
   const performSearch = async () => {
     if (searchTerm.trim()) {
@@ -97,91 +59,15 @@ const ClaimOrAddBusiness = () => {
   };
 
   const handleAddBusiness = () => {
-    setFormData((prevData) => ({ ...prevData, name: searchTerm }));
-    setSearchTerm('');
-    setSearchResults([]);
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
-
-  const validateForm = () => {
-    const errors = {};
-
-    // Perform form validation
-    if (!formData.name) {
-      errors.name = 'Business name is required';
-    }
-    if (!formData.description) {
-      errors.description = 'Description is required';
-    }
-    if (!formData.latitude) {
-      errors.latitude = 'Latitude is required';
-    }
-    if (!formData.longitude) {
-      errors.longitude = 'Longitude is required';
-    }
-    if (!formData.street_address) {
-      errors.street_address = 'Street address is required';
-    }
-    if (!formData.city) {
-      errors.city = 'City is required';
-    }
-    if (!formData.state) {
-      errors.state = 'State is required';
-    }
-    if (!formData.postal_code) {
-      errors.postal_code = 'Postal code is required';
-    }
-    if (!formData.country) {
-      errors.country = 'Country is required';
-    }
-    if (!formData.phone_number) {
-      errors.phone_number = 'Phone number is required';
-    }
-    if (!formData.category_id) {
-      errors.category_id = 'Category is required';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      setIsSubmitting(true);
-      try {
-        const response = await axios.post(`${API_BASE_URL}/api/businesses`, formData);
-        if (isMountedRef.current) {
-          navigate(`/business/${response.data.id}`);
-        }
-      } catch (error) {
-        if (isMountedRef.current) {
-          console.error('Error adding business:', error.response?.data || error.message);
-          alert('Error adding business');
-          setFormErrors({ submit: error.response?.data || 'An error occurred while adding the business.' });
-        }
-      } finally {
-        if (isMountedRef.current) {
-          setIsSubmitting(false);
-        }
-      }
-    }
+    navigate(`/add-service?name=${encodeURIComponent(searchTerm)}`);
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold mb-6">Claim or Add Your Business</h1>
-  
+
       {isLoading && <p>Loading...</p>}
-      {formErrors.submit && <p className="text-red-500">{formErrors.submit}</p>}
-  
+
       <div className="flex mb-8">
         <input
           type="text"
@@ -199,7 +85,7 @@ const ClaimOrAddBusiness = () => {
           Add Business with this Name
         </button>
       </div>
-  
+
       {searchResults.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Search Results</h2>
@@ -222,260 +108,14 @@ const ClaimOrAddBusiness = () => {
           </ul>
         </div>
       )}
-  
+
       {searchTerm && searchResults.length === 0 && (
         <div className="mb-8">
           <p className="text-lg">No results found for "{searchTerm}".</p>
         </div>
       )}
-  
-      {formData.name && (
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Business Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.name && (
-              <span className="text-red-500 text-sm">{formErrors.name}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.description ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.description && (
-              <span className="text-red-500 text-sm">{formErrors.description}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="latitude" className="block text-sm font-medium text-gray-700">
-              Latitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              id="latitude"
-              name="latitude"
-              value={formData.latitude}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.latitude ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.latitude && (
-              <span className="text-red-500 text-sm">{formErrors.latitude}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="longitude" className="block text-sm font-medium text-gray-700">
-              Longitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              id="longitude"
-              name="longitude"
-              value={formData.longitude}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.longitude ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.longitude && (
-              <span className="text-red-500 text-sm">{formErrors.longitude}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="street_address" className="block text-sm font-medium text-gray-700">
-              Street Address
-            </label>
-            <input
-              type="text"
-              id="street_address"
-              name="street_address"
-              value={formData.street_address}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.street_address ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.street_address && (
-              <span className="text-red-500 text-sm">{formErrors.street_address}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-              City
-            </label>
-            <input
-              type="text"
-              id="city"
-              name="city"
-              value={formData.city}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.city ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.city && (
-              <span className="text-red-500 text-sm">{formErrors.city}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-              State
-            </label>
-            <input
-              type="text"
-              id="state"
-              name="state"
-              value={formData.state}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.state ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.state && (
-              <span className="text-red-500 text-sm">{formErrors.state}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700">
-              Postal Code
-            </label>
-            <input
-              type="text"
-              id="postal_code"
-              name="postal_code"
-              value={formData.postal_code}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.postal_code ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.postal_code && (
-              <span className="text-red-500 text-sm">{formErrors.postal_code}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-              Country
-            </label>
-            <input
-              type="text"
-              id="country"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.country ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.country && (
-              <span className="text-red-500 text-sm">{formErrors.country}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              type="text"
-              id="phone_number"
-              name="phone_number"
-              value={formData.phone_number}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.phone_number ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            />
-            {formErrors.phone_number && (
-              <span className="text-red-500 text-sm">{formErrors.phone_number}</span>
-            )}
-          </div>
-          <div>
-            <label htmlFor="website" className="block text-sm font-medium text-gray-700">
-              Website
-            </label>
-            <input
-              type="text"
-              id="website"
-              name="website"
-              value={formData.website}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="hours" className="block text-sm font-medium text-gray-700">
-              Hours
-            </label>
-            <input
-              type="text"
-              id="hours"
-              name="hours"
-              value={formData.hours}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
-              Category
-            </label>
-            <select
-              id="category_id"
-              name="category_id"
-              value={formData.category_id}
-              onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-              required
-            >
-              <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {formErrors.category_id && (
-              <span className="text-red-500 text-sm">{formErrors.category_id}</span>
-            )}
-          </div>
-          <div className="sm:col-span-2">
-            <label htmlFor="is_halal_certified" className="flex items-center">
-              <input
-                type="checkbox"
-                id="is_halal_certified"
-                name="is_halal_certified"
-                checked={formData.is_halal_certified}
-                onChange={handleChange}
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-700">Is Halal Certified</span>
-            </label>
-          </div>
-          <div className="sm:col-span-2">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit'}
-            </button>
-          </div>
-        </form>
-      )}
     </div>
   );
 };
+
 export default ClaimOrAddBusiness;
