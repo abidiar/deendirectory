@@ -65,7 +65,7 @@ const ClaimOrAddBusiness = () => {
         setIsLoading(false);
       }
     };
-
+  
     fetchCategories();
   }, []);
 
