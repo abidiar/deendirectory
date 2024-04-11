@@ -36,12 +36,18 @@ const AddServiceForm = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/categories`);
-        setCategories(response.data);
+        if (Array.isArray(response.data)) {
+          setCategories(response.data);
+        } else {
+          setCategories([]); // Set categories to an empty array if the response is not an array
+          console.error('Categories data is not an array:', response.data);
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
+        setCategories([]); // Set categories to an empty array in case of an error
       }
     };
-
+  
     fetchCategories();
   }, [backendUrl]);
 
