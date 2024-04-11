@@ -185,7 +185,6 @@ const ClaimOrAddBusiness = () => {
           placeholder="Search for your business"
           autoComplete="off"
         />
-        {/* Search button removed as we're now using debounce */}
       </div>
   
       {searchResults.length > 0 && (
