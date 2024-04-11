@@ -514,8 +514,8 @@ app.get('/api/all-categories', async (req, res) => {
       type: sequelize.QueryTypes.SELECT
     });
 
-    // Sending back all categories without filtering
-    res.json(categories);
+    // Ensure the response is always an array
+    res.json(categories);  // This should naturally be an array if multiple rows are selected
   } catch (error) {
     console.error('Error fetching all categories with Sequelize:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
