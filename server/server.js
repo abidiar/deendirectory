@@ -520,18 +520,14 @@ app.get('/api/categories', async (req, res) => {
   `;
 
   try {
-    const [categories, metadata] = await sequelize.query(query, {
+    let [rawCategories, metadata] = await sequelize.query(query, {
       type: sequelize.QueryTypes.SELECT
     });
-    
-  // Add a log to check what 'categories' contains
-  console.log('Categories:', categories);
 
-  if (!Array.isArray(categories)) {
-    throw new TypeError('Fetched data is not an array');
-  }
+    // Ensure categories is always an array
+    const categories = Array.isArray(rawCategories) ? rawCategories : [rawCategories].filter(cat => cat != null);
 
-    if (lat && lng) {
+    if (lat && lng && categories.length) {
       const floatLat = parseFloat(lat);
       const floatLng = parseFloat(lng);
 
