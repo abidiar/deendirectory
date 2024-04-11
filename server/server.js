@@ -48,6 +48,11 @@ app.get('/api/search', async (req, res) => {
     pageSize = 10
   } = req.query;
 
+  // Validate that latitude and longitude are provided
+  if (!latitude || !longitude) {
+    return res.status(400).json({ message: 'Current location required' });
+  }
+
   try {
     const cacheKey = `search:${JSON.stringify(req.query)}`;
     const cachedResults = await cache.get(cacheKey);
@@ -75,24 +80,29 @@ app.get('/api/search', async (req, res) => {
     // Halal certification filter
     if (isHalalCertified !== undefined) {
       whereConditions.isHalalCertified = isHalalCertified === 'true';
-  }
-    // Location-based search
-    if (latitude && longitude) {
-      const lat = parseFloat(latitude);
-      const lng = parseFloat(longitude);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        whereConditions.location = sequelize.literal(`ST_DWithin(location::geography, ST_MakePoint(${lng}, ${lat})::geography, 5000)`); // Adjust the radius as needed
-      }
     }
+
+    // Location-based search
+    const distanceInMeters = 10000; // Define the search radius, e.g., 10km
+    const userLocation = sequelize.literal(`ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography`);
+    whereConditions.location = sequelize.where(
+      sequelize.fn(
+        'ST_DWithin',
+        sequelize.cast(sequelize.col('location'), 'geography'),
+        userLocation,
+        distanceInMeters
+      ),
+      true
+    );
 
     // Sorting logic adjustment
     let order = [];
     if (sort === 'rating') {
-        order = [sequelize.literal('"averageRating" DESC')]; // Fixed to use an array
+      order = [sequelize.literal('"averageRating" DESC')]; // Fixed to use an array
     } else if (sort === 'newest') {
-        order = [['dateAdded', 'DESC']];
+      order = [['dateAdded', 'DESC']];
     } else {
-        order = [['name', 'ASC']];
+      order = [['name', 'ASC']];
     }
 
     const { rows: services, count: totalRows } = await Service.findAndCountAll({
@@ -113,7 +123,6 @@ app.get('/api/search', async (req, res) => {
         attributes: ['name'],
       }],
     });
-    
 
     const responseData = services.map(service => service.get({ plain: true }));
 
@@ -125,6 +134,7 @@ app.get('/api/search', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
+
 
 app.get('/api/suggestions', async (req, res) => {
   const { term } = req.query;
