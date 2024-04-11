@@ -20,26 +20,39 @@ function SearchResultsPage() {
   const [searchError, setSearchError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const { backendUrl } = useContext(LocationContext); // Check if you need to use backendUrl somewhere or remove it if unused
+  const { backendUrl } = useContext(LocationContext);
+
   const query = useQuery();
   const searchTerm = query.get('searchTerm');
+  const latitude = query.get('latitude');
+  const longitude = query.get('longitude');
 
   const fetchData = async () => {
     setIsLoading(true);
     setSearchError(null);
 
     try {
-        // Ensure fetchSearchResults is implemented to handle these params correctly
-        const { data, totalRows } = await fetchSearchResults(searchTerm, currentPage);
-        setSearchResults(data);
-        setTotalPages(Math.ceil(totalRows / 10));
+      const { data, totalRows } = await fetchSearchResults(
+        searchTerm,
+        currentPage,
+        latitude,
+        longitude
+      );
+      setSearchResults(data);
+      setTotalPages(Math.ceil(totalRows / 10));
     } catch (error) {
-        setSearchError('Failed to load search results.');
+      setSearchError('Failed to load search results.');
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
-  const debouncedFetchData = useCallback(debounce(fetchData, 300), [searchTerm, currentPage]);
+  };
+
+  const debouncedFetchData = useCallback(debounce(fetchData, 300), [
+    searchTerm,
+    currentPage,
+    latitude,
+    longitude,
+  ]);
 
   useEffect(() => {
     debouncedFetchData();
@@ -71,7 +84,10 @@ function SearchResultsPage() {
                   description={business.description}
                   imageUrl={business.image_url}
                   averageRating={business.average_rating}
-                  isHalalCertified={renderCategory(business.category).toLowerCase() === 'food' && business.is_halal_certified}
+                  isHalalCertified={
+                    renderCategory(business.category).toLowerCase() === 'food' &&
+                    business.is_halal_certified
+                  }
                   category={renderCategory(business.category)}
                   phoneNumber={business.phone_number}
                   hours={business.hours}
@@ -80,14 +96,21 @@ function SearchResultsPage() {
             </div>
           )}
           {totalPages > 1 && (
-            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} />
+            <Pagination
+              count={totalPages}
+              page={currentPage}
+              onChange={handlePageChange}
+            />
           )}
         </div>
         <div className="lg:w-2/5 xl:w-1/3 h-96 lg:h-auto">
           {searchResults.length > 0 && (
             <MyMap
               businesses={searchResults}
-              center={{ lat: searchResults[0]?.latitude || 0, lng: searchResults[0]?.longitude || 0 }}
+              center={{
+                lat: searchResults[0]?.latitude || 0,
+                lng: searchResults[0]?.longitude || 0,
+              }}
               zoom={12}
             />
           )}
