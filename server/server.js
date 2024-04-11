@@ -505,10 +505,10 @@ app.get('/api/categories', async (req, res) => {
 
   let idsCondition = '';
   if (ids) {
-    const parsedIds = ids.split(',').map(id => parseInt(id, 10));
-    idsCondition = `WHERE c.id IN (${parsedIds.join(',')})`;
-  }
-
+    const parsedIds = ids.split(',').map(id => parseInt(id, 10)).filter(Number.isFinite);
+    if (parsedIds.length > 0) {
+      idsCondition = `WHERE c.id IN (${parsedIds.join(',')})`;
+    }}
   const query = `
     SELECT 
       c.id, 
@@ -524,8 +524,17 @@ app.get('/api/categories', async (req, res) => {
       type: sequelize.QueryTypes.SELECT
     });
 
-    // Ensure categories is always an array
-    const categories = Array.isArray(rawCategories) ? rawCategories : [rawCategories].filter(cat => cat != null);
+    // Handle the fetched data properly based on its type
+    let categories;
+    if (Array.isArray(rawCategories)) {
+      categories = rawCategories;
+    } else if (!rawCategories) {
+      // If rawCategories is null or undefined, ensure categories is an empty array
+      categories = [];
+    } else {
+      // If rawCategories is a single object, make it an array with one element
+      categories = [rawCategories];
+    }
 
     if (lat && lng && categories.length) {
       const floatLat = parseFloat(lat);
