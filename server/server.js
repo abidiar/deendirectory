@@ -503,69 +503,115 @@ app.get('/api/categories', async (req, res) => {
   const { ids, lat, lng } = req.query;
   const radius = 40233.6; // Define the radius for proximity search (in meters)
 
-  let locationCondition = '';
   let idsCondition = '';
-  let queryParams = [];
-
-  if (lat && lng) {
-      const floatLat = parseFloat(lat);
-      const floatLng = parseFloat(lng);
-      locationCondition = `, COALESCE(json_agg(json_build_object(
-          'id', s.id, 
-          'name', s.name, 
-          'description', s.description,
-          'latitude', s.latitude,
-          'longitude', s.longitude,
-          'location', s.location,
-          'date_added', s.date_added,
-          'category_id', s.category_id,
-          'street_address', s.street_address,
-          'city', s.city,
-          'state', s.state,
-          'postal_code', s.postal_code,
-          'country', s.country,
-          'phone_number', s.phone_number,
-          'website', s.website,
-          'hours', s.hours,
-          'is_halal_certified', s.is_halal_certified,
-          'average_rating', s.average_rating,
-          'review_count', s.review_count
-        )) FILTER (WHERE s.id IS NOT NULL AND ST_DWithin(
-          ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
-          ST_MakePoint(${floatLng}, ${floatLat})::GEOGRAPHY,
-          ${radius}
-        )), '[]') AS services `;
-  }
-
   if (ids) {
-      const idArray = ids.split(',').map(id => parseInt(id)).filter(id => !isNaN(id));
-      if (idArray.length > 0) {
-          idsCondition = `WHERE c.id = ANY(ARRAY[${idArray.join(',')}])`;
-      }
+    const parsedIds = ids.split(',').map(id => parseInt(id, 10));
+    idsCondition = `WHERE c.id IN (${parsedIds.join(',')})`;
   }
 
   const query = `
-      SELECT 
-          c.id, 
-          c.name, 
-          c.parent_category_id
-          ${locationCondition}
-      FROM 
-          categories c
-      LEFT JOIN 
-          services s ON c.id = s.category_id
-      ${idsCondition}
-      GROUP BY c.id
+    SELECT 
+      c.id, 
+      c.name, 
+      c.parent_category_id
+    FROM 
+      categories c
+    ${idsCondition}
   `;
 
   try {
-      const [results, metadata] = await sequelize.query(query, {
-          type: sequelize.QueryTypes.SELECT
+    const [categories, metadata] = await sequelize.query(query, {
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (lat && lng) {
+      const floatLat = parseFloat(lat);
+      const floatLng = parseFloat(lng);
+
+      const servicesQuery = `
+        SELECT 
+          s.id,
+          s.name,
+          s.description,
+          s.latitude,
+          s.longitude,
+          s.location,
+          s.date_added,
+          s.category_id,
+          s.street_address,
+          s.city,
+          s.state,
+          s.postal_code,
+          s.country,
+          s.phone_number,
+          s.website,
+          s.hours,
+          s.is_halal_certified,
+          s.average_rating,
+          s.review_count
+        FROM 
+          services s
+        WHERE 
+          s.category_id = ANY(ARRAY[${categories.map(c => c.id).join(',')}])
+          AND ST_DWithin(
+            ST_MakePoint(s.longitude, s.latitude)::GEOGRAPHY,
+            ST_MakePoint(${floatLng}, ${floatLat})::GEOGRAPHY,
+            ${radius}
+          )
+      `;
+
+      const [services, servicesMetadata] = await sequelize.query(servicesQuery, {
+        type: sequelize.QueryTypes.SELECT
       });
-      res.json(results);
+
+      const categoriesWithServices = categories.map(category => ({
+        ...category,
+        services: services.filter(service => service.category_id === category.id)
+      }));
+
+      res.json(categoriesWithServices);
+    } else {
+      const servicesQuery = `
+        SELECT 
+          s.id,
+          s.name,
+          s.description,
+          s.latitude,
+          s.longitude,
+          s.location,
+          s.date_added,
+          s.category_id,
+          s.street_address,
+          s.city,
+          s.state,
+          s.postal_code,
+          s.country,
+          s.phone_number,
+          s.website,
+          s.hours,
+          s.is_halal_certified,
+          s.average_rating,
+          s.review_count
+        FROM 
+          services s
+        WHERE 
+          s.category_id = ANY(ARRAY[${categories.map(c => c.id).join(',')}])
+      `;
+
+      const [services, servicesMetadata] = await sequelize.query(servicesQuery, {
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      const categoriesWithServices = categories.map(category => ({
+        ...category,
+        services: services.filter(service => service.category_id === category.id)
+      }));
+
+      res.json(categoriesWithServices);
+    }
   } catch (error) {
-      console.error('Error fetching categories with Sequelize:', error);
-      res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    console.error('Error fetching categories with Sequelize:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
