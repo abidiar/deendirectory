@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import MaskedInput from 'react-text-mask';
 import Tooltip from './Tooltip';
+import { isErrored } from 'stream';
 
 const AddServiceForm = () => {
   const navigate = useNavigate();
@@ -35,16 +36,11 @@ const AddServiceForm = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${backendUrl}/api/categories`);
-        if (Array.isArray(response.data)) {
-          setCategories(response.data);
-        } else {
-          setCategories([]); // Set categories to an empty array if the response is not an array
-          console.error('Categories data is not an array:', response.data);
-        }
+        const response = await axios.get(`${backendUrl}/api/all-categories`);
+        setCategories(response.data);
       } catch (error) {
-        console.error('Error fetching categories:', error);
-        setCategories([]); // Set categories to an empty array in case of an error
+        console.error('Error fetching all categories:', error);
+        setCategories([]); // Fallback to an empty array in case of an error
       }
     };
   

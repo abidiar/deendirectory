@@ -499,6 +499,29 @@ app.put('/api/services/:id', async (req, res) => {
   }
 });
 
+app.get('/api/all-categories', async (req, res) => {
+  const query = `
+    SELECT 
+      c.id, 
+      c.name, 
+      c.parent_category_id
+    FROM 
+      categories c
+  `;
+
+  try {
+    const [categories, metadata] = await sequelize.query(query, {
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    // Sending back all categories without filtering
+    res.json(categories);
+  } catch (error) {
+    console.error('Error fetching all categories with Sequelize:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
+  }
+});
+
 app.get('/api/categories', async (req, res) => {
   const { ids, lat, lng } = req.query;
   const radius = 40233.6; // Define the radius for proximity search (in meters)
