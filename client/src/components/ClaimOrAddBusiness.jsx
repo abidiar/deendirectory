@@ -12,6 +12,8 @@ const ClaimOrAddBusiness = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    latitude: '',
+    longitude: '',
     street_address: '',
     city: '',
     state: '',
@@ -65,8 +67,6 @@ const ClaimOrAddBusiness = () => {
     };
 
     fetchCategories();
-
-    // No need for the cancel token since we're checking for mount status
   }, []);
 
   const performSearch = async () => {
@@ -119,6 +119,12 @@ const ClaimOrAddBusiness = () => {
     }
     if (!formData.description) {
       errors.description = 'Description is required';
+    }
+    if (!formData.latitude) {
+      errors.latitude = 'Latitude is required';
+    }
+    if (!formData.longitude) {
+      errors.longitude = 'Longitude is required';
     }
     if (!formData.street_address) {
       errors.street_address = 'Street address is required';
@@ -226,26 +232,72 @@ const ClaimOrAddBusiness = () => {
       {formData.name && (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
-              Category
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Business Name
             </label>
-            <select
-              id="category_id"
-              name="category_id"
-              value={formData.category_id}
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
-              className={`mt-1 block w-full border ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              className={`mt-1 block w-full border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
               required
-            >
-              <option value="">Select a category</option>
-              {categories && Array.isArray(categories) && categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {formErrors.category_id && (
-              <span className="text-red-500 text-sm">{formErrors.category_id}</span>
+            />
+            {formErrors.name && (
+              <span className="text-red-500 text-sm">{formErrors.name}</span>
+            )}
+          </div>
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className={`mt-1 block w-full border ${formErrors.description ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              required
+            />
+            {formErrors.description && (
+              <span className="text-red-500 text-sm">{formErrors.description}</span>
+            )}
+          </div>
+          <div>
+            <label htmlFor="latitude" className="block text-sm font-medium text-gray-700">
+              Latitude
+            </label>
+            <input
+              type="number"
+              step="any"
+              id="latitude"
+              name="latitude"
+              value={formData.latitude}
+              onChange={handleChange}
+              className={`mt-1 block w-full border ${formErrors.latitude ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              required
+            />
+            {formErrors.latitude && (
+              <span className="text-red-500 text-sm">{formErrors.latitude}</span>
+            )}
+          </div>
+          <div>
+            <label htmlFor="longitude" className="block text-sm font-medium text-gray-700">
+              Longitude
+            </label>
+            <input
+              type="number"
+              step="any"
+              id="longitude"
+              name="longitude"
+              value={formData.longitude}
+              onChange={handleChange}
+              className={`mt-1 block w-full border ${formErrors.longitude ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              required
+            />
+            {formErrors.longitude && (
+              <span className="text-red-500 text-sm">{formErrors.longitude}</span>
             )}
           </div>
           <div>
