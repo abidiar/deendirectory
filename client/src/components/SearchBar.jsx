@@ -63,31 +63,43 @@ function SearchBar() {
       setLocationInput(e.target.value);
     };
 
-  const handleSearch = async (event) => {
-    event.preventDefault();
-    if (!searchTerm.trim()) {
-      setSearchError('Please enter a search term');
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setSearchError('');
-
-    try {
-      const coords = await fetchCoordinates(locationInput.trim());
-      if (coords) {
-        navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm.trim())}&latitude=${coords.latitude}&longitude=${coords.longitude}`);
-      } else {
-        setSearchError('Unable to find location. Please check the entered location.');
+    const handleSearch = async (event) => {
+      event.preventDefault();
+      setIsLoading(true);
+      setSearchError('');
+    
+      // Check if the search term is provided
+      if (!searchTerm.trim()) {
+        setSearchError('Please enter a search term.');
+        setIsLoading(false);
+        return;
       }
-    } catch (error) {
-      setSearchError('An error occurred during the search.');
-      console.error('Search error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    
+      // Use currentLocation as a fallback if locationInput is not provided
+      const locationToSearch = locationInput.trim() || (currentLocation && currentLocation.name);
+    
+      // If neither locationInput nor currentLocation is available, return an error
+      if (!locationToSearch) {
+        setSearchError('Please enter a location or allow access to your current location.');
+        setIsLoading(false);
+        return;
+      }
+    
+      try {
+        // Fetch coordinates based on the provided or current location
+        const coords = await fetchCoordinates(locationToSearch);
+        if (coords && coords.latitude && coords.longitude) {
+          navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm.trim())}&latitude=${coords.latitude}&longitude=${coords.longitude}`);
+        } else {
+          setSearchError('Unable to find location. Please check the entered location or try a different one.');
+        }
+      } catch (error) {
+        setSearchError('An error occurred during the search.');
+        console.error('Search error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   // Debounce utility function
   function debounce(func, wait) {
