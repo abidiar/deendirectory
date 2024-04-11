@@ -89,7 +89,12 @@ function SearchBar() {
         // Fetch coordinates based on the provided or current location
         const coords = await fetchCoordinates(locationToSearch);
         if (coords && coords.latitude && coords.longitude) {
-          navigate(`/search-results?searchTerm=${encodeURIComponent(searchTerm.trim())}&latitude=${coords.latitude}&longitude=${coords.longitude}`);
+          const searchParams = new URLSearchParams({
+            searchTerm: searchTerm.trim(),
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
+          navigate(`/search-results?${searchParams.toString()}`);
         } else {
           setSearchError('Unable to find location. Please check the entered location or try a different one.');
         }
