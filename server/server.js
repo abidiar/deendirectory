@@ -508,7 +508,9 @@ app.get('/api/categories', async (req, res) => {
     const parsedIds = ids.split(',').map(id => parseInt(id, 10)).filter(Number.isFinite);
     if (parsedIds.length > 0) {
       idsCondition = `WHERE c.id IN (${parsedIds.join(',')})`;
-    }}
+    }
+  }
+
   const query = `
     SELECT 
       c.id, 
@@ -524,15 +526,12 @@ app.get('/api/categories', async (req, res) => {
       type: sequelize.QueryTypes.SELECT
     });
 
-    // Handle the fetched data properly based on its type
     let categories;
     if (Array.isArray(rawCategories)) {
       categories = rawCategories;
     } else if (!rawCategories) {
-      // If rawCategories is null or undefined, ensure categories is an empty array
       categories = [];
     } else {
-      // If rawCategories is a single object, make it an array with one element
       categories = [rawCategories];
     }
 
@@ -576,9 +575,11 @@ app.get('/api/categories', async (req, res) => {
         type: sequelize.QueryTypes.SELECT
       });
 
+      let servicesArray = Array.isArray(services) ? services : services ? [services] : [];
+
       const categoriesWithServices = categories.map(category => ({
         ...category,
-        services: services.filter(service => service.category_id === category.id)
+        services: servicesArray.filter(service => service.category_id === category.id)
       }));
 
       res.json(categoriesWithServices);
@@ -614,9 +615,11 @@ app.get('/api/categories', async (req, res) => {
         type: sequelize.QueryTypes.SELECT
       });
 
+      let servicesArray = Array.isArray(services) ? services : services ? [services] : [];
+
       const categoriesWithServices = categories.map(category => ({
         ...category,
-        services: services.filter(service => service.category_id === category.id)
+        services: servicesArray.filter(service => service.category_id === category.id)
       }));
 
       res.json(categoriesWithServices);
