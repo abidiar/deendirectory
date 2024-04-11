@@ -135,7 +135,6 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-
 app.get('/api/suggestions', async (req, res) => {
   const { term } = req.query;
 
