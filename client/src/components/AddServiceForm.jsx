@@ -31,6 +31,7 @@ const AddServiceForm = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [image, setImage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
   const { backendUrl } = useContext(LocationContext);
 
   useEffect(() => {
@@ -147,19 +148,22 @@ const AddServiceForm = () => {
     e.preventDefault();
     if (validateForm()) {
       setIsSubmitting(true);
-
+  
       try {
         const submissionData = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
           submissionData.append(key, value);
         });
-
+  
         if (image) {
           submissionData.append('image', image);
         }
-
+  
         await axios.post(`${backendUrl}/api/services/add`, submissionData);
-        navigate('/services');
+        setSuccessMessage('Business added successfully!');
+        setTimeout(() => {
+          navigate('/services');
+        }, 2000); // Delay the navigation by 2 seconds
       } catch (error) {
         console.error('Error adding service:', error);
         setFormErrors({ submit: 'An error occurred while adding the service.' });
@@ -168,10 +172,15 @@ const AddServiceForm = () => {
       }
     }
   };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold mb-6">Add Service</h1>
+  
+      {successMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+          {successMessage}
+        </div>
+      )}
   
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div>
