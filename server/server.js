@@ -500,17 +500,12 @@ app.put('/api/services/:id', async (req, res) => {
 });
 
 app.get('/api/all-categories', async (req, res) => {
-  const query = `
-    SELECT c.id, c.name, c.parent_category_id
-    FROM categories c
-  `;
-
   try {
-    const [results, metadata] = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
+    const categories = await Category.findAll();
 
-    console.log("Categories fetched from the database:", results);
+    console.log("Categories fetched from the database:", categories);
 
-    res.json(results);
+    res.json(categories);
   } catch (error) {
     console.error('Error fetching all categories with Sequelize:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
