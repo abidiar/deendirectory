@@ -503,8 +503,6 @@ app.get('/api/all-categories', async (req, res) => {
   try {
     const categories = await Category.findAll();
 
-    console.log("Categories fetched from the database:", categories);
-
     res.json(categories);
   } catch (error) {
     console.error('Error fetching all categories with Sequelize:', error);
