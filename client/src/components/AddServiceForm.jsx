@@ -37,13 +37,18 @@ const AddServiceForm = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/all-categories`);
-        setCategories(response.data);
+        // Ensure response is an array before setting it to state
+        if (Array.isArray(response.data)) {
+          setCategories(response.data);
+        } else {
+          throw new Error('Data received is not an array');
+        }
       } catch (error) {
         console.error('Error fetching all categories:', error);
         setCategories([]); // Fallback to an empty array in case of an error
       }
     };
-  
+
     fetchCategories();
   }, [backendUrl]);
 
@@ -202,7 +207,7 @@ const AddServiceForm = () => {
           )}
         </div>
         <div>
-          <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
             Category
           </label>
           <select
@@ -214,7 +219,7 @@ const AddServiceForm = () => {
             required
           >
             <option value="">Select a category</option>
-            {categories.map((category) => (
+            {categories && categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
