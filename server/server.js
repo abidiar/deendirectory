@@ -510,12 +510,14 @@ app.get('/api/all-categories', async (req, res) => {
   `;
 
   try {
-    const [categories, metadata] = await sequelize.query(query, {
+    const [results, metadata] = await sequelize.query(query, {
       type: sequelize.QueryTypes.SELECT
     });
 
-    console.log("Categories array to be sent:", categories); // Log the categories array
-    res.json(categories);  // Send the response here
+    // Ensure the results are in an array. Wrap in an array if it's not.
+    const categories = Array.isArray(results) ? results : [results];
+    console.log("Categories array to be sent:", categories);
+    res.json(categories);
   } catch (error) {
     console.error('Error fetching all categories with Sequelize:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
