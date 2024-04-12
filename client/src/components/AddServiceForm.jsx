@@ -37,6 +37,7 @@ const AddServiceForm = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/all-categories`);
+        console.log("Response data received:", response.data);
         // Ensure response is an array before setting it to state
         if (Array.isArray(response.data)) {
           setCategories(response.data);
