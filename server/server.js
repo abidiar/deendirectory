@@ -501,23 +501,16 @@ app.put('/api/services/:id', async (req, res) => {
 
 app.get('/api/all-categories', async (req, res) => {
   const query = `
-    SELECT 
-      c.id, 
-      c.name, 
-      c.parent_category_id
-    FROM 
-      categories c
+    SELECT c.id, c.name, c.parent_category_id
+    FROM categories c
   `;
 
   try {
-    const [results, metadata] = await sequelize.query(query, {
-      type: sequelize.QueryTypes.SELECT
-    });
+    const [results, metadata] = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT });
 
-    // Ensure the results are in an array. Wrap in an array if it's not.
-    const categories = Array.isArray(results) ? results : [results];
-    console.log("Categories array to be sent:", categories);
-    res.json(categories);
+    console.log("Categories fetched from the database:", results);
+
+    res.json(results);
   } catch (error) {
     console.error('Error fetching all categories with Sequelize:', error);
     res.status(500).json({ error: 'Internal Server Error', details: error.message });
