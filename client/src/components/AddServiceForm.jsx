@@ -208,28 +208,28 @@ const AddServiceForm = () => {
           )}
         </div>
         <div>
-        <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
-            Category
-          </label>
-          <select
-            id="category_id"
-            name="category_id"
-            value={formData.category_id}
-            onChange={handleChange}
-            className={`mt-1 block w-full border ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            required
-          >
-            <option value="">Select a category</option>
-            {categories && categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-          {formErrors.category_id && (
-            <span className="text-red-500 text-sm">{formErrors.category_id}</span>
-          )}
-        </div>
+  <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
+    Category
+  </label>
+  <select
+    id="category_id"
+    name="category_id"
+    value={formData.category_id}
+    onChange={handleChange}
+    className={`mt-1 block w-full border ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+    required
+  >
+    <option value="">Select a category</option>
+    {categories.map((category) => (
+      <option key={category.id} value={category.id}>
+        {category.name}
+      </option>
+    ))}
+  </select>
+  {formErrors.category_id && (
+    <span className="text-red-500 text-sm">{formErrors.category_id}</span>
+  )}
+</div>
         <div>
           <label htmlFor="street_address" className="block text-sm font-medium text-gray-700">
             Street Address
