@@ -4,11 +4,11 @@ const sequelize = require('../db/sequelize');
 class Service extends Model {}
 
 Service.init({
-  // attributes
+  // Model attributes definition
 }, {
   sequelize,
   modelName: 'Service'
-  // other options
+  // other model options
 });
 
 module.exports = Service;
