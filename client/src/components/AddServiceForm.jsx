@@ -109,7 +109,7 @@ const AddServiceForm = () => {
 
   const validateForm = () => {
     const errors = {};
-
+  
     // Perform form validation
     if (!formData.name) {
       errors.name = 'Business name is required';
@@ -117,8 +117,8 @@ const AddServiceForm = () => {
     if (!formData.description) {
       errors.description = 'Description is required';
     }
-    if (!formData.category_id) {
-      errors.category_id = 'Category is required';
+    if (!formData.categoryId) {
+      errors.categoryId = 'Category is required';
     }
     if (!formData.street_address) {
       errors.street_address = 'Street address is required';
@@ -138,28 +138,44 @@ const AddServiceForm = () => {
     if (!formData.phone_number) {
       errors.phone_number = 'Phone number is required';
     }
-
+  
     setFormErrors(errors);
+    console.log('Form validation errors:', errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted');
+  
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
+  
+    console.log('Form is valid');
     setIsSubmitting(true);
+  
     try {
       const formDataToSubmit = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         formDataToSubmit.append(key, value);
       });
+  
       if (image) {
         formDataToSubmit.append('image', image);
       }
-      await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit);
+  
+      console.log('Form data to submit:', formDataToSubmit);
+  
+      const response = await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit);
+      console.log('Response from server:', response.data);
+  
       setSuccessMessage('Business added successfully!');
+      console.log('Success message set');
+  
       setTimeout(() => {
+        console.log('Navigating to /services');
         navigate('/services');
       }, 2000); // Delay the navigation by 2 seconds
     } catch (error) {
@@ -167,6 +183,7 @@ const AddServiceForm = () => {
       setFormErrors({ submit: 'An error occurred while adding the service.' });
     } finally {
       setIsSubmitting(false);
+      console.log('Form submission completed');
     }
   };
   
