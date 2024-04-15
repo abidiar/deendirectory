@@ -23,4 +23,38 @@ sequelize
     console.error('Unable to connect to the database:', err);
   });
 
-module.exports = sequelize;
+// Define Sequelize models for your tables
+const Service = sequelize.define('Service', {
+  name: Sequelize.STRING,
+  description: Sequelize.TEXT,
+  latitude: Sequelize.FLOAT,
+  longitude: Sequelize.FLOAT,
+  location: Sequelize.GEOMETRY('POINT'),
+  date_added: Sequelize.DATE,
+  category_id: {
+    type: Sequelize.INTEGER,
+    references: {
+      model: 'Categories', // Assuming 'Categories' is the name of your Category model
+      key: 'id'
+    }
+  },
+  street_address: Sequelize.STRING,
+  city: Sequelize.STRING,
+  state: Sequelize.STRING,
+  postal_code: Sequelize.STRING,
+  country: Sequelize.STRING,
+  phone_number: Sequelize.STRING,
+  website: Sequelize.STRING,
+  hours: Sequelize.STRING,
+  is_halal_certified: Sequelize.BOOLEAN,
+  average_rating: Sequelize.FLOAT,
+  review_count: Sequelize.INTEGER,
+  image_url: Sequelize.STRING
+}, {
+  timestamps: false
+});
+
+module.exports = {
+  sequelize,
+  Service
+};

@@ -54,17 +54,29 @@ module.exports = (sequelize, models) => {
     },
     streetAddress: {
       type: DataTypes.STRING,
+      allowNull: false,
       field: 'street_address',
     },
-    city: DataTypes.STRING,
-    state: DataTypes.STRING,
+    city: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    state: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     postalCode: {
       type: DataTypes.STRING,
+      allowNull: false,
       field: 'postal_code',
     },
-    country: DataTypes.STRING,
+    country: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     phoneNumber: {
       type: DataTypes.STRING,
+      allowNull: false,
       field: 'phone_number',
     },
     website: DataTypes.STRING,
