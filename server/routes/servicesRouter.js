@@ -31,11 +31,8 @@ function isValidPostalCode(postalCode) {
 }
 
 router.post('/add', upload.single('image'), validateService, async (req, res) => {
-  logger.info('Received request data:', req.body);
-
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    logger.error('Validation errors:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
 
@@ -55,44 +52,28 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       is_halal_certified,
     } = req.body;
 
-    // Validate each part of the address
-    if (!isValidStreetAddress(street_address)) {
-      return res.status(400).json({ message: 'Invalid street address format' });
-    }
-    if (!isValidCity(city)) {
-      return res.status(400).json({ message: 'Invalid city format' });
-    }
-    if (!isValidState(state)) {
-      return res.status(400).json({ message: 'Invalid state format. Use state abbreviations, e.g., NY for New York.' });
-    }
-    if (!isValidPostalCode(postal_code)) {
-      return res.status(400).json({ message: 'Invalid postal code format. Use either 5-digit or zip+4 format.' });
+    // Additional validations for address components
+    if (!isValidStreetAddress(street_address) || !isValidCity(city) || !isValidState(state) || !isValidPostalCode(postal_code)) {
+      return res.status(400).json({ message: 'Invalid address format' });
     }
 
-    const categoryInstance = await Category.findByPk(categoryId);
-    if (!categoryInstance) {
-      return res.status(400).json({ message: 'Invalid category ID' });
-    }
-
-    let coords = await convertCityStateToCoords(city, state);
+    const coords = await convertCityStateToCoords(city, state);
     if (!coords) {
-      return res.status(400).json({ message: 'Invalid city or state for coordinates' });
+      return res.status(400).json({ message: 'Unable to convert city and state to coordinates' });
     }
 
-    let imageUrl;
+    let imageUrl = null;
     if (req.file) {
-      imageUrl = await uploadImage(req.file).catch(uploadError => {
-        logger.error('Error uploading image:', uploadError);
-        throw new Error('Error uploading image');
-      });
+      imageUrl = await uploadImage(req.file);
     }
 
     const service = await sequelize.transaction(async (t) => {
-      const createdService = await Service.create({
+      return await Service.create({
         name,
         description,
         latitude: coords.latitude,
         longitude: coords.longitude,
+        location: sequelize.fn('ST_MakePoint', coords.longitude, coords.latitude),
         categoryId,
         street_address,
         city,
@@ -100,20 +81,15 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         postal_code,
         country,
         phone_number,
-        website: website || null, // Handle optional fields
+        website: website || null,
         hours: hours || null,
         is_halal_certified,
-        average_rating: 0,
-        review_count: 0,
         image_url: imageUrl,
-      }, { transaction: t })
-      logger.info('Created service:', createdService.get({ plain: true }));
-      return createdService;
+      }, { transaction: t });
     });
 
     res.status(201).json(service);
   } catch (error) {
-    logger.error('Error during service creation:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });

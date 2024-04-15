@@ -156,26 +156,29 @@ const AddServiceForm = () => {
     console.log('Form is valid');
     setIsSubmitting(true);
   
+    const formDataToSubmit = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      // Append data if it's not empty or if it's a mandatory field
+      if (value || ['name', 'description', 'categoryId', 'street_address', 'city', 'state', 'postal_code', 'country', 'phone_number'].includes(key)) {
+        formDataToSubmit.append(key, value);
+      }
+    });
+  
+    // Append image if it exists and has passed validation checks
+    if (image) {
+      formDataToSubmit.append('image', image);
+    }
+  
     try {
-      const formDataToSubmit = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        // Only append non-empty values or mandatory fields
-        if (value || ['name', 'description', 'categoryId', 'street_address', 'city', 'state', 'postal_code', 'country', 'phone_number'].includes(key)) {
-          formDataToSubmit.append(key, value);
-        }
+      const response = await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
   
-      if (image) {
-        formDataToSubmit.append('image', image);
-      }
-  
-      console.log('Form data to submit:', formDataToSubmit);
-  
-      const response = await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit);
       console.log('Response from server:', response.data);
   
       setSuccessMessage('Business added successfully!');
-      console.log('Success message set');
   
       setTimeout(() => {
         console.log('Navigating to /services');
@@ -444,7 +447,7 @@ const AddServiceForm = () => {
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
-        </form>
+      </form>
       {formErrors.submit && <p className="text-red-500 mt-4">{formErrors.submit}</p>}
     </div>
   );
