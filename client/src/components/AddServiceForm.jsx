@@ -145,29 +145,31 @@ const AddServiceForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsSubmitting(true);
-      try {
-        const formDataToSubmit = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-          formDataToSubmit.append(key, value);
-        });
-        if (image) {
-          formDataToSubmit.append('image', image);
-        }
-        await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit);
-        setSuccessMessage('Business added successfully!');
-        setTimeout(() => {
-          navigate('/services');
-        }, 2000); // Delay the navigation by 2 seconds
-      } catch (error) {
-        console.error('Error adding service:', error);
-        setFormErrors({ submit: 'An error occurred while adding the service.' });
-      } finally {
-        setIsSubmitting(false);
+    if (!validateForm()) {
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const formDataToSubmit = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataToSubmit.append(key, value);
+      });
+      if (image) {
+        formDataToSubmit.append('image', image);
       }
+      await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit);
+      setSuccessMessage('Business added successfully!');
+      setTimeout(() => {
+        navigate('/services');
+      }, 2000); // Delay the navigation by 2 seconds
+    } catch (error) {
+      console.error('Error adding service:', error);
+      setFormErrors({ submit: 'An error occurred while adding the service.' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
+  
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold mb-6">Add Service</h1>
