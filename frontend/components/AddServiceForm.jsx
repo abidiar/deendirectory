@@ -5,131 +5,88 @@ const AddServiceForm = () => {
     title: '',
     description: '',
     category: '',
-    website: '',
-    hours: '',
+    location: '',
+    postal_code: '',
+    image_url: '',
   });
-  const [image, setImage] = useState(null);
-  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    const formDataToSubmit = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value !== '') {
-        formDataToSubmit.append(key, value);
-      }
-    });
-
-    if (image) {
-      formDataToSubmit.append('image', image);
-    }
-
-    try {
-      const response = await fetch('/api/services', {
-        method: 'POST',
-        body: formDataToSubmit,
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        setError(data.error);
-      } else {
-        // Reset form data and image state
-        setFormData({
-          title: '',
-          description: '',
-          category: '',
-          website: '',
-          hours: '',
-        });
-        setImage(null);
-        setError('');
-      }
-    } catch (error) {
-      setError('An error occurred while submitting the form');
-    }
+    // TODO: Handle form submission
   };
 
   return (
-    <div>
-      <h2>Add Service</h2>
-      {error && <p>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="title">Title</label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="category">Category</label>
-          <select
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-          >
-            <option value="">Select a category</option>
-            <option value="category1">Category 1</option>
-            <option value="category2">Category 2</option>
-            <option value="category3">Category 3</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="website">Website</label>
-          <input
-            type="text"
-            id="website"
-            name="website"
-            value={formData.website}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="hours">Hours</label>
-          <input
-            type="text"
-            id="hours"
-            name="hours"
-            value={formData.hours}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="image">Image</label>
-          <input
-            type="file"
-            id="image"
-            name="image"
-            accept="image/*"
-            onChange={handleImageChange}
-          />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <label htmlFor="title">Title</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        value={formData.title}
+        onChange={handleChange}
+        required
+      />
+
+      <label htmlFor="description">Description</label>
+      <textarea
+        id="description"
+        name="description"
+        value={formData.description}
+        onChange={handleChange}
+        required
+      ></textarea>
+
+      <label htmlFor="categoryId">Category</label>
+      <select
+        id="category"
+        name="categoryId"
+        value={formData.categoryId}
+        onChange={handleChange}
+        required
+      >
+        <option value="">Select a Category</option>
+        {categories.map((category) => (
+          <option key={category.id} value={category.id}>
+            {category.name}
+          </option>
+        ))}
+      </select>
+
+      <label htmlFor="location">Location</label>
+      <input
+        type="text"
+        id="location"
+        name="location"
+        value={formData.location}
+        onChange={handleChange}
+        required
+      />
+
+      <label htmlFor="postal_code">Postal Code</label>
+      <input
+        type="text"
+        id="postal_code"
+        name="postal_code"
+        value={formData.postal_code}
+        onChange={handleChange}
+        required
+      />
+
+      <label htmlFor="image_url">Image URL</label>
+      <input
+        type="text"
+        id="image_url"
+        name="image_url"
+        value={formData.image_url}
+        onChange={handleChange}
+      />
+
+      <button type="submit">Add Service</button>
+    </form>
   );
 };
 

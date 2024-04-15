@@ -1,43 +1,31 @@
 const express = require('express');
 const multer = require('multer');
-const { v4: uuidv4 } = require('uuid');
-const { uploadImage } = require('../utils/cloudflare');
-const logger = require('../utils/logger');
-const Service = require('../models/Service');
+const { validateService } = require('../middlewares/validation');
+const { uploadImage, convertCityStateToCoords } = require('../utils');
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
 
-// Route to add a new service
-router.post('/', upload.single('image'), async (req, res) => {
-  try {
-    let imageUrl = null;
+// POST /api/services/add
+router.post('/add', upload.single('image'), validateService, async (req, res) => {
+  const { name, description, street_address, city, state, postal_code, categoryId } = req.body;
+  let imageUrl = null;
 
-    if (req.file) {
-      imageUrl = await uploadImage(req.file).catch(uploadError => {
-        logger.error('Error uploading image:', uploadError);
-        res.status(500).json({ error: 'Failed to upload image', details: uploadError.message });
-        return;
-      });
-    }
-
-    const { name, description, website, hours } = req.body;
-
-    const newService = new Service({
-      name,
-      description,
-      website,
-      hours,
-      image_url: imageUrl,
+  if (req.file) {
+    imageUrl = await uploadImage(req.file).catch(uploadError => {
+      logger.error('Error uploading image:', uploadError);
+      return res.status(500).json({ error: 'Failed to upload image', details: uploadError.message });
     });
-
-    const savedService = await newService.save();
-
-    res.status(201).json(savedService);
-  } catch (error) {
-    logger.error('Error adding service:', error);
-    res.status(500).json({ error: 'Failed to add service', details: error.message });
   }
+
+  let coords = await convertCityStateToCoords(city, state);
+  if (!coords) {
+    logger.error('Failed to convert city and state to coordinates:', { city, state });
+    return res.status(400).json({ message: 'Invalid city or state for coordinates' });
+  }
+
+  // ... rest of the code
+
 });
 
 module.exports = router;
