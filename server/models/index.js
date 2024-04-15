@@ -1,7 +1,9 @@
 const sequelize = require('../db/sequelize');
-const Service = require('./Service');
+const Service = require('./Service')(sequelize);
+const Category = require('./Category')(sequelize);
 
 module.exports = {
+  sequelize,
   Service,
-  // other models
+  Category,
 };
