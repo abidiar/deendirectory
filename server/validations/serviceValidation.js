@@ -1,12 +1,13 @@
 const { body } = require('express-validator');
 
-const validateService = [
-  body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
-  body('description').trim().isLength({ min: 1 }).withMessage('Description is required'),
-  body('category_id').isInt().withMessage('Category ID must be an integer'),
-  body('is_halal_certified').optional().isBoolean(),
-  body('phone_number').optional().matches(/^\(\d{3}\) \d{3}-\d{4}$/),
-  body('postal_code').optional().matches(/^\d{5}(-\d{4})?$/),
+exports.validateService = [
+  body('name').notEmpty().withMessage('Name is required'),
+  body('description').notEmpty().withMessage('Description is required'),
+  body('categoryId').notEmpty().withMessage('Category ID is required').isInt().withMessage('Category ID must be an integer'),
+  body('street_address').notEmpty().withMessage('Street address is required'),
+  body('city').notEmpty().withMessage('City is required'),
+  body('state').notEmpty().withMessage('State is required'),
+  body('postal_code').notEmpty().withMessage('Postal code is required'),
+  body('country').notEmpty().withMessage('Country is required'),
+  body('phone_number').notEmpty().withMessage('Phone number is required'),
 ];
-
-module.exports = { validateService };
