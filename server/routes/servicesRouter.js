@@ -75,14 +75,14 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         longitude: coords.longitude,
         location: sequelize.fn('ST_MakePoint', coords.longitude, coords.latitude),
         categoryId,
-        street_address,
+        street_address: street_address || null, // Allow null if not provided
         city,
         state,
-        postal_code,
+        postal_code: postal_code || null, // Allow null if not provided
         country,
-        phone_number,
-        website: website || null,
-        hours: hours || null,
+        phone_number: phone_number || null, // Allow null if not provided
+        website: website || null, // Allow null if not provided
+        hours: hours || null, // Allow null if not provided
         is_halal_certified,
         image_url: imageUrl,
       }, { transaction: t });

@@ -158,10 +158,8 @@ const AddServiceForm = () => {
   
     const formDataToSubmit = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      // Append data if it's not empty or if it's a mandatory field
-      if (value || ['name', 'description', 'categoryId', 'street_address', 'city', 'state', 'postal_code', 'country', 'phone_number'].includes(key)) {
-        formDataToSubmit.append(key, value);
-      }
+      // Always append the data, even if it's an empty string for optional fields
+      formDataToSubmit.append(key, value);
     });
   
     // Append image if it exists and has passed validation checks
