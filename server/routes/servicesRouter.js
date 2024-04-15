@@ -55,9 +55,6 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       is_halal_certified,
     } = req.body;
 
-    // Map categoryId to category_id
-    const category_id = categoryId;
-
     // Validate each part of the address
     if (!isValidStreetAddress(street_address)) {
       return res.status(400).json({ message: 'Invalid street address format' });
@@ -72,7 +69,7 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       return res.status(400).json({ message: 'Invalid postal code format. Use either 5-digit or zip+4 format.' });
     }
 
-    const categoryInstance = await Category.findByPk(category_id);
+    const categoryInstance = await Category.findByPk(categoryId);
     if (!categoryInstance) {
       return res.status(400).json({ message: 'Invalid category ID' });
     }
@@ -96,7 +93,7 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         description,
         latitude: coords.latitude,
         longitude: coords.longitude,
-        category_id,
+        categoryId,
         street_address,
         city,
         state,
@@ -109,7 +106,7 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         average_rating: 0,
         review_count: 0,
         image_url: imageUrl,
-      }, { transaction: t });
+      }, { transaction: t })
       logger.info('Created service:', createdService.get({ plain: true }));
       return createdService;
     });
