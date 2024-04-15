@@ -1,112 +1,14 @@
 const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../db/sequelize');
 
-module.exports = (sequelize, models) => {
-  class Service extends Model {
-    static associate(models) {
-      // Define association here
-      Service.belongsTo(models.Category, {
-        foreignKey: 'categoryId',
-        as: 'category'
-      });
-    }
-  }
+class Service extends Model {}
 
-  Service.init({
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    latitude: {
-      type: DataTypes.DECIMAL(10, 8),
-      allowNull: false,
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(11, 8),
-      allowNull: false,
-    },
-    location: {
-      type: DataTypes.GEOGRAPHY('POINT'),
-      allowNull: true,
-    },
-    dateAdded: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      field: 'date_added',
-    },
-    categoryId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: 'categories',
-        key: 'id',
-      },
-      onDelete: 'CASCADE',
-      onUpdate: 'CASCADE',
-      field: 'category_id',
-    },
-    streetAddress: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'street_address',
-    },
-    city: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    state: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    postalCode: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'postal_code',
-    },
-    country: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    phoneNumber: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      field: 'phone_number',
-    },
-    website: DataTypes.STRING,
-    hours: DataTypes.STRING,
-    isHalalCertified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'is_halal_certified',
-    },
-    averageRating: {
-      type: DataTypes.FLOAT,
-      defaultValue: 0,
-      field: 'average_rating',
-    },
-    reviewCount: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
-      field: 'review_count',
-    },
-    imageUrl: {
-      type: DataTypes.STRING,
-      field: 'image_url',
-    },
-  }, {
-    sequelize,
-    modelName: 'Service',
-    tableName: 'services',
-    timestamps: false,
-    underscored: true,
-  });
+Service.init({
+  // attributes
+}, {
+  sequelize,
+  modelName: 'Service'
+  // other options
+});
 
-  return Service;
-};
+module.exports = Service;
