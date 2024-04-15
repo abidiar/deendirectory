@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { validationResult } = require('express-validator');
 const multer = require('multer');
 const { convertCityStateToCoords } = require('../utils/locationUtils');
 const { uploadImage } = require('../utils/imageUpload');
@@ -10,13 +10,27 @@ const logger = require('../utils/logger');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-function isValidUSAddress(address) {
-  const regex = /^\d{1,6}\s[a-zA-Z0-9\s,'-]{3,40},\s[a-zA-Z\s]{2,20},\s[A-Z]{2}\s\d{5}$/;
-  return regex.test(address);
+function isValidStreetAddress(streetAddress) {
+  const regex = /^\d{1,6}\s[a-zA-Z0-9\s.'-]{3,40}$/;
+  return regex.test(streetAddress);
+}
+
+function isValidCity(city) {
+  const regex = /^[a-zA-Z\s]{2,50}$/;
+  return regex.test(city);
+}
+
+function isValidState(state) {
+  const regex = /^[A-Z]{2}$/;
+  return regex.test(state);
+}
+
+function isValidPostalCode(postalCode) {
+  const regex = /^\d{5}(-\d{4})?$/;
+  return regex.test(postalCode);
 }
 
 router.post('/add', upload.single('image'), validateService, async (req, res) => {
-  // Log the received request body
   logger.info('Received request data:', req.body);
 
   const errors = validationResult(req);
@@ -41,8 +55,18 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       is_halal_certified,
     } = req.body;
 
-    if (!isValidUSAddress(`${street_address}, ${city}, ${state} ${postal_code}`)) {
-      return res.status(400).json({ message: 'Invalid address format' });
+    // Validate each part of the address
+    if (!isValidStreetAddress(street_address)) {
+      return res.status(400).json({ message: 'Invalid street address format' });
+    }
+    if (!isValidCity(city)) {
+      return res.status(400).json({ message: 'Invalid city format' });
+    }
+    if (!isValidState(state)) {
+      return res.status(400).json({ message: 'Invalid state format. Use state abbreviations, e.g., NY for New York.' });
+    }
+    if (!isValidPostalCode(postal_code)) {
+      return res.status(400).json({ message: 'Invalid postal code format. Use either 5-digit or zip+4 format.' });
     }
 
     const categoryInstance = await Category.findByPk(category_id);
@@ -57,45 +81,38 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
 
     let imageUrl;
     if (req.file) {
-      try {
-        imageUrl = await uploadImage(req.file);
-      } catch (uploadError) {
+      imageUrl = await uploadImage(req.file).catch(uploadError => {
         logger.error('Error uploading image:', uploadError);
-        return res.status(500).json({ error: 'Error uploading image', details: uploadError.message });
-      }
+        throw new Error('Error uploading image');
+      });
     }
 
     const service = await sequelize.transaction(async (t) => {
-      const createdService = await Service.create(
-        {
-          name,
-          description,
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          category_id,
-          street_address,
-          city,
-          state,
-          postal_code,
-          country,
-          phone_number,
-          website,
-          hours,
-          is_halal_certified,
-          average_rating: 0,
-          review_count: 0,
-          image_url: imageUrl,
-        },
-        { transaction: t }
-      );
-      // Log the newly created service
+      const createdService = await Service.create({
+        name,
+        description,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        category_id,
+        street_address,
+        city,
+        state,
+        postal_code,
+        country,
+        phone_number,
+        website,
+        hours,
+        is_halal_certified,
+        average_rating: 0,
+        review_count: 0,
+        image_url: imageUrl,
+      }, { transaction: t });
       logger.info('Created service:', createdService.get({ plain: true }));
       return createdService;
     });
 
     res.status(201).json(service);
   } catch (error) {
-    // Log any errors during service creation
     logger.error('Error during service creation:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
