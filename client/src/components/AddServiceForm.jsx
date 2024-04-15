@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import MaskedInput from 'react-text-mask';
 import Tooltip from './Tooltip';
-import { isErrored } from 'stream';
 
 const AddServiceForm = () => {
   const navigate = useNavigate();
@@ -16,7 +15,7 @@ const AddServiceForm = () => {
   const [formData, setFormData] = useState({
     name: businessName,
     description: '',
-    category_id: '',
+    categoryId: '', // Updated to use categoryId
     street_address: '',
     city: '',
     state: '',
@@ -148,18 +147,15 @@ const AddServiceForm = () => {
     e.preventDefault();
     if (validateForm()) {
       setIsSubmitting(true);
-  
       try {
-        const submissionData = new FormData();
+        const formDataToSubmit = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
-          submissionData.append(key, value);
+          formDataToSubmit.append(key, value);
         });
-  
         if (image) {
-          submissionData.append('image', image);
+          formDataToSubmit.append('image', image);
         }
-  
-        await axios.post(`${backendUrl}/api/services/add`, submissionData);
+        await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit);
         setSuccessMessage('Business added successfully!');
         setTimeout(() => {
           navigate('/services');
@@ -217,28 +213,28 @@ const AddServiceForm = () => {
           )}
         </div>
         <div>
-  <label htmlFor="category_id" className="block text-sm font-medium text-gray-700">
-    Category
-  </label>
-  <select
-    id="category_id"
-    name="category_id"
-    value={formData.category_id}
-    onChange={handleChange}
-    className={`mt-1 block w-full border ${formErrors.category_id ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-    required
-  >
-    <option value="">Select a category</option>
-    {categories.map((category) => (
-      <option key={category.id} value={category.id}>
-        {category.name}
-      </option>
-    ))}
-  </select>
-  {formErrors.category_id && (
-    <span className="text-red-500 text-sm">{formErrors.category_id}</span>
-  )}
-</div>
+        <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">
+            Category
+          </label>
+          <select
+            id="categoryId"
+            name="categoryId"
+            value={formData.categoryId}
+            onChange={handleChange}
+            className={`mt-1 block w-full border ${formErrors.categoryId ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+            required
+            >
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          {formErrors.categoryId && (
+            <span className="text-red-500 text-sm">{formErrors.categoryId}</span>
+          )}
+        </div>
         <div>
           <label htmlFor="street_address" className="block text-sm font-medium text-gray-700">
             Street Address
@@ -426,7 +422,7 @@ const AddServiceForm = () => {
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
-      </form>
+        </form>
       {formErrors.submit && <p className="text-red-500 mt-4">{formErrors.submit}</p>}
     </div>
   );

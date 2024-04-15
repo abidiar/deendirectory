@@ -48,6 +48,8 @@ module.exports = (sequelize, models) => {
         model: 'categories',
         key: 'id',
       },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
       field: 'category_id',
     },
     streetAddress: {
