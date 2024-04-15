@@ -43,7 +43,7 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
     const {
       name,
       description,
-      category_id,
+      categoryId,
       city,
       state,
       street_address,
@@ -54,6 +54,9 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       hours,
       is_halal_certified,
     } = req.body;
+
+    // Map categoryId to category_id
+    const category_id = categoryId;
 
     // Validate each part of the address
     if (!isValidStreetAddress(street_address)) {
