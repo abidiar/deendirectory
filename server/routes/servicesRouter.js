@@ -16,8 +16,12 @@ function isValidUSAddress(address) {
 }
 
 router.post('/add', upload.single('image'), validateService, async (req, res) => {
+  // Log the received request body
+  logger.info('Received request data:', req.body);
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    logger.error('Validation errors:', errors.array());
     return res.status(400).json({ errors: errors.array() });
   }
 
@@ -84,12 +88,15 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         },
         { transaction: t }
       );
+      // Log the newly created service
+      logger.info('Created service:', createdService.get({ plain: true }));
       return createdService;
     });
 
     res.status(201).json(service);
   } catch (error) {
-    logger.error('Error during request processing:', error);
+    // Log any errors during service creation
+    logger.error('Error during service creation:', error);
     res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
