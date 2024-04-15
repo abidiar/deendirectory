@@ -159,7 +159,10 @@ const AddServiceForm = () => {
     try {
       const formDataToSubmit = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        formDataToSubmit.append(key, value);
+        // Only append non-empty values or mandatory fields
+        if (value || ['name', 'description', 'categoryId', 'street_address', 'city', 'state', 'postal_code', 'country', 'phone_number'].includes(key)) {
+          formDataToSubmit.append(key, value);
+        }
       });
   
       if (image) {
@@ -180,7 +183,7 @@ const AddServiceForm = () => {
       }, 2000); // Delay the navigation by 2 seconds
     } catch (error) {
       console.error('Error adding service:', error);
-      setFormErrors({ submit: 'An error occurred while adding the service.' });
+      setFormErrors({ ...formErrors, submit: error.response.data.message || 'An error occurred while adding the service.' });
     } finally {
       setIsSubmitting(false);
       console.log('Form submission completed');

@@ -100,8 +100,8 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         postal_code,
         country,
         phone_number,
-        website,
-        hours,
+        website: website || null, // Handle optional fields
+        hours: hours || null,
         is_halal_certified,
         average_rating: 0,
         review_count: 0,
