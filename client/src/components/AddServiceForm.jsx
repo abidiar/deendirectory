@@ -135,17 +135,15 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   console.log('Submitting Form with Data:', formData);
   if (!validateForm()) {
-      console.log('Form validation failed');
-      return;
+    console.log('Form validation failed');
+    return;
   }
 
   setIsSubmitting(true);
   const formDataToSubmit = new FormData();
   Object.entries(formData).forEach(([key, value]) => {
-      // Convert camelCase to snake_case for the backend
-      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-      formDataToSubmit.append(snakeKey, value);
-      console.log(`Appended ${snakeKey}:`, value);
+    formDataToSubmit.append(key, value);
+    console.log(`Appended ${key}:`, value);
   });
   if (image) {
       formDataToSubmit.append('image', image);

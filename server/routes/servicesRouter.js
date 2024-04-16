@@ -52,11 +52,6 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       is_halal_certified,
     } = req.body;
 
-  // Additional validations for required fields before creating a service
-  if (!name || !description || !categoryId || !city || !state || !street_address || !postal_code || !country || !phone_number) {
-    return res.status(400).json({ message: 'All required fields must be provided' });
-  }
-
     const coords = await convertCityStateToCoords(city, state);
     if (!coords) {
       return res.status(400).json({ message: 'Unable to convert city and state to coordinates' });
@@ -75,14 +70,14 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         longitude: coords.longitude,
         location: sequelize.fn('ST_MakePoint', coords.longitude, coords.latitude),
         categoryId,
-        street_address: street_address || null, // Allow null if not provided
+        street_address,
         city,
         state,
-        postal_code: postal_code || null, // Allow null if not provided
+        postal_code,
         country,
-        phone_number: phone_number || null, // Allow null if not provided
-        website: website || null, // Allow null if not provided
-        hours: hours || null, // Allow null if not provided
+        phone_number,
+        website,
+        hours,
         is_halal_certified,
         image_url: imageUrl,
       }, { transaction: t });
@@ -90,7 +85,19 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
 
     res.status(201).json(service);
   } catch (error) {
-    res.status(500).json({ error: 'Internal server error', details: error.message });
+    if (error.name === 'SequelizeValidationError') {
+      const validationErrors = error.errors.map((err) => ({
+        field: err.path,
+        message: err.message,
+      }));
+      res.status(400).json({ errors: validationErrors });
+    } else if (error.name === 'SequelizeDatabaseError') {
+      // Handle database errors
+      res.status(500).json({ error: 'Database error', details: error.message });
+    } else {
+      // Handle other errors
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
   }
 });
 
