@@ -10,26 +10,6 @@ const logger = require('../utils/logger');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-function isValidStreetAddress(streetAddress) {
-  const regex = /^\d{1,6}\s[a-zA-Z0-9\s.'-]{3,40}$/;
-  return regex.test(streetAddress);
-}
-
-function isValidCity(city) {
-  const regex = /^[a-zA-Z\s]{2,50}$/;
-  return regex.test(city);
-}
-
-function isValidState(state) {
-  const regex = /^[A-Z]{2}$/;
-  return regex.test(state);
-}
-
-function isValidPostalCode(postalCode) {
-  const regex = /^\d{5}(-\d{4})?$/;
-  return regex.test(postalCode);
-}
-
 router.post('/add', upload.single('image'), validateService, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -93,10 +73,12 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       res.status(400).json({ errors: validationErrors });
     } else if (error.name === 'SequelizeDatabaseError') {
       // Handle database errors
-      res.status(500).json({ error: 'Database error', details: error.message });
+      logger.error('Database error:', error);
+      res.status(500).json({ error: 'Database error', details: 'An error occurred while interacting with the database.' });
     } else {
       // Handle other errors
-      res.status(500).json({ error: 'Internal server error', details: error.message });
+      logger.error('Internal server error:', error);
+      res.status(500).json({ error: 'Internal server error', details: 'An unexpected error occurred.' });
     }
   }
 });

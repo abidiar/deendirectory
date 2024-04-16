@@ -241,15 +241,15 @@ const handleSubmit = async (e) => {
     Street Address
   </label>
   <input
-    type="text"
-    id="streetAddress"
-    name="streetAddress"
-    value={formData.streetAddress}
-    onChange={handleChange}
-    className={`mt-1 block w-full p-2 ${formErrors.streetAddress ? 'border-red-500' : 'border-gray-300'}`}
-    required
-  />
-  {formErrors.streetAddress && (
+  type="text"
+  id="street_address"
+  name="street_address"
+  value={formData.street_address}
+  onChange={handleChange}
+  className={`mt-1 block w-full p-2 ${formErrors.street_address ? 'border-red-500' : 'border-gray-300'}`}
+  required
+/>
+  {formErrors.street_address && (
     <p className="text-red-500 text-xs mt-1">{formErrors.streetAddress}</p>
   )}
 </div>
