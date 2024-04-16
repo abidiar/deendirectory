@@ -142,8 +142,9 @@ const handleSubmit = async (e) => {
   setIsSubmitting(true);
   const formDataToSubmit = new FormData();
   Object.entries(formData).forEach(([key, value]) => {
-    formDataToSubmit.append(key, value);
-    console.log(`Appended ${key}:`, value);
+    const camelCaseKey = key.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+    formDataToSubmit.append(camelCaseKey, value);
+    console.log(`Appended ${camelCaseKey}:`, value);
   });
   if (image) {
       formDataToSubmit.append('image', image);
