@@ -23,13 +23,13 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       categoryId,
       city,
       state,
-      street_address,
-      postal_code,
+      streetAddress,
+      postalCode,
       country,
-      phone_number,
+      phoneNumber,
       website,
       hours,
-      is_halal_certified,
+      isHalalCertified,
     } = req.body;
 
     const coords = await convertCityStateToCoords(city, state);
@@ -50,15 +50,15 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         longitude: coords.longitude,
         location: sequelize.fn('ST_MakePoint', coords.longitude, coords.latitude),
         categoryId,
-        street_address,
+        streetAddress,
         city,
         state,
-        postal_code,
+        postalCode,
         country,
-        phone_number,
+        phoneNumber,
         website,
         hours,
-        is_halal_certified,
+        isHalalCertified,
         image_url: imageUrl,
       }, { transaction: t });
     });
