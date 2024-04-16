@@ -105,8 +105,11 @@ const AddServiceForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
+    const isValid = validateForm();
+    
+    if (!isValid) {
       console.log('Form validation failed');
+      // Optionally scroll to the first error or highlight fields
       return;
     }
 
@@ -141,23 +144,23 @@ const AddServiceForm = () => {
       )}
   
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Business Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className={`mt-1 block w-full border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            required
-          />
-          {formErrors.name && (
-            <span className="text-red-500 text-sm">{formErrors.name}</span>
-          )}
-        </div>
+      <div>
+  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+    Business Name
+  </label>
+  <input
+    type="text"
+    id="name"
+    name="name"
+    value={formData.name}
+    onChange={handleChange}
+    className={`mt-1 block w-full border ${formErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+    required
+  />
+  {formErrors.name && (
+    <span className="text-red-500 text-sm">{formErrors.name}</span>
+  )}
+</div>
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
             Description
