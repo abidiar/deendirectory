@@ -9,12 +9,12 @@ const initialFormData = {
   name: '',
   description: '',
   categoryId: '',
-  streetAddress: '',
+  street_address: '',  // Updated field name to match the backend
   city: '',
   state: '',
-  postalCode: '',
+  postal_code: '',    // Updated field name to match the backend
   country: '',
-  phoneNumber: '',
+  phone_number: '',   // Updated field name to match the backend
   website: '',
   hours: '',
   isHalalCertified: false,
@@ -92,14 +92,13 @@ const AddServiceForm = () => {
     if (!formData.name.trim()) errors.name = 'Business name is required';
     if (!formData.description.trim()) errors.description = 'Description is required';
     if (!formData.categoryId) errors.categoryId = 'Category is required';
-    if (!formData.streetAddress.trim()) errors.streetAddress = 'Street address is required';
+    if (!formData.street_address.trim()) errors.street_address = 'Street address is required';
     if (!formData.city.trim()) errors.city = 'City is required';
     if (!formData.state.trim()) errors.state = 'State is required';
-    if (!formData.postalCode.trim()) errors.postalCode = 'Postal code is required';
+    if (!formData.postal_code.trim()) errors.postal_code = 'Postal code is required';
     if (!formData.country.trim()) errors.country = 'Country is required';
-    if (!formData.phoneNumber.trim()) errors.phoneNumber = 'Phone number is required';
+    if (!formData.phone_number.trim()) errors.phone_number = 'Phone number is required';
 
-    console.log(errors);  // Check the output here
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -110,7 +109,6 @@ const AddServiceForm = () => {
     
     if (!isValid) {
       console.log('Form validation failed');
-      // Optionally scroll to the first error or highlight fields
       return;
     }
 
