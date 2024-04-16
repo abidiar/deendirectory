@@ -202,22 +202,22 @@ const AddServiceForm = () => {
           )}
         </div>
         <div>
-          <label htmlFor="street_address" className="block text-sm font-medium text-gray-700">
-            Street Address
-          </label>
-          <input
-            type="text"
-            id="street_address"
-            name="street_address"
-            value={formData.street_address}
-            onChange={handleChange}
-            className={`mt-1 block w-full border ${formErrors.street_address ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
-            required
-          />
-          {formErrors.street_address && (
-            <span className="text-red-500 text-sm">{formErrors.street_address}</span>
-          )}
-        </div>
+  <label htmlFor="streetAddress" className="block text-sm font-medium text-gray-700">
+    Street Address
+  </label>
+  <input
+    type="text"
+    id="streetAddress"
+    name="streetAddress"
+    value={formData.streetAddress}
+    onChange={handleChange}
+    className={`mt-1 block w-full p-2 ${formErrors.streetAddress ? 'border-red-500' : 'border-gray-300'}`}
+    required
+  />
+  {formErrors.streetAddress && (
+    <p className="text-red-500 text-xs mt-1">{formErrors.streetAddress}</p>
+  )}
+</div>
         <div>
           <label htmlFor="city" className="block text-sm font-medium text-gray-700">
             City
