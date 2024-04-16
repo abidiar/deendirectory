@@ -52,10 +52,10 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       is_halal_certified,
     } = req.body;
 
-    // Additional validations for address components
-    if (!isValidStreetAddress(street_address) || !isValidCity(city) || !isValidState(state) || !isValidPostalCode(postal_code)) {
-      return res.status(400).json({ message: 'Invalid address format' });
-    }
+  // Additional validations for required fields before creating a service
+  if (!name || !description || !categoryId || !city || !state || !street_address || !postal_code || !country || !phone_number) {
+    return res.status(400).json({ message: 'All required fields must be provided' });
+  }
 
     const coords = await convertCityStateToCoords(city, state);
     if (!coords) {

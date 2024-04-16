@@ -111,36 +111,35 @@ const AddServiceForm = () => {
     const errors = {};
   
     // Perform form validation
-    if (!formData.name) {
+    if (!formData.name.trim()) {
       errors.name = 'Business name is required';
     }
-    if (!formData.description) {
+    if (!formData.description.trim()) {
       errors.description = 'Description is required';
     }
     if (!formData.categoryId) {
       errors.categoryId = 'Category is required';
     }
-    if (!formData.street_address) {
+    if (!formData.street_address.trim()) {
       errors.street_address = 'Street address is required';
     }
-    if (!formData.city) {
+    if (!formData.city.trim()) {
       errors.city = 'City is required';
     }
-    if (!formData.state) {
+    if (!formData.state.trim()) {
       errors.state = 'State is required';
     }
-    if (!formData.postal_code) {
+    if (!formData.postal_code.trim()) {
       errors.postal_code = 'Postal code is required';
     }
-    if (!formData.country) {
+    if (!formData.country.trim()) {
       errors.country = 'Country is required';
     }
-    if (!formData.phone_number) {
+    if (!formData.phone_number.trim()) {
       errors.phone_number = 'Phone number is required';
     }
   
     setFormErrors(errors);
-    console.log('Form validation errors:', errors);
     return Object.keys(errors).length === 0;
   };
 
