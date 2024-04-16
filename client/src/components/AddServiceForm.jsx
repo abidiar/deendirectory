@@ -15,16 +15,16 @@ const AddServiceForm = () => {
   const [formData, setFormData] = useState({
     name: businessName,
     description: '',
-    categoryId: '', // Updated to use categoryId
-    street_address: '',
+    categoryId: '',
+    streetAddress: '', // Changed from street_address
     city: '',
     state: '',
-    postal_code: '',
+    postalCode: '', // Changed from postal_code
     country: '',
-    phone_number: '',
+    phoneNumber: '', // Changed from phone_number
     website: '',
     hours: '',
-    is_halal_certified: false,
+    isHalalCertified: false, // Change if necessary
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -63,11 +63,14 @@ const AddServiceForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
+      // Convert snake_case to camelCase for specific fields
+  const fieldName = name.replace(/_(\w)/g, (_, letter) => letter.toUpperCase())
+
+  setFormData((prevData) => ({
+    ...prevData,
+    [fieldName]: type === 'checkbox' ? checked : value,
+  }));
+};
 
   const handleImageChange = (e) => {
     const file = e.target.files ? e.target.files[0] : null;
@@ -155,11 +158,21 @@ const AddServiceForm = () => {
     console.log('Form is valid');
     setIsSubmitting(true);
   
+    // Create a new FormData object for multipart/form-data requests
     const formDataToSubmit = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      // Always append the data, even if it's an empty string for optional fields
-      formDataToSubmit.append(key, value);
-    });
+    // Append all form data entries with the updated keys to match Sequelize model
+    formDataToSubmit.append('name', formData.name);
+    formDataToSubmit.append('description', formData.description);
+    formDataToSubmit.append('categoryId', formData.categoryId);
+    formDataToSubmit.append('streetAddress', formData.street_address); // Updated key
+    formDataToSubmit.append('city', formData.city);
+    formDataToSubmit.append('state', formData.state);
+    formDataToSubmit.append('postalCode', formData.postal_code); // Updated key
+    formDataToSubmit.append('country', formData.country);
+    formDataToSubmit.append('phoneNumber', formData.phone_number); // Updated key
+    formDataToSubmit.append('website', formData.website || ''); // Default to empty string if not provided
+    formDataToSubmit.append('hours', formData.hours || ''); // Default to empty string if not provided
+    formDataToSubmit.append('isHalalCertified', formData.is_halal_certified);
   
     // Append image if it exists and has passed validation checks
     if (image) {
@@ -183,12 +196,12 @@ const AddServiceForm = () => {
       }, 2000); // Delay the navigation by 2 seconds
     } catch (error) {
       console.error('Error adding service:', error);
-      setFormErrors({ ...formErrors, submit: error.response.data.message || 'An error occurred while adding the service.' });
+      setFormErrors({ ...formErrors, submit: error.response?.data?.message || 'An error occurred while adding the service.' });
     } finally {
       setIsSubmitting(false);
       console.log('Form submission completed');
     }
-  };
+  };  
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
