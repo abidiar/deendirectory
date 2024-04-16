@@ -89,48 +89,87 @@ const AddServiceForm = () => {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.name.trim()) errors.name = 'Business name is required';
-    if (!formData.description.trim()) errors.description = 'Description is required';
-    if (!formData.categoryId) errors.categoryId = 'Category is required';
-    if (!formData.street_address.trim()) errors.street_address = 'Street address is required';
-    if (!formData.city.trim()) errors.city = 'City is required';
-    if (!formData.state.trim()) errors.state = 'State is required';
-    if (!formData.postal_code.trim()) errors.postal_code = 'Postal code is required';
-    if (!formData.country.trim()) errors.country = 'Country is required';
-    if (!formData.phone_number.trim()) errors.phone_number = 'Phone number is required';
+    if (!formData.name.trim()) {
+        errors.name = 'Business name is required';
+        console.log('Validation Error - Name:', formData.name);
+    }
+    if (!formData.description.trim()) {
+        errors.description = 'Description is required';
+        console.log('Validation Error - Description:', formData.description);
+    }
+    if (!formData.categoryId) {
+        errors.categoryId = 'Category is required';
+        console.log('Validation Error - Category ID:', formData.categoryId);
+    }
+    if (!formData.street_address.trim()) {
+        errors.street_address = 'Street address is required';
+        console.log('Validation Error - Street Address:', formData.street_address);
+    }
+    if (!formData.city.trim()) {
+        errors.city = 'City is required';
+        console.log('Validation Error - City:', formData.city);
+    }
+    if (!formData.state.trim()) {
+        errors.state = 'State is required';
+        console.log('Validation Error - State:', formData.state);
+    }
+    if (!formData.postal_code.trim()) {
+        errors.postal_code = 'Postal code is required';
+        console.log('Validation Error - Postal Code:', formData.postal_code);
+    }
+    if (!formData.country.trim()) {
+        errors.country = 'Country is required';
+        console.log('Validation Error - Country:', formData.country);
+    }
+    if (!formData.phone_number.trim()) {
+        errors.phone_number = 'Phone number is required';
+        console.log('Validation Error - Phone Number:', formData.phone_number);
+    }
 
+    console.log('Validation Errors:', errors);
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  };
+};
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const isValid = validateForm();
-    
-    if (!isValid) {
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log('Submitting Form with Data:', formData);
+  if (!validateForm()) {
       console.log('Form validation failed');
       return;
-    }
+  }
 
-    setIsSubmitting(true);
-    try {
-      const formDataToSubmit = new FormData();
-      Object.entries(formData).forEach(([key, value]) => formDataToSubmit.append(key, value));
-      if (image) formDataToSubmit.append('image', image);
+  setIsSubmitting(true);
+  const formDataToSubmit = new FormData();
+  Object.entries(formData).forEach(([key, value]) => {
+      // Convert camelCase to snake_case for the backend
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      formDataToSubmit.append(snakeKey, value);
+      console.log(`Appended ${snakeKey}:`, value);
+  });
+  if (image) {
+      formDataToSubmit.append('image', image);
+      console.log('Appended Image:', image);
+  }
 
+  try {
       const response = await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' }
       });
+      console.log('Server Response:', response.data);
       setSuccessMessage('Business added successfully!');
-      resetForm();  // Reset the form after successful submission
+      resetForm();
       setTimeout(() => navigate('/services'), 2000);
-    } catch (error) {
+  } catch (error) {
       console.error('Error adding service:', error);
-      setFormErrors(prevErrors => ({ ...prevErrors, submit: error.response?.data?.message || 'An error occurred while adding the service.' }));
-    } finally {
+      setFormErrors(prevErrors => ({
+          ...prevErrors,
+          submit: error.response?.data?.message || 'An error occurred while adding the service.'
+      }));
+  } finally {
       setIsSubmitting(false);
-    }
-  };
+  }
+};
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
