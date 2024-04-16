@@ -99,6 +99,7 @@ const AddServiceForm = () => {
     if (!formData.country.trim()) errors.country = 'Country is required';
     if (!formData.phoneNumber.trim()) errors.phoneNumber = 'Phone number is required';
 
+    console.log(errors);  // Check the output here
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
