@@ -5,6 +5,21 @@ import axios from 'axios';
 import MaskedInput from 'react-text-mask';
 import Tooltip from './Tooltip';
 
+const initialFormData = {
+  name: '',
+  description: '',
+  categoryId: '',
+  streetAddress: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  country: '',
+  phoneNumber: '',
+  website: '',
+  hours: '',
+  isHalalCertified: false,
+};
+
 const AddServiceForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,21 +27,7 @@ const AddServiceForm = () => {
   const businessName = searchParams.get('name') || '';
 
   const [categories, setCategories] = useState([]);
-  const [formData, setFormData] = useState({
-    name: businessName,
-    description: '',
-    categoryId: '',
-    streetAddress: '', // Changed from street_address
-    city: '',
-    state: '',
-    postalCode: '', // Changed from postal_code
-    country: '',
-    phoneNumber: '', // Changed from phone_number
-    website: '',
-    hours: '',
-    isHalalCertified: false, // Change if necessary
-  });
-
+  const [formData, setFormData] = useState({ ...initialFormData, name: businessName });
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [image, setImage] = useState(null);
@@ -37,8 +38,6 @@ const AddServiceForm = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/all-categories`);
-        console.log("Response data received:", response.data);
-        // Ensure response is an array before setting it to state
         if (Array.isArray(response.data)) {
           setCategories(response.data);
         } else {
@@ -46,162 +45,90 @@ const AddServiceForm = () => {
         }
       } catch (error) {
         console.error('Error fetching all categories:', error);
-        setCategories([]); // Fallback to an empty array in case of an error
+        setCategories([]);
       }
     };
 
     fetchCategories();
   }, [backendUrl]);
 
-  useEffect(() => {
-    return () => {
-      if (image) {
-        URL.revokeObjectURL(image);
-      }
-    };
-  }, [image]);
+  const resetForm = () => {
+    setFormData({ ...initialFormData, name: businessName });
+    setImage(null);
+    setFormErrors({});
+    setSuccessMessage('');
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-      // Convert snake_case to camelCase for specific fields
-  const fieldName = name.replace(/_(\w)/g, (_, letter) => letter.toUpperCase())
-
-  setFormData((prevData) => ({
-    ...prevData,
-    [fieldName]: type === 'checkbox' ? checked : value,
-  }));
-};
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files ? e.target.files[0] : null;
-    const maxFileSize = 5 * 1024 * 1024; // 5 MB
-
-    if (file) {
-      if (file.size > maxFileSize) {
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          image: 'The file is too large. Please select a file smaller than 5MB.',
-        }));
-        return;
-      }
-
-      const img = new Image();
-      img.onload = () => {
-        const { width, height } = img;
-        if (width < 800 || height < 600) {
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            image: 'The image dimensions are too small. Minimum size is 800x600 pixels.',
-          }));
-        } else {
-          setImage(file);
-          setFormErrors((prevErrors) => ({ ...prevErrors, image: null }));
-        }
-        URL.revokeObjectURL(img.src);
-      };
-      img.onerror = () => {
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          image: 'There was an error loading the image.',
-        }));
-        URL.revokeObjectURL(img.src);
-      };
-      img.src = URL.createObjectURL(file);
+    if (file && file.size > 5 * 1024 * 1024) {  // 5 MB
+      setFormErrors(prevErrors => ({ ...prevErrors, image: 'The file is too large. Please select a file smaller than 5MB.' }));
+      return;
     }
+
+    const img = new Image();
+    img.onload = () => {
+      setImage(file);
+      setFormErrors(prevErrors => ({ ...prevErrors, image: null }));
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => {
+      setFormErrors(prevErrors => ({ ...prevErrors, image: 'There was an error loading the image.' }));
+      URL.revokeObjectURL(img.src);
+    };
+    img.src = URL.createObjectURL(file);
   };
 
   const validateForm = () => {
     const errors = {};
-  
-    // Perform form validation
-    if (!formData.name.trim()) {
-      errors.name = 'Business name is required';
-    }
-    if (!formData.description.trim()) {
-      errors.description = 'Description is required';
-    }
-    if (!formData.categoryId) {
-      errors.categoryId = 'Category is required';
-    }
-    if (!formData.street_address.trim()) {
-      errors.street_address = 'Street address is required';
-    }
-    if (!formData.city.trim()) {
-      errors.city = 'City is required';
-    }
-    if (!formData.state.trim()) {
-      errors.state = 'State is required';
-    }
-    if (!formData.postal_code.trim()) {
-      errors.postal_code = 'Postal code is required';
-    }
-    if (!formData.country.trim()) {
-      errors.country = 'Country is required';
-    }
-    if (!formData.phone_number.trim()) {
-      errors.phone_number = 'Phone number is required';
-    }
-  
+    if (!formData.name.trim()) errors.name = 'Business name is required';
+    if (!formData.description.trim()) errors.description = 'Description is required';
+    if (!formData.categoryId) errors.categoryId = 'Category is required';
+    if (!formData.streetAddress.trim()) errors.streetAddress = 'Street address is required';
+    if (!formData.city.trim()) errors.city = 'City is required';
+    if (!formData.state.trim()) errors.state = 'State is required';
+    if (!formData.postalCode.trim()) errors.postalCode = 'Postal code is required';
+    if (!formData.country.trim()) errors.country = 'Country is required';
+    if (!formData.phoneNumber.trim()) errors.phoneNumber = 'Phone number is required';
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted');
-  
     if (!validateForm()) {
       console.log('Form validation failed');
       return;
     }
-  
-    console.log('Form is valid');
+
     setIsSubmitting(true);
-  
-    // Create a new FormData object for multipart/form-data requests
-    const formDataToSubmit = new FormData();
-    // Append all form data entries with the updated keys to match Sequelize model
-    formDataToSubmit.append('name', formData.name);
-    formDataToSubmit.append('description', formData.description);
-    formDataToSubmit.append('categoryId', formData.categoryId);
-    formDataToSubmit.append('streetAddress', formData.street_address); // Updated key
-    formDataToSubmit.append('city', formData.city);
-    formDataToSubmit.append('state', formData.state);
-    formDataToSubmit.append('postalCode', formData.postal_code); // Updated key
-    formDataToSubmit.append('country', formData.country);
-    formDataToSubmit.append('phoneNumber', formData.phone_number); // Updated key
-    formDataToSubmit.append('website', formData.website || ''); // Default to empty string if not provided
-    formDataToSubmit.append('hours', formData.hours || ''); // Default to empty string if not provided
-    formDataToSubmit.append('isHalalCertified', formData.is_halal_certified);
-  
-    // Append image if it exists and has passed validation checks
-    if (image) {
-      formDataToSubmit.append('image', image);
-    }
-  
     try {
+      const formDataToSubmit = new FormData();
+      Object.entries(formData).forEach(([key, value]) => formDataToSubmit.append(key, value));
+      if (image) formDataToSubmit.append('image', image);
+
       const response = await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
-  
-      console.log('Response from server:', response.data);
-  
       setSuccessMessage('Business added successfully!');
-  
-      setTimeout(() => {
-        console.log('Navigating to /services');
-        navigate('/services');
-      }, 2000); // Delay the navigation by 2 seconds
+      resetForm();  // Reset the form after successful submission
+      setTimeout(() => navigate('/services'), 2000);
     } catch (error) {
       console.error('Error adding service:', error);
-      setFormErrors({ ...formErrors, submit: error.response?.data?.message || 'An error occurred while adding the service.' });
+      setFormErrors(prevErrors => ({ ...prevErrors, submit: error.response?.data?.message || 'An error occurred while adding the service.' }));
     } finally {
       setIsSubmitting(false);
-      console.log('Form submission completed');
     }
-  };  
+  };
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
