@@ -85,20 +85,28 @@ function SearchResultsPage() {
             <Typography color="error">{searchError}</Typography>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {searchResults.map((business) => (
-                <Card
-                  key={business.id}
-                  id={business.id}
-                  title={business.name}
-                  description={business.description}
-                  imageUrl={business.imageUrl}
-                  averageRating={business.average_rating}
-                  isHalalCertified={business.is_halal_certified}
-                  category={business.category}
-                  phoneNumber={business.phone_number}
-                  hours={business.hours}
-                />
-              ))}
+{
+  searchResults.map((business) => {
+    // Ensure that isHalalCertified is a boolean
+    const categoryString = renderCategory(business.category);
+    const isHalalCertified = categoryString.toLowerCase() === 'food' && business.is_halal_certified;
+
+    return (
+      <Card
+        key={business.id}
+        id={business.id}
+        title={business.name}
+        description={business.description}
+        imageUrl={business.imageUrl}
+        averageRating={business.average_rating}
+        isHalalCertified={isHalalCertified} // Now correctly passing a boolean
+        category={categoryString}
+        phoneNumber={business.phone_number}
+        hours={business.hours}
+      />
+    );
+  })
+}
             </div>
           )}
           {totalPages > 1 && (
