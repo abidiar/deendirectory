@@ -7,6 +7,7 @@ import { LocationContext } from '../context/LocationContext';
 import { fetchSearchResults } from '../services/searchService';
 import Skeleton from './Skeleton';
 import ErrorBoundary from './ErrorBoundary';
+import { Helmet } from 'react-helmet'; // Assuming you have React Helmet installed
 import { Box, Typography } from '@mui/material';
 import { debounce } from 'lodash';
 
@@ -27,6 +28,7 @@ function SearchResultsPage() {
   const latitude = query.get('latitude');
   const longitude = query.get('longitude');
 
+  // Fetching data with debouncing to minimize unnecessary calls
   const fetchData = async () => {
     setIsLoading(true);
     setSearchError(null);
@@ -39,7 +41,7 @@ function SearchResultsPage() {
         longitude
       );
       setSearchResults(data);
-      setTotalPages(Math.ceil(totalRows / 10));
+      setTotalPages(Math.ceil(totalRows / 10)); // Adjust the number per page as needed
     } catch (error) {
       setSearchError('Failed to load search results.');
     } finally {
@@ -58,16 +60,23 @@ function SearchResultsPage() {
     debouncedFetchData();
   }, [debouncedFetchData]);
 
+  // Handling page changes without full page reloads
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
-  const renderCategory = (category) => {
-    return typeof category === 'string' ? category : category?.name || 'N/A';
-  };
+  // Dynamic title and meta tags for SEO
+  const seoTitle = `Search Results for ${searchTerm || 'All'} | DeenDirectory`;
+  const seoDescription = `Find the best local Muslim businesses and services related to ${searchTerm || 'everything'} on DeenDirectory.`;
 
   return (
     <ErrorBoundary>
+      {/* SEO Optimization */}
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+      </Helmet>
+
       <Box className="container mx-auto p-4 lg:flex">
         <div className="lg:flex-grow lg:pr-4">
           {isLoading ? (
@@ -75,24 +84,21 @@ function SearchResultsPage() {
           ) : searchError ? (
             <Typography color="error">{searchError}</Typography>
           ) : (
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-  {searchResults.map((business) => (
-    <Card
-      key={business.id}
-      id={business.id}
-      title={business.name}
-      description={business.description}
-      imageUrl={business.imageUrl}
-    averageRating={business.average_rating}
-    isHalalCertified={
-      renderCategory(business.category).toLowerCase() === 'food' &&
-      business.is_halal_certified
-    }
-    category={renderCategory(business.category)}
-    phoneNumber={business.phone_number}
-    hours={business.hours}
-                    />
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {searchResults.map((business) => (
+                <Card
+                  key={business.id}
+                  id={business.id}
+                  title={business.name}
+                  description={business.description}
+                  imageUrl={business.imageUrl}
+                  averageRating={business.average_rating}
+                  isHalalCertified={business.is_halal_certified}
+                  category={business.category}
+                  phoneNumber={business.phone_number}
+                  hours={business.hours}
+                />
+              ))}
             </div>
           )}
           {totalPages > 1 && (
@@ -100,6 +106,7 @@ function SearchResultsPage() {
               count={totalPages}
               page={currentPage}
               onChange={handlePageChange}
+              aria-label="Search results pagination" // Accessibility improvement
             />
           )}
         </div>
