@@ -694,21 +694,24 @@ app.get('/api/category/:id/businesses', async (req, res) => {
   }
 
   const query = `
-    SELECT
-      id,
-      name,
-      description,
-      latitude,
-      longitude,
-      location
-    FROM services
-    WHERE category_id = :categoryId
+  SELECT 
+    id, 
+    name, 
+    description, 
+    latitude, 
+    longitude, 
+    location,
+    image_url
+  FROM 
+    services
+  WHERE 
+    category_id = :categoryId
     AND ST_DWithin(
       ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::GEOGRAPHY,
       ST_SetSRID(ST_MakePoint(:floatLng, :floatLat), 4326)::GEOGRAPHY,
       40233.6
     )
-  `;
+`;
 
   try {
     const result = await sequelize.query(query, {
