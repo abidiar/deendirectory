@@ -56,11 +56,11 @@ function BusinessPage() {
         <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
           {/* Business Image */}
           <div className="flex justify-center mb-4">
-                <img
-                    src={business.image_url || '/path/to/placeholder-image.jpg'}
-                    alt={`Profile for ${business.name}`}
-                    className="rounded-lg h-40 w-40 sm:h-48 sm:w-48 object-cover"
-                />
+          <img
+    src={business.image_url || '/path/to/placeholder-image.jpg'}
+    alt={`Profile for ${business.name}`}
+    className="rounded-lg h-40 w-40 sm:h-48 sm:w-48 object-cover"
+/>
             </div>
           
           {/* Business Details */}
