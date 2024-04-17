@@ -27,33 +27,40 @@ function CategoryPage() {
     useEffect(() => {
         // Only fetch businesses if userLocation is set
         if (userLocation && categoryId) {
-            fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/businesses?lat=${userLocation.latitude}&lng=${userLocation.longitude}`)
-                .then(response => response.json())
-                .then(data => setBusinesses(data))
-                .catch(error => console.error('Error:', error));
+          fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/businesses?lat=${userLocation.latitude}&lng=${userLocation.longitude}`)
+            .then(response => response.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                setBusinesses(data);
+              } else {
+                console.error('API response is not an array:', data);
+                setBusinesses([]);
+              }
+            })
+            .catch(error => console.error('Error:', error));
         }
-    }, [categoryId, userLocation]);
+      }, [categoryId, userLocation]);
 
     return (
         <div className="bg-neutral-light">
             <div className="container mx-auto py-10">
                 <h1 className="text-4xl font-heading font-bold text-primary-dark mb-8">Services in Category</h1>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {businesses.map((business) => (
-                        <Card
-                            key={business.id}
-                            id={business.id}
-                            title={business.name}
-                            description={business.description}
-                            imageUrl={business.imageUrl}
-                            averageRating={business.average_rating}
-                            isHalalCertified={business.is_halal_certified}
-                            category={business.category?.name}
-                            phoneNumber={business.phone_number}
-                            hours={business.hours}
-                        />
-                    ))}
-                </div>
+        {Array.isArray(businesses) && businesses.map((business) => (
+          <Card
+            key={business.id}
+            id={business.id}
+            title={business.name}
+            description={business.description}
+            imageUrl={business.image_url} // Use the correct property name from the API response
+            averageRating={business.average_rating}
+            isHalalCertified={business.is_halal_certified}
+            category={business.category?.name}
+            phoneNumber={business.phone_number}
+            hours={business.hours}
+          />
+        ))}
+      </div>
             </div>
         </div>
     );
