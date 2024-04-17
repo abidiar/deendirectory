@@ -147,9 +147,9 @@ const handleSubmit = async (e) => {
     console.log(`Appended ${camelCaseKey}:`, value);
   });
   if (image) {
-      formDataToSubmit.append('image', image);
-      console.log('Appended Image:', image);
-  }
+    formDataToSubmit.append('image', image, image.name);
+    console.log('Appended Image:', image);
+}
 
   try {
       const response = await axios.post(`${backendUrl}/api/services/add`, formDataToSubmit, {
