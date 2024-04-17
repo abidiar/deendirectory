@@ -84,12 +84,13 @@ function SearchResultsPage() {
           ) : searchError ? (
             <Typography color="error">{searchError}</Typography>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-{
-  searchResults.map((business) => {
-    // Ensure that isHalalCertified is a boolean
-    const categoryString = renderCategory(business.category);
-    const isHalalCertified = categoryString.toLowerCase() === 'food' && business.is_halal_certified;
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+  {searchResults.map((business) => {
+    // Directly use the category from the business object
+    const category = business.category;
+
+    // Determine if the business is Halal certified. Ensure the comparison is made against a string.
+    const isHalalCertified = typeof category === 'string' && category.toLowerCase() === 'food' && business.is_halal_certified;
 
     return (
       <Card
@@ -99,15 +100,14 @@ function SearchResultsPage() {
         description={business.description}
         imageUrl={business.imageUrl}
         averageRating={business.average_rating}
-        isHalalCertified={isHalalCertified} // Now correctly passing a boolean
-        category={categoryString}
+        isHalalCertified={isHalalCertified}
+        category={category} // directly pass the category string
         phoneNumber={business.phone_number}
         hours={business.hours}
       />
     );
-  })
-}
-            </div>
+  })}
+</div>
           )}
           {totalPages > 1 && (
             <Pagination
