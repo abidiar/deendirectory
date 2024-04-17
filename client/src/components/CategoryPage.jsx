@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import Card from './Card';
 
 function CategoryPage() {
     const { categoryId } = useParams();
@@ -39,24 +40,18 @@ function CategoryPage() {
                 <h1 className="text-4xl font-heading font-bold text-primary-dark mb-8">Services in Category</h1>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {businesses.map((business) => (
-                        <div key={business.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                            <Link to={`/business/${business.id}`} className="no-underline text-neutral-dark">
-                                {business.imageUrl && (
-                                    <div className="relative h-48">
-                                        <img
-                                            src={business.imageUrl}
-                                            alt={business.name}
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
-                                    </div>
-                                )}
-                                <div className="p-6">
-                                    <h3 className="text-2xl font-heading font-bold text-primary-dark mb-4">{business.name}</h3>
-                                    <p className="text-sm text-neutral-dark mb-3">{business.description}</p>
-                                    {/* Additional details and interactive elements can be added here */}
-                                </div>
-                            </Link>
-                        </div>
+                        <Card
+                            key={business.id}
+                            id={business.id}
+                            title={business.name}
+                            description={business.description}
+                            imageUrl={business.imageUrl}
+                            averageRating={business.average_rating}
+                            isHalalCertified={business.is_halal_certified}
+                            category={business.category?.name}
+                            phoneNumber={business.phone_number}
+                            hours={business.hours}
+                        />
                     ))}
                 </div>
             </div>
