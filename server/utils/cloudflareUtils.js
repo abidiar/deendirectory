@@ -41,6 +41,7 @@ async function uploadToCloudflare(fileBuffer, originalName) {
 
         // Construct the URL for accessing the uploaded image
         const imageUrl = `https://imagedelivery.net/${cloudflareAccountHash}/${imageId}/public`;
+        console.log('Cloudflare Upload Successful. Image URL:', imageUrl); // Add logging statement
 
         return imageUrl;
     } catch (error) {

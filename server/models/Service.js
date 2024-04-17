@@ -107,7 +107,7 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
         field: 'image_url',
-      },
+    },
     },
     {
       sequelize,

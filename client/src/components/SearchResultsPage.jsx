@@ -76,13 +76,13 @@ function SearchResultsPage() {
             <Typography color="error">{searchError}</Typography>
           ) : (
             <div className="space-y-4">
-                {searchResults.map((business) => (
+{searchResults.map((business) => (
     <Card
-    key={business.id}
-    id={business.id}
-    title={business.name}
-    description={business.description}
-    imageUrl={business.image_url}
+        key={business.id}
+        id={business.id}
+        title={business.name}
+        description={business.description}
+        imageUrl={business.imageUrl} // Update the field name to match the model
                         averageRating={business.average_rating}
                         isHalalCertified={
                             renderCategory(business.category).toLowerCase() === 'food' &&

@@ -59,7 +59,7 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
         website,
         hours,
         isHalalCertified,
-        image_url: imageUrl,
+        imageUrl: imageUrl, // Update the field name to match the model
       }, { transaction: t });
     });
 
