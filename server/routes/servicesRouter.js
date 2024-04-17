@@ -2,7 +2,7 @@ const express = require('express');
 const { validationResult } = require('express-validator');
 const multer = require('multer');
 const { convertCityStateToCoords } = require('../utils/locationUtils');
-const { uploadImage } = require('../utils/imageUpload');
+const { uploadToCloudflare } = require('../utils/cloudflareUtils');
 const { Service, Category, sequelize } = require('../models');
 const { validateService } = require('../validations/serviceValidation');
 const logger = require('../utils/logger');
@@ -39,7 +39,7 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
 
     let imageUrl = null;
     if (req.file) {
-      imageUrl = await uploadImage(req.file);
+        imageUrl = await uploadToCloudflare(req.file.buffer, req.file.originalname);
     }
 
     const service = await sequelize.transaction(async (t) => {

@@ -76,23 +76,23 @@ function SearchResultsPage() {
             <Typography color="error">{searchError}</Typography>
           ) : (
             <div className="space-y-4">
-              {searchResults.map((business) => (
-                <Card
-                  key={business.id}
-                  id={business.id}
-                  title={business.name}
-                  description={business.description}
-                  imageUrl={business.image_url}
-                  averageRating={business.average_rating}
-                  isHalalCertified={
-                    renderCategory(business.category).toLowerCase() === 'food' &&
-                    business.is_halal_certified
-                  }
-                  category={renderCategory(business.category)}
-                  phoneNumber={business.phone_number}
-                  hours={business.hours}
-                />
-              ))}
+                {searchResults.map((business) => (
+                    <Card
+                        key={business.id}
+                        id={business.id}
+                        title={business.name}
+                        description={business.description}
+                        imageUrl={business.image_url}
+                        averageRating={business.average_rating}
+                        isHalalCertified={
+                            renderCategory(business.category).toLowerCase() === 'food' &&
+                            business.is_halal_certified
+                        }
+                        category={renderCategory(business.category)}
+                        phoneNumber={business.phone_number}
+                        hours={business.hours}
+                    />
+                ))}
             </div>
           )}
           {totalPages > 1 && (

@@ -19,12 +19,12 @@ const Card = ({ id, title, description, imageUrl, averageRating, isHalalCertifie
 
   return (
     <Link to={`/business/${id}`} className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-<img
-  className="w-full h-48 object-cover"
-  src={imageUrl || placeholderImage}
-  alt={`Image for ${title}`}
-  onError={handleImageError}
-  loading="lazy"
+        <img
+            className="w-full h-48 object-cover"
+            src={imageUrl || placeholderImage}
+            alt={`Image for ${title}`}
+            onError={handleImageError}
+            loading="lazy"
 />
       <div className="p-4">
         <h3 className="text-lg font-bold mb-2 text-gray-800">{truncateText(title, 50)}</h3>
