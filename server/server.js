@@ -701,7 +701,7 @@ app.get('/api/category/:id/businesses', async (req, res) => {
     latitude, 
     longitude, 
     location,
-    imageUrl
+    image_url
   FROM 
     services
   WHERE 
