@@ -7,30 +7,30 @@ function CategoryPage() {
     const [userLocation, setUserLocation] = useState(null);
 
     useEffect(() => {
-      // Get user's location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation({ latitude, longitude });
-          },
-          error => {
-            console.error('Error getting location:', error);
-          }
-        );
-      } else {
-        console.error('Geolocation is not supported by this browser.');
-      }
+        // Get user's location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const { latitude, longitude } = position.coords;
+                    setUserLocation({ latitude, longitude });
+                },
+                error => {
+                    console.error('Error getting location:', error);
+                }
+            );
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
     }, []);
 
     useEffect(() => {
-      // Only fetch businesses if userLocation is set
-      if (userLocation && categoryId) {
-        fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/businesses?lat=${userLocation.latitude}&lng=${userLocation.longitude}`)
-          .then(response => response.json())
-          .then(data => setBusinesses(data))
-          .catch(error => console.error('Error:', error));
-      }
+        // Only fetch businesses if userLocation is set
+        if (userLocation && categoryId) {
+            fetch(`https://deendirectorybackend.onrender.com/api/category/${categoryId}/businesses?lat=${userLocation.latitude}&lng=${userLocation.longitude}`)
+                .then(response => response.json())
+                .then(data => setBusinesses(data))
+                .catch(error => console.error('Error:', error));
+        }
     }, [categoryId, userLocation]);
 
     return (
@@ -41,6 +41,15 @@ function CategoryPage() {
                     {businesses.map((business) => (
                         <div key={business.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                             <Link to={`/business/${business.id}`} className="no-underline text-neutral-dark">
+                                {business.imageUrl && (
+                                    <div className="relative h-48">
+                                        <img
+                                            src={business.imageUrl}
+                                            alt={business.name}
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                        />
+                                    </div>
+                                )}
                                 <div className="p-6">
                                     <h3 className="text-2xl font-heading font-bold text-primary-dark mb-4">{business.name}</h3>
                                     <p className="text-sm text-neutral-dark mb-3">{business.description}</p>
