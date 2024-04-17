@@ -75,14 +75,14 @@ function SearchResultsPage() {
           ) : searchError ? (
             <Typography color="error">{searchError}</Typography>
           ) : (
-            <div className="space-y-4">
-{searchResults.map((business) => (
-  <Card
-    key={business.id}
-    id={business.id}
-    title={business.name}
-    description={business.description}
-    imageUrl={business.imageUrl}
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+  {searchResults.map((business) => (
+    <Card
+      key={business.id}
+      id={business.id}
+      title={business.name}
+      description={business.description}
+      imageUrl={business.imageUrl}
     averageRating={business.average_rating}
     isHalalCertified={
       renderCategory(business.category).toLowerCase() === 'food' &&
