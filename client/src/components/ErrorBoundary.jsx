@@ -15,11 +15,26 @@ class ErrorBoundary extends React.Component {
     console.error('Error:', error, errorInfo);
   }
 
+  handleGoBack = () => {
+    this.setState({ hasError: false });
+    window.history.back();
+  };
+
+  handleGoHome = () => {
+    this.setState({ hasError: false });
+    window.location.href = '/';
+  };
+
   render() {
     if (this.state.hasError) {
-      return <h1>Something went wrong.</h1>;
+      return (
+        <div className="error-boundary">
+          <h2>Oops! Something went wrong.</h2>
+          <button onClick={this.handleGoBack}>Go Back</button>
+          <button onClick={this.handleGoHome}>Go to Home Page</button>
+        </div>
+      );
     }
-
     return this.props.children;
   }
 }

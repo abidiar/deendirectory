@@ -99,12 +99,12 @@ function App() {
 
   return (
     <LocationProvider>
-      <ErrorBoundary>
         <BrowserRouter>
           <div className="flex flex-col min-h-screen bg-neutral-light">
             <Navbar onSignOut={handleSignOut} onSearch={handleSearch} />
             <main className="flex-grow">
               <Suspense fallback={<div>Loading...</div>}>
+              <ErrorBoundary>
                 <Routes>
                   <Route path="/" element={<MainLayout />} />
                   <Route path="/business-sign-in" element={<BusinessSignIn />} />
@@ -132,13 +132,13 @@ function App() {
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route path="/license" element={<License />} />
                 </Routes>
+                </ErrorBoundary>
               </Suspense>
             </main>
             <Footer />
           </div>
         </BrowserRouter>
         {showSignOutPopup && <SignOutPopup onClose={closeSignOutPopup} />}
-      </ErrorBoundary>
     </LocationProvider>
   );
 }
