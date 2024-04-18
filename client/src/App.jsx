@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import SignOutPopup from './components/SignOutPopup';
 import ClaimOrAddBusiness from './components/ClaimOrAddBusiness';
+import ClaimBusinessPage from './components/ClaimBusinessPage';
 
 // Lazy loading components
 const MainLayout = lazy(() => import('./components/MainLayout'));
@@ -25,6 +26,7 @@ const SubcategoryPage = lazy(() => import('./components/SubcategoryPage'));
 const CategoryPage = lazy(() => import('./components/CategoryPage'));
 const AddServicePage = lazy(() => import('./pages/AddServicePage'));
 const AddServiceForm = lazy(() => import('./components/AddServiceForm')); // New import
+const ClaimBusinessPage = lazy(() => import('./components/ClaimBusinessPage')); 
 
 // New pages
 const AboutUs = lazy(() => import('./pages/AboutUs'));
@@ -123,6 +125,7 @@ function App() {
                   <Route path="/category/:categoryId" element={<CategoryPage />} />
                   <Route path="/add-service" element={<AddServicePage />} />
                   <Route path="/add-service-form" element={<AddServiceForm />} /> {/* New route */}
+                  <Route path="/claim-business/:id" element={<ClaimBusinessPage />} />
 
                   {/* New routes */}
                   <Route path="/about-us" element={<AboutUs />} />

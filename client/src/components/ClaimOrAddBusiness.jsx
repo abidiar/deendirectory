@@ -58,9 +58,7 @@ const ClaimOrAddBusiness = () => {
   };
 
   const handleClaimBusiness = (businessId) => {
-    setSelectedBusinessId(businessId);
-    setShowClaimForm(true);
-    setFeedbackMessage(''); // Clear any existing messages
+    navigate(`/claim-business/${businessId}`); // This will navigate to the new route
   };
 
   const handleAddBusiness = () => {
