@@ -12,6 +12,8 @@ const Navbar = ({ onSearch, backendUrl }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const businessDropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -42,6 +44,9 @@ const Navbar = ({ onSearch, backendUrl }) => {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
         setIsMobileMenuOpen(false);
       }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setIsUserDropdownOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -63,6 +68,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
 
   const toggleBusinessDropdown = () => {
     setIsBusinessDropdownOpen(prevState => !prevState);
+  };
+
+  const toggleUserDropdown = () => {
+    setIsUserDropdownOpen(prevState => !prevState);
   };
 
   return (
@@ -131,62 +140,93 @@ const Navbar = ({ onSearch, backendUrl }) => {
           </div>
         </div>
         {isMobileMenuOpen && (
-          <div className="md:hidden" ref={mobileMenuRef}>
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {user ? (
-                <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
-                  Sign Out
-                </button>
-              ) : (
-                <>
-                  <EnhancedLink
-                    to="/user-sign-in"
-                    className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-in' ? 'bg-gray-100' : ''}`}
-                  >
-                    User Sign In
-                  </EnhancedLink>
-                  <EnhancedLink
-                    to="/user-sign-up"
-                    className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-up' ? 'bg-gray-100' : ''}`}
-                  >
-                    User Sign Up
-                  </EnhancedLink>
-                </>
-              )}
-              <div className="relative">
-                <button
-                  onClick={handleMobileBusinessDropdownToggle}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+  <div className="md:hidden" ref={mobileMenuRef}>
+    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+      <div className="relative" ref={userDropdownRef}>
+        <button
+          onClick={toggleUserDropdown}
+          className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+        >
+          Users
+          <svg
+            className={`ml-1 w-4 h-4 inline-block transition-transform duration-200 ${
+              isUserDropdownOpen ? 'transform rotate-180' : ''
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+          </svg>
+        </button>
+        {isUserDropdownOpen && (
+          <div className="mt-2 py-2 w-full bg-white rounded shadow-xl">
+            {user ? (
+              <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
+                Sign Out
+              </button>
+            ) : (
+              <>
+                <EnhancedLink
+                  to="/user-sign-in"
+                  className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-in' ? 'bg-gray-100' : ''}`}
                 >
-                  For Businesses
-                  <svg
-                    className={`ml-1 w-4 h-4 inline-block transition-transform duration-200 ${
-                      isBusinessDropdownOpen ? 'transform rotate-180' : ''
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                  </svg>
-                </button>
-                {isBusinessDropdownOpen && (
-                  <div className="mt-2 py-2 w-full bg-white rounded shadow-xl">
-                    <EnhancedLink to="/business-sign-in" className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-in' ? 'bg-gray-100' : ''}`}>
-                      Business Sign In
-                    </EnhancedLink>
-                    <EnhancedLink to="/business-sign-up" className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-up' ? 'bg-gray-100' : ''}`}>
-                      Business Sign Up
-                    </EnhancedLink>
-                    <EnhancedLink to="/claim-or-add-business" className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/claim-or-add-business' ? 'bg-gray-100' : ''}`}>
-                      Claim or Add Your Business
-                    </EnhancedLink>
-                  </div>
-                )}
-              </div>
-            </div>
+                  User Sign In
+                </EnhancedLink>
+                <EnhancedLink
+                  to="/user-sign-up"
+                  className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-up' ? 'bg-gray-100' : ''}`}
+                >
+                  User Sign Up
+                </EnhancedLink>
+              </>
+            )}
           </div>
         )}
+      </div>
+      <div className="relative">
+        <button
+          onClick={toggleBusinessDropdown}
+          className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+        >
+          For Businesses
+          <svg
+            className={`ml-1 w-4 h-4 inline-block transition-transform duration-200 ${
+              isBusinessDropdownOpen ? 'transform rotate-180' : ''
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+          </svg>
+        </button>
+        {isBusinessDropdownOpen && (
+          <div className="mt-2 py-2 w-full bg-white rounded shadow-xl">
+            <EnhancedLink
+              to="/business-sign-in"
+              className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-in' ? 'bg-gray-100' : ''}`}
+            >
+              Business Sign In
+            </EnhancedLink>
+            <EnhancedLink
+              to="/business-sign-up"
+              className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/business-sign-up' ? 'bg-gray-100' : ''}`}
+            >
+              Business Sign Up
+            </EnhancedLink>
+            <EnhancedLink
+              to="/claim-or-add-business"
+              className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/claim-or-add-business' ? 'bg-gray-100' : ''}`}
+            >
+              Claim or Add Your Business
+            </EnhancedLink>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
       </nav>
       <div className="w-full md:hidden mt-2 px-4">
         <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
