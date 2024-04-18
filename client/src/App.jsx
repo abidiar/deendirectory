@@ -7,7 +7,6 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import SignOutPopup from './components/SignOutPopup';
 import ClaimOrAddBusiness from './components/ClaimOrAddBusiness';
-import ClaimBusinessPage from './components/ClaimBusinessPage';
 
 // Lazy loading components
 const MainLayout = lazy(() => import('./components/MainLayout'));
