@@ -140,45 +140,45 @@ const Navbar = ({ onSearch, backendUrl }) => {
           </div>
         </div>
         {isMobileMenuOpen && (
-  <div className="md:hidden" ref={mobileMenuRef}>
-    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-      <div className="relative" ref={userDropdownRef}>
-        <button
-          onClick={toggleUserDropdown}
-          className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-        >
-          Users
-          <svg
-            className={`ml-1 w-4 h-4 inline-block transition-transform duration-200 ${
-              isUserDropdownOpen ? 'transform rotate-180' : ''
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-          </svg>
-        </button>
-        {isUserDropdownOpen && (
-          <div className="mt-2 py-2 w-full bg-white rounded shadow-xl">
-            {user ? (
-              <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
-                Sign Out
+        <div className="md:hidden" ref={mobileMenuRef}>
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <div className="relative" ref={userDropdownRef}>
+              <button
+                onClick={toggleUserDropdown}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+              >
+                Users
+                <svg
+                  className={`ml-1 w-4 h-4 inline-block transition-transform duration-200 ${
+                    isUserDropdownOpen ? 'transform rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
               </button>
-            ) : (
-              <>
-                <EnhancedLink
-                  to="/user-sign-in"
-                  className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-in' ? 'bg-gray-100' : ''}`}
-                >
-                  User Sign In
-                </EnhancedLink>
-                <EnhancedLink
-                  to="/user-sign-up"
-                  className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-up' ? 'bg-gray-100' : ''}`}
-                >
-                  User Sign Up
-                </EnhancedLink>
+              {isUserDropdownOpen && (
+                <div className="mt-2 py-2 w-full bg-white rounded shadow-xl">
+                  {user ? (
+                    <button onClick={handleLogout} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
+                      Sign Out
+                    </button>
+                  ) : (
+                    <>
+                      <EnhancedLink
+                        to="/user-sign-in"
+                        className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-in' ? 'bg-gray-100' : ''}`}
+                      >
+                        User Sign In
+                      </EnhancedLink>
+                      <EnhancedLink
+                        to="/user-sign-up"
+                        className={`block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 ${location.pathname === '/user-sign-up' ? 'bg-gray-100' : ''}`}
+                      >
+                        User Sign Up
+                      </EnhancedLink>
               </>
             )}
           </div>
