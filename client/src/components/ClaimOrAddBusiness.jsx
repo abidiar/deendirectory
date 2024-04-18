@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import ClaimBusinessForm from './ClaimBusinessForm'; // Import the ClaimBusinessForm component
 
 const API_BASE_URL = import.meta.env.REACT_APP_BACKEND_URL || 'https://deendirectorybackend.onrender.com';
 
@@ -10,6 +11,9 @@ const ClaimOrAddBusiness = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showClaimForm, setShowClaimForm] = useState(false);
+  const [selectedBusinessId, setSelectedBusinessId] = useState(null);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
 
   useEffect(() => {
     return () => {
@@ -24,7 +28,7 @@ const ClaimOrAddBusiness = () => {
       } else {
         setSearchResults([]);
       }
-    }, 300); // Debounce delay in ms
+    }, 300);
 
     return () => {
       clearTimeout(handler);
@@ -41,8 +45,7 @@ const ClaimOrAddBusiness = () => {
         }
       } catch (error) {
         if (isMountedRef.current) {
-          console.error('Error searching for business:', error.response?.data || error.message);
-          alert('Error searching for business');
+          setFeedbackMessage('Error searching for business: ' + error.message);
         }
       } finally {
         if (isMountedRef.current) {
@@ -54,12 +57,22 @@ const ClaimOrAddBusiness = () => {
     }
   };
 
-  const handleClaimBusiness = async (businessId) => {
-    navigate(`/claim-business/${businessId}`);
+  const handleClaimBusiness = (businessId) => {
+    setSelectedBusinessId(businessId);
+    setShowClaimForm(true);
+    setFeedbackMessage(''); // Clear any existing messages
   };
 
   const handleAddBusiness = () => {
     navigate(`/add-service?name=${encodeURIComponent(searchTerm)}`);
+  };
+
+  // Call this function when the claim is successfully submitted
+  const onClaimSuccess = (message) => {
+    setShowClaimForm(false);
+    setFeedbackMessage(message);
+    // Optionally, re-search to refresh the list
+    performSearch();
   };
 
   return (
@@ -67,6 +80,15 @@ const ClaimOrAddBusiness = () => {
       <h1 className="text-3xl font-bold mb-6">Claim or Add Your Business</h1>
 
       {isLoading && <p>Loading...</p>}
+      {feedbackMessage && <p className="mb-4">{feedbackMessage}</p>}
+
+      {showClaimForm && (
+        <ClaimBusinessForm
+          businessId={selectedBusinessId}
+          onClose={() => setShowClaimForm(false)}
+          onSuccess={onClaimSuccess}
+        />
+      )}
 
       <div className="flex mb-8">
         <input

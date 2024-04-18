@@ -5,6 +5,7 @@ const { convertCityStateToCoords } = require('../utils/locationUtils');
 const { uploadToCloudflare } = require('../utils/cloudflareUtils');
 const { Service, Category, sequelize } = require('../models');
 const { validateService } = require('../validations/serviceValidation');
+const { checkBusinessOwnership, sendClaimVerification } = require('../utils/claimUtils'); // These would be utilities you create for claim verification.
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -80,6 +81,28 @@ router.post('/add', upload.single('image'), validateService, async (req, res) =>
       logger.error('Internal server error:', error);
       res.status(500).json({ error: 'Internal server error', details: 'An unexpected error occurred.' });
     }
+  }
+});
+
+// Route to initiate a claim
+router.post('/claim-business/:id', async (req, res) => {
+  const { userId, proof } = req.body; // `userId` is the ID of the user claiming the business. `proof` is whatever proof of ownership the user submits.
+  const businessId = req.params.id;
+
+  try {
+    // Validate the user's claim
+    const isValidClaim = await checkBusinessOwnership(userId, businessId, proof);
+    if (!isValidClaim) {
+      return res.status(403).json({ message: 'Invalid claim attempt' });
+    }
+
+    // Send a claim verification to the business email
+    await sendClaimVerification(userId, businessId);
+    
+    res.status(200).json({ message: 'Claim request received. Please check the business email for verification.' });
+  } catch (error) {
+    logger.error('Error claiming business:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
