@@ -52,17 +52,25 @@ function BusinessPage() {
 
       <div className="container mx-auto p-4 sm:p-6">
         <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6">
-          <div className="flex justify-center mb-4">
-            <img
-              src={business.imageUrl || '/path/to/placeholder-image.jpg'}
-              alt={`Profile for ${business.name}`}
-              className="rounded-lg h-40 w-40 sm:h-48 sm:w-48 object-cover"
-            />
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-bold text-center text-primary-dark mb-4">{business.name}</h1>
-          <p className="text-sm sm:text-base text-gray-600 mb-4">{business.description}</p>
-          <div className="text-center mt-4">
-            <Link to="/" className="text-primary hover:underline">Back to directory</Link>
+          <div className="flex flex-col md:flex-row">
+            <div className="md:w-1/3 md:pr-6">
+              <img
+                src={business.imageUrl || '/path/to/placeholder-image.jpg'}
+                alt={`Profile for ${business.name}`}
+                className="rounded-lg w-full h-auto object-cover mb-4 md:mb-0"
+              />
+            </div>
+            <div className="md:w-2/3">
+              <h1 className="text-2xl sm:text-4xl font-bold text-primary-dark mb-4">{business.name}</h1>
+              <p className="text-sm sm:text-base text-gray-600 mb-4">{business.description}</p>
+              <div className="mb-4">
+                <p className="text-sm sm:text-base text-gray-600"><strong>Address:</strong> {business.streetAddress}, {business.city}, {business.state} {business.postalCode}, {business.country}</p>
+                <p className="text-sm sm:text-base text-gray-600"><strong>Phone:</strong> {business.phoneNumber}</p>
+              </div>
+              <div className="text-center md:text-left">
+                <Link to="/" className="text-primary hover:underline">Back to directory</Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
