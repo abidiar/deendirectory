@@ -144,7 +144,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                   onClick={toggleUserDropdown}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
                 >
-                  Users
+                  For Users
                   <svg
                     className={`ml-1 w-4 h-4 inline-block transition-transform duration-200 ${
                       isUserDropdownOpen ? 'transform rotate-180' : ''
