@@ -4,6 +4,7 @@ import { supabase } from '../services/supabaseClient';
 import EnhancedLink from './EnhancedLink';
 import SearchBar from './SearchBar';
 
+
 const Navbar = ({ onSearch, backendUrl }) => {
   const navigate = useNavigate();
   const location = useLocation();
