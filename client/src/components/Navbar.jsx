@@ -152,101 +152,89 @@ const Navbar = ({ onSearch, backendUrl }) => {
                 )}
               </div>
             </div>
-            <div className="md:hidden">
-              <button
-                onClick={() => toggleDropdown('mobile')}
-                className="text-lg text-gray-600 hover:text-gray-800 flex items-center"
-              >
-                Menu
-                <FontAwesomeIcon
-                  icon={isDropdownOpen.mobile ? faChevronUp : faChevronDown}
-                  className="ml-1"
-                />
-              </button>
+            <div className="md:hidden flex space-x-4">
+              <div className="relative">
+                <button
+                  onClick={() => toggleDropdown('user')}
+                  className="text-lg text-gray-600 hover:text-gray-800 flex items-center"
+                >
+                  For Users
+                  <FontAwesomeIcon
+                    icon={isDropdownOpen.user ? faChevronUp : faChevronDown}
+                    className="ml-1"
+                  />
+                </button>
+                {isDropdownOpen.user && (
+                  <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl text-center" ref={dropdownRefs.user}>
+                    {user ? (
+                      <button onClick={handleLogout} className="block w-full px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
+                        Sign Out
+                      </button>
+                    ) : (
+                      <>
+                        <EnhancedLink
+                          to="/user-sign-in"
+                          className="block w-full px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                          onClick={() => closeDropdown('user')}
+                        >
+                          User Sign In
+                        </EnhancedLink>
+                        <EnhancedLink
+                          to="/user-sign-up"
+                          className="block w-full px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                          onClick={() => closeDropdown('user')}
+                        >
+                          User Sign Up
+                        </EnhancedLink>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => toggleDropdown('business')}
+                  className="text-lg text-gray-600 hover:text-gray-800 flex items-center"
+                >
+                  For Businesses
+                  <FontAwesomeIcon
+                    icon={isDropdownOpen.business ? faChevronUp : faChevronDown}
+                    className="ml-1"
+                  />
+                </button>
+                {isDropdownOpen.business && (
+                  <div className="absolute right-0 z-50 mt-2 py-2 w-48 bg-white rounded shadow-xl text-center" ref={dropdownRefs.business}>
+                    <EnhancedLink
+                      to="/business-sign-in"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                      onClick={() => closeDropdown('business')}
+                    >
+                      Business Sign In
+                    </EnhancedLink>
+                    <EnhancedLink
+                      to="/business-sign-up"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                      onClick={() => closeDropdown('business')}
+                    >
+                      Business Sign Up
+                    </EnhancedLink>
+                    <EnhancedLink
+                      to="/claim-or-add-business"
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
+                      onClick={() => closeDropdown('business')}
+                    >
+                      Claim or Add Your Business
+                    </EnhancedLink>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-        {isDropdownOpen.mobile && (
-          <div className="md:hidden px-4 pt-2 pb-4" ref={dropdownRefs.mobile}>
-            <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
-            <div className="mt-4">
-              <button
-                onClick={() => toggleDropdown('user')}
-                className="text-lg text-gray-600 hover:text-gray-800 flex items-center"
-              >
-                For Users
-                <FontAwesomeIcon
-                  icon={isDropdownOpen.user ? faChevronUp : faChevronDown}
-                  className="ml-1"
-                />
-              </button>
-              {isDropdownOpen.user && (
-                <div className="mt-2 py-2 bg-white rounded shadow-xl text-center" ref={dropdownRefs.user}>
-                  {user ? (
-                    <button onClick={handleLogout} className="block w-full px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
-                      Sign Out
-                    </button>
-                  ) : (
-                    <>
-                      <EnhancedLink
-                        to="/user-sign-in"
-                        className="block w-full px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                        onClick={() => closeDropdown('user')}
-                      >
-                        User Sign In
-                      </EnhancedLink>
-                      <EnhancedLink
-                        to="/user-sign-up"
-                        className="block w-full px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                        onClick={() => closeDropdown('user')}
-                      >
-                        User Sign Up
-                      </EnhancedLink>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="mt-4">
-              <button
-                onClick={() => toggleDropdown('business')}
-                className="text-lg text-gray-600 hover:text-gray-800 flex items-center"
-              >
-                For Businesses
-                <FontAwesomeIcon
-                  icon={isDropdownOpen.business ? faChevronUp : faChevronDown}
-                  className="ml-1"
-                />
-              </button>
-              {isDropdownOpen.business && (
-                <div className="mt-2 py-2 bg-white rounded shadow-xl text-center" ref={dropdownRefs.business}>
-                  <EnhancedLink
-                    to="/business-sign-in"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                    onClick={() => closeDropdown('business')}
-                  >
-                    Business Sign In
-                  </EnhancedLink>
-                  <EnhancedLink
-                    to="/business-sign-up"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                    onClick={() => closeDropdown('business')}
-                  >
-                    Business Sign Up
-                  </EnhancedLink>
-                  <EnhancedLink
-                    to="/claim-or-add-business"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                    onClick={() => closeDropdown('business')}
-                  >
-                    Claim or Add Your Business
-                  </EnhancedLink>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </nav>
+      <div className="w-full md:hidden mt-2 px-4">
+        <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
+      </div>
     </header>
   );
 };
