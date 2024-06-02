@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
+import EnhancedLink from './EnhancedLink';
 import SearchBar from './SearchBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
@@ -68,9 +69,9 @@ const Navbar = ({ onSearch, backendUrl }) => {
       <nav className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <Link to="/" className="text-2xl font-bold text-primary-dark">
+            <EnhancedLink to="/" className="text-2xl font-bold text-primary-dark">
               DeenDirectory
-            </Link>
+            </EnhancedLink>
             <div className="hidden lg:block">
               <SearchBar onSearch={onSearch} backendUrl={backendUrl} />
             </div>
@@ -106,22 +107,22 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       </button>
                     ) : (
                       <>
-                        <Link
+                        <EnhancedLink
                           to="/user-sign-in"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                           role="menuitem"
                           onClick={() => closeDropdown('user')}
                         >
                           User Sign In
-                        </Link>
-                        <Link
+                        </EnhancedLink>
+                        <EnhancedLink
                           to="/user-sign-up"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                           role="menuitem"
                           onClick={() => closeDropdown('user')}
                         >
                           User Sign Up
-                        </Link>
+                        </EnhancedLink>
                       </>
                     )}
                   </div>
@@ -148,30 +149,30 @@ const Navbar = ({ onSearch, backendUrl }) => {
                     aria-labelledby="business-menu"
                     ref={dropdownRefs.business}
                   >
-                    <Link
+                    <EnhancedLink
                       to="/business-sign-in"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
                       onClick={() => closeDropdown('business')}
                     >
                       Business Sign In
-                    </Link>
-                    <Link
+                    </EnhancedLink>
+                    <EnhancedLink
                       to="/business-sign-up"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
                       onClick={() => closeDropdown('business')}
                     >
                       Business Sign Up
-                    </Link>
-                    <Link
+                    </EnhancedLink>
+                    <EnhancedLink
                       to="/claim-or-add-business"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
                       onClick={() => closeDropdown('business')}
                     >
                       Claim or Add Your Business
-                    </Link>
+                    </EnhancedLink>
                   </div>
                 )}
               </div>
@@ -271,22 +272,22 @@ const Navbar = ({ onSearch, backendUrl }) => {
                     </button>
                   ) : (
                     <>
-                      <Link
+                      <EnhancedLink
                         to="/user-sign-in"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                         role="menuitem"
                         onClick={() => closeDropdown('user')}
                       >
                         User Sign In
-                      </Link>
-                      <Link
+                      </EnhancedLink>
+                      <EnhancedLink
                         to="/user-sign-up"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                         role="menuitem"
                         onClick={() => closeDropdown('user')}
                       >
                         User Sign Up
-                      </Link>
+                      </EnhancedLink>
                     </>
                   )}
                 </div>
@@ -313,30 +314,30 @@ const Navbar = ({ onSearch, backendUrl }) => {
                   aria-labelledby="business-menu-mobile"
                   ref={dropdownRefs.business}
                 >
-                  <Link
+                  <EnhancedLink
                     to="/business-sign-in"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                     role="menuitem"
                     onClick={() => closeDropdown('business')}
                   >
                     Business Sign In
-                  </Link>
-                  <Link
+                  </EnhancedLink>
+                  <EnhancedLink
                     to="/business-sign-up"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                     role="menuitem"
                     onClick={() => closeDropdown('business')}
                   >
                     Business Sign Up
-                  </Link>
-                  <Link
+                  </EnhancedLink>
+                  <EnhancedLink
                     to="/claim-or-add-business"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                     role="menuitem"
                     onClick={() => closeDropdown('business')}
                   >
                     Claim or Add Your Business
-                  </Link>
+                  </EnhancedLink>
                 </div>
               )}
             </div>
