@@ -51,16 +51,19 @@ const Navbar = ({ onSearch, backendUrl }) => {
   }, []);
 
   const handleLogout = async () => {
+    console.log('Logout button clicked');
     await supabase.auth.signOut();
     setUser(null);
     navigate('/');
   };
 
   const toggleDropdown = (key) => {
+    console.log(`Toggling dropdown: ${key}`);
     setIsDropdownOpen((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const closeDropdown = (key) => {
+    console.log(`Closing dropdown: ${key}`);
     setIsDropdownOpen((prev) => ({ ...prev, [key]: false }));
   };
 
@@ -111,7 +114,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
                           to="/user-sign-in"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                           role="menuitem"
-                          onClick={() => closeDropdown('user')}
+                          onClick={() => {
+                            console.log('User Sign In clicked');
+                            closeDropdown('user');
+                          }}
                         >
                           User Sign In
                         </EnhancedLink>
@@ -119,7 +125,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
                           to="/user-sign-up"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                           role="menuitem"
-                          onClick={() => closeDropdown('user')}
+                          onClick={() => {
+                            console.log('User Sign Up clicked');
+                            closeDropdown('user');
+                          }}
                         >
                           User Sign Up
                         </EnhancedLink>
@@ -153,7 +162,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       to="/business-sign-in"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
-                      onClick={() => closeDropdown('business')}
+                      onClick={() => {
+                        console.log('Business Sign In clicked');
+                        closeDropdown('business');
+                      }}
                     >
                       Business Sign In
                     </EnhancedLink>
@@ -161,7 +173,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       to="/business-sign-up"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
-                      onClick={() => closeDropdown('business')}
+                      onClick={() => {
+                        console.log('Business Sign Up clicked');
+                        closeDropdown('business');
+                      }}
                     >
                       Business Sign Up
                     </EnhancedLink>
@@ -169,7 +184,10 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       to="/claim-or-add-business"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
-                      onClick={() => closeDropdown('business')}
+                      onClick={() => {
+                        console.log('Claim or Add Your Business clicked');
+                        closeDropdown('business');
+                      }}
                     >
                       Claim or Add Your Business
                     </EnhancedLink>
@@ -185,6 +203,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                 aria-controls="mobile-menu"
                 aria-expanded={isDropdownOpen.user || isDropdownOpen.business}
                 onClick={() => {
+                  console.log('Mobile menu button clicked');
                   setIsDropdownOpen((prev) => ({
                     user: !prev.user,
                     business: !prev.business,
