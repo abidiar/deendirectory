@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import EnhancedLink from './EnhancedLink';
@@ -48,6 +48,12 @@ const Navbar = ({ onSearch, backendUrl }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, []);
+
+  const handleLinkClick = useCallback((route) => {
+    console.log(`Link clicked for route: ${route}`);
+    closeDropdown('user');
+    closeDropdown('business');
   }, []);
 
   const handleLogout = async () => {
@@ -114,10 +120,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                           to="/user-sign-in"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                           role="menuitem"
-                          onClick={() => {
-                            console.log('User Sign In clicked');
-                            closeDropdown('user');
-                          }}
+                          onClick={() => handleLinkClick('/user-sign-in')}
                         >
                           User Sign In
                         </EnhancedLink>
@@ -125,10 +128,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                           to="/user-sign-up"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                           role="menuitem"
-                          onClick={() => {
-                            console.log('User Sign Up clicked');
-                            closeDropdown('user');
-                          }}
+                          onClick={() => handleLinkClick('/user-sign-up')}
                         >
                           User Sign Up
                         </EnhancedLink>
@@ -162,10 +162,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       to="/business-sign-in"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
-                      onClick={() => {
-                        console.log('Business Sign In clicked');
-                        closeDropdown('business');
-                      }}
+                      onClick={() => handleLinkClick('/business-sign-in')}
                     >
                       Business Sign In
                     </EnhancedLink>
@@ -173,10 +170,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       to="/business-sign-up"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
-                      onClick={() => {
-                        console.log('Business Sign Up clicked');
-                        closeDropdown('business');
-                      }}
+                      onClick={() => handleLinkClick('/business-sign-up')}
                     >
                       Business Sign Up
                     </EnhancedLink>
@@ -184,10 +178,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                       to="/claim-or-add-business"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                       role="menuitem"
-                      onClick={() => {
-                        console.log('Claim or Add Your Business clicked');
-                        closeDropdown('business');
-                      }}
+                      onClick={() => handleLinkClick('/claim-or-add-business')}
                     >
                       Claim or Add Your Business
                     </EnhancedLink>
@@ -295,7 +286,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                         to="/user-sign-in"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                         role="menuitem"
-                        onClick={() => closeDropdown('user')}
+                        onClick={() => handleLinkClick('/user-sign-in')}
                       >
                         User Sign In
                       </EnhancedLink>
@@ -303,7 +294,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                         to="/user-sign-up"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                         role="menuitem"
-                        onClick={() => closeDropdown('user')}
+                        onClick={() => handleLinkClick('/user-sign-up')}
                       >
                         User Sign Up
                       </EnhancedLink>
@@ -337,7 +328,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                     to="/business-sign-in"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                     role="menuitem"
-                    onClick={() => closeDropdown('business')}
+                    onClick={() => handleLinkClick('/business-sign-in')}
                   >
                     Business Sign In
                   </EnhancedLink>
@@ -345,7 +336,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                     to="/business-sign-up"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                     role="menuitem"
-                    onClick={() => closeDropdown('business')}
+                    onClick={() => handleLinkClick('/business-sign-up')}
                   >
                     Business Sign Up
                   </EnhancedLink>
@@ -353,7 +344,7 @@ const Navbar = ({ onSearch, backendUrl }) => {
                     to="/claim-or-add-business"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none"
                     role="menuitem"
-                    onClick={() => closeDropdown('business')}
+                    onClick={() => handleLinkClick('/claim-or-add-business')}
                   >
                     Claim or Add Your Business
                   </EnhancedLink>

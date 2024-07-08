@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const EnhancedLink = ({ to, children, onClick, ...props }) => {
   const navigate = useNavigate();
+  console.log(`EnhancedLink rendered with to=${to}`);  // Log when component renders
+
   const [style, setStyle] = useState({
     transition: 'all 0.3s ease',
     padding: '8px 12px',
@@ -14,44 +16,24 @@ const EnhancedLink = ({ to, children, onClick, ...props }) => {
     backgroundColor: 'transparent',
   });
 
-  const onMouseEnter = useCallback(() => {
-    setStyle(prevStyle => ({
-      ...prevStyle,
-      backgroundColor: '#f0f0f0',
-      color: '#102A43',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-    }));
-  }, []);
-
-  const onMouseLeave = useCallback(() => {
-    setStyle(prevStyle => ({
-      ...prevStyle,
-      backgroundColor: 'transparent',
-      color: '#233E8B',
-      boxShadow: 'none',
-    }));
-  }, []);
-
   const handleClick = useCallback((event) => {
+    console.log(`EnhancedLink clicked. Attempting to navigate to: ${to}`);
     event.preventDefault();
-    console.log(`EnhancedLink clicked. Navigating to: ${to}`);
     
     if (onClick) {
+      console.log('Calling provided onClick function');
       onClick(event);
     }
 
-    // Use a setTimeout to ensure the console.log is visible before navigation
-    setTimeout(() => {
-      navigate(to);
-    }, 100);
+    console.log('About to call navigate function');
+    navigate(to);
+    console.log('Navigate function called');
   }, [to, onClick, navigate]);
 
   return (
     <Link
       to={to}
       style={style}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       onClick={handleClick}
       {...props}
     >
